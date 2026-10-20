@@ -1,15 +1,6 @@
 import React, { useState } from 'react'
-import { useNavigate, useLocation, Link } from 'react-router-dom'
-import {
-  Lock,
-  Mail,
-  ArrowRight,
-  ShieldCheck,
-  Check,
-  AlertCircle,
-  Loader2,
-  KeyRound,
-} from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { Lock, Mail, ArrowRight, AlertCircle, Loader2, KeyRound, Building2 } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { useToast } from '@/hooks/use-toast'
 
@@ -18,7 +9,7 @@ export default function LoginPage() {
   const location = useLocation()
   const { toast } = useToast()
 
-  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/pedidos'
+  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -39,7 +30,7 @@ export default function LoginPage() {
       await pb.collection('users').authWithPassword(email.trim(), password)
       toast({
         title: 'Login efetuado com sucesso',
-        description: 'Bem-vindo ao Painel da Boutique de Revestimentos.',
+        description: 'Bem-vindo ao CRM Boutique de Revestimentos.',
       })
       navigate(from, { replace: true })
     } catch (err: unknown) {
@@ -62,21 +53,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[85vh] bg-[#F7FAF5] py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div className="min-h-screen bg-[#F7FAF5] py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="max-w-md w-full bg-white rounded-[24px] p-8 sm:p-10 border border-[#A8C3A0]/40 shadow-xl shadow-[#2F6B4F]/5 animate-fade-in">
         {/* Monograma & Título */}
         <div className="text-center mb-8">
           <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#2F6B4F] to-[#1D2B25] flex items-center justify-center text-white mx-auto shadow-md border-2 border-[#A8C3A0]/50 mb-4">
-            <span className="font-serif italic text-2xl font-bold">B</span>
+            <span className="font-serif italic text-2xl font-bold text-[#F7FAF5]">B</span>
           </div>
-          <span className="text-xs uppercase font-bold tracking-[0.25em] text-[#2F6B4F]">
-            Acesso Restrito
+          <span className="text-[11px] uppercase font-bold tracking-[0.25em] text-[#2F6B4F] flex items-center justify-center gap-1.5">
+            <Building2 className="w-3.5 h-3.5" />
+            CRM Interno de Atendimento
           </span>
           <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
-            Painel de Solicitações
+            Boutique de Revestimentos
           </h1>
-          <p className="mt-2 text-xs text-[#5E6E64]">
-            Entre com suas credenciais para gerenciar agendamentos e status dos clientes.
+          <p className="mt-1 text-xs text-[#5E6E64]">
+            Rede de 7 Lojas • Acesso exclusivo para consultores e equipe comercial
           </p>
         </div>
 
@@ -135,7 +127,7 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                <span>Acessar Painel</span>
+                <span>Acessar CRM</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -146,46 +138,40 @@ export default function LoginPage() {
         <div className="mt-8 pt-6 border-t border-[#EAF2E8] space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-[#2F6B4F]">
             <KeyRound className="w-3.5 h-3.5" />
-            <span>Credenciais Demo Disponíveis para Teste:</span>
+            <span>Credenciais Oficiais de Demonstração:</span>
           </div>
 
           <div className="space-y-2">
             <button
               type="button"
               onClick={() => fillCredentials('demo@boutique.com', 'demo1234')}
-              className="w-full text-left p-2.5 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/30 transition-colors flex items-center justify-between text-xs"
+              className="w-full text-left p-3 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/30 transition-colors flex items-center justify-between text-xs"
             >
               <div>
-                <p className="font-semibold text-[#1D2B25]">Consultor Demo</p>
+                <p className="font-semibold text-[#1D2B25]">Consultor Comercial (Demo)</p>
                 <p className="font-mono text-[#5E6E64] text-[11px]">demo@boutique.com / demo1234</p>
               </div>
-              <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2 py-1 rounded-md border border-[#A8C3A0]/30">
-                Usar
+              <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2.5 py-1 rounded-md border border-[#A8C3A0]/30 shadow-xs">
+                Preencher
               </span>
             </button>
 
             <button
               type="button"
               onClick={() => fillCredentials('rafaelteizen@gmail.com', 'Skip@Pass')}
-              className="w-full text-left p-2.5 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/30 transition-colors flex items-center justify-between text-xs"
+              className="w-full text-left p-3 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/30 transition-colors flex items-center justify-between text-xs"
             >
               <div>
-                <p className="font-semibold text-[#1D2B25]">Administrador Principal</p>
+                <p className="font-semibold text-[#1D2B25]">Administrador Geral</p>
                 <p className="font-mono text-[#5E6E64] text-[11px]">
                   rafaelteizen@gmail.com / Skip@Pass
                 </p>
               </div>
-              <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2 py-1 rounded-md border border-[#A8C3A0]/30">
-                Usar
+              <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2.5 py-1 rounded-md border border-[#A8C3A0]/30 shadow-xs">
+                Preencher
               </span>
             </button>
           </div>
-        </div>
-
-        <div className="mt-6 text-center">
-          <Link to="/" className="text-xs text-[#5E6E64] hover:text-[#2F6B4F] transition-colors">
-            ← Voltar para a Página Inicial
-          </Link>
         </div>
       </div>
     </div>

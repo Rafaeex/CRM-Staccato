@@ -1,12 +1,13 @@
-/* Main App Component - Handles routing (using react-router-dom), query client and other providers - use this file to add all routes */
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import Index from './pages/Index'
-import Servicos from './pages/Servicos'
-import Agendar from './pages/Agendar'
-import Pedidos from './pages/Pedidos'
+import Dashboard from './pages/Index'
+import Clientes from './pages/Clientes'
+import FichaCliente from './pages/FichaCliente'
+import Atendimentos from './pages/Atendimentos'
+import Agenda from './pages/Agenda'
+import FollowUps from './pages/FollowUps'
 import Login from './pages/Login'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
@@ -19,13 +20,23 @@ const App = () => (
       <Sonner />
       <Layout>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/servicos" element={<Servicos />} />
-          <Route path="/agendar" element={<Agendar />} />
           <Route path="/login" element={<Login />} />
+
+          {/* Rotas protegidas do CRM */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/pedidos" element={<Pedidos />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/clientes" element={<Clientes />} />
+            <Route path="/clientes/:id" element={<FichaCliente />} />
+            <Route path="/atendimentos" element={<Atendimentos />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/follow-ups" element={<FollowUps />} />
           </Route>
+
+          {/* Redirecionamentos de rotas legadas do site antigo para o CRM */}
+          <Route path="/agendar" element={<Navigate to="/" replace />} />
+          <Route path="/servicos" element={<Navigate to="/" replace />} />
+          <Route path="/pedidos" element={<Navigate to="/atendimentos" replace />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>

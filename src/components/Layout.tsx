@@ -1,452 +1,348 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
+  LayoutDashboard,
+  Users,
+  Headphones,
+  CalendarDays,
+  ClockAlert,
+  LogOut,
+  Building2,
   Menu,
   X,
-  Calendar,
   Phone,
-  Mail,
-  MapPin,
-  Clock,
-  ArrowRight,
   ShieldCheck,
-  Instagram,
-  Facebook,
-  ExternalLink,
+  ChevronRight,
+  UserCheck,
 } from 'lucide-react'
-import { LOJAS, HORARIOS_ATENDIMENTO } from '@/data/boutiqueData'
 import pb from '@/lib/pocketbase/client'
+import { LOJAS } from '@/data/boutiqueData'
 
 interface LayoutProps {
   children?: React.ReactNode
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [lojaSelecionada, setLojaSelecionada] = useState<string>('Todas as Lojas')
   const location = useLocation()
+  const navigate = useNavigate()
+
+  // Usuário autenticado
+  const currentUser = pb.authStore.record
   const isAuth = pb.authStore.isValid
+  const isLoginPage = location.pathname === '/login'
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Fechar menu mobile ao trocar de rota
-  useEffect(() => {
-    setMobileMenuOpen(false)
+    setMobileOpen(false)
   }, [location.pathname])
 
-  const navLinks = [
-    { label: 'Início', href: '/' },
-    { label: 'Lojas', href: '/#lojas' },
-    { label: 'Serviços', href: '/servicos' },
-    { label: 'Equipe', href: '/servicos#equipe' },
-    { label: 'Pedidos', href: '/pedidos' },
+  const handleLogout = () => {
+    pb.authStore.clear()
+    navigate('/login')
+  }
+
+  const navItems = [
+    {
+      label: 'Dashboard',
+      href: '/',
+      icon: LayoutDashboard,
+      description: 'Visão do dia & métricas',
+    },
+    {
+      label: 'Clientes',
+      href: '/clientes',
+      icon: Users,
+      description: 'Base e funil de vendas',
+    },
+    {
+      label: 'Atendimentos',
+      href: '/atendimentos',
+      icon: Headphones,
+      description: 'Registros de consultoria',
+    },
+    {
+      label: 'Agenda',
+      href: '/agenda',
+      icon: CalendarDays,
+      description: 'Visitas e reuniões',
+    },
+    {
+      label: 'Follow-ups',
+      href: '/follow-ups',
+      icon: ClockAlert,
+      description: 'Retornos e pendências',
+    },
   ]
 
   const isActive = (path: string) => {
-    if (path.startsWith('/#')) {
-      return location.pathname === '/' && location.hash === path.replace('/', '')
+    if (path === '/') {
+      return location.pathname === '/'
     }
-    return location.pathname === path
+    return location.pathname.startsWith(path)
+  }
+
+  // Se estiver na tela de login, renderiza apenas o contêiner de login limpo com estilo da marca
+  if (isLoginPage) {
+    return (
+      <div className="min-h-screen bg-[#F7FAF5] text-[#1D2B25] font-sans antialiased selection:bg-[#A8C3A0]/40 selection:text-[#1D2B25]">
+        {children}
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F7FAF5] text-[#1D2B25] font-sans antialiased selection:bg-[#A8C3A0]/40 selection:text-[#1D2B25]">
-      {/* Top Banner Informativo Sutil */}
-      <div className="bg-[#2F6B4F] text-white text-xs py-2 px-4 border-b border-[#2F6B4F]/20">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+    <div className="min-h-screen bg-[#F7FAF5] text-[#1D2B25] flex flex-col font-sans antialiased selection:bg-[#A8C3A0]/40 selection:text-[#1D2B25]">
+      {/* Top Bar Operacional */}
+      <header className="sticky top-0 z-40 bg-[#1D2B25] text-white border-b border-[#2F6B4F]/40 shadow-sm">
+        <div className="px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 font-medium">
-              <span className="w-2 h-2 rounded-full bg-[#A8C3A0] animate-pulse"></span>
-              Rede de 7 Boutiques em São Paulo e Região
-            </span>
-            <span className="hidden md:inline text-white/40">•</span>
-            <span className="hidden md:inline text-white/80">
-              Atendimento com horário exclusivo e consultoria especializada
-            </span>
-          </div>
-          <div className="flex items-center gap-4 text-white/90">
-            <a
-              href="https://wa.me/5511984521134"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white flex items-center gap-1 transition-colors"
+            <button
+              type="button"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="lg:hidden p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10"
+              aria-label="Abrir navegação"
             >
-              <Phone className="w-3 h-3 text-[#A8C3A0]" />
-              <span>(11) 98452-1134</span>
-            </a>
-            {isAuth && (
-              <span className="inline-flex items-center gap-1 text-[11px] bg-white/10 px-2 py-0.5 rounded-full text-[#A8C3A0]">
-                <ShieldCheck className="w-3 h-3" />
-                Painel Conectado
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
 
-      {/* Header Fixo */}
-      <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-white/90 backdrop-blur-md shadow-[0_4px_20px_rgba(47,107,79,0.08)] border-b border-[#A8C3A0]/30 py-3'
-            : 'bg-white/70 backdrop-blur-sm border-b border-transparent py-4'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Logo Monograma B */}
-          <Link to="/" className="flex items-center gap-3.5 group">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#2F6B4F] to-[#1D2B25] flex items-center justify-center text-white shadow-md shadow-[#2F6B4F]/20 group-hover:scale-105 transition-transform duration-200 border-2 border-[#A8C3A0]/50">
-              <span className="font-serif italic text-2xl font-bold leading-none tracking-tight text-[#F7FAF5]">
-                B
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-serif font-semibold text-lg sm:text-xl tracking-tight text-[#1D2B25] leading-tight group-hover:text-[#2F6B4F] transition-colors">
-                Boutique de Revestimentos
-              </span>
-              <span className="text-[11px] font-sans uppercase tracking-[0.2em] text-[#5E6E64] font-medium">
-                Alto Padrão • São Paulo
-              </span>
-            </div>
-          </Link>
-
-          {/* Menu Desktop */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-            {navLinks.map((link) => {
-              const active = isActive(link.href)
-              return (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className={`px-3.5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                    active
-                      ? 'text-[#2F6B4F] bg-[#EAF2E8] font-semibold'
-                      : 'text-[#5E6E64] hover:text-[#1D2B25] hover:bg-[#EAF2E8]/60'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* CTA Agendar Visita Desktop */}
-          <div className="hidden sm:flex items-center gap-3">
-            <Link
-              to="/agendar"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-sm font-medium shadow-sm hover:shadow-md hover:shadow-[#2F6B4F]/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-            >
-              <Calendar className="w-4 h-4 text-[#A8C3A0]" />
-              <span>Agendar Visita</span>
-              <ArrowRight className="w-3.5 h-3.5 opacity-70" />
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div className="w-8 h-8 rounded-full bg-[#2F6B4F] flex items-center justify-center text-white border border-[#A8C3A0]/40 group-hover:scale-105 transition-transform">
+                <span className="font-serif italic text-base font-bold text-[#F7FAF5]">B</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-serif italic font-semibold text-base sm:text-lg leading-tight tracking-tight text-white">
+                  Boutique de Revestimentos
+                </span>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-[#A8C3A0] font-medium hidden sm:inline">
+                  CRM de Atendimento • 7 Lojas
+                </span>
+              </div>
             </Link>
           </div>
 
-          {/* Botão Hambúrguer Mobile */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl text-[#1D2B25] hover:bg-[#EAF2E8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-            aria-label="Abrir menu"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Filtro Rápido de Unidade & Perfil do Consultor */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="hidden md:flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full text-xs text-white/90 border border-white/10">
+              <Building2 className="w-3.5 h-3.5 text-[#A8C3A0]" />
+              <select
+                value={lojaSelecionada}
+                onChange={(e) => setLojaSelecionada(e.target.value)}
+                className="bg-transparent text-white focus:outline-none cursor-pointer text-xs pr-1"
+              >
+                <option value="Todas as Lojas" className="text-[#1D2B25] bg-white">
+                  Rede Completa (7 Lojas)
+                </option>
+                {LOJAS.map((l) => (
+                  <option key={l.id} value={l.nome} className="text-[#1D2B25] bg-white">
+                    {l.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {isAuth && (
+              <div className="flex items-center gap-3 border-l border-white/15 pl-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-[#2F6B4F] text-[#A8C3A0] flex items-center justify-center text-xs font-semibold border border-[#A8C3A0]/30">
+                    <UserCheck className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="hidden sm:flex flex-col text-left">
+                    <span className="text-xs font-medium text-white leading-none">
+                      {currentUser?.name || 'Consultor Boutique'}
+                    </span>
+                    <span className="text-[10px] text-white/60 leading-tight">
+                      {currentUser?.email || 'demo@boutique.com'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  title="Sair do CRM"
+                  className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Drawer Mobile */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Overlay escuro translúcido */}
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-            onClick={() => setMobileMenuOpen(false)}
-          />
+      {/* Corpo com Sidebar Interna e Área de Trabalho */}
+      <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6">
+        {/* Sidebar Desktop */}
+        <aside className="hidden lg:flex flex-col w-64 shrink-0">
+          <div className="bg-white rounded-2xl p-4 border border-[#A8C3A0]/30 shadow-sm sticky top-20 flex flex-col justify-between min-h-[calc(100vh-140px)]">
+            <div className="space-y-6">
+              <div>
+                <p className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] px-3 mb-2">
+                  Navegação do CRM
+                </p>
+                <nav className="space-y-1">
+                  {navItems.map((item) => {
+                    const active = isActive(item.href)
+                    const Icon = item.icon
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        className={`group flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all ${
+                          active
+                            ? 'bg-[#2F6B4F] text-white shadow-sm shadow-[#2F6B4F]/20 font-semibold'
+                            : 'text-[#1D2B25] hover:bg-[#EAF2E8] hover:text-[#2F6B4F]'
+                        }`}
+                      >
+                        <Icon
+                          className={`w-4 h-4 shrink-0 transition-colors ${
+                            active ? 'text-[#A8C3A0]' : 'text-[#5E6E64] group-hover:text-[#2F6B4F]'
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="leading-none text-sm">{item.label}</p>
+                          <p
+                            className={`text-[10px] truncate mt-1 ${
+                              active ? 'text-white/80' : 'text-[#5E6E64]'
+                            }`}
+                          >
+                            {item.description}
+                          </p>
+                        </div>
+                        {active && <ChevronRight className="w-3.5 h-3.5 text-[#A8C3A0] shrink-0" />}
+                      </Link>
+                    )
+                  })}
+                </nav>
+              </div>
 
-          {/* Painel lateral deslizante */}
-          <div className="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl p-6 flex flex-col justify-between border-l border-[#A8C3A0]/30 animate-fade-in">
-            <div>
-              <div className="flex items-center justify-between pb-6 border-b border-[#EAF2E8]">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[#2F6B4F] flex items-center justify-center text-white">
-                    <span className="font-serif italic text-lg font-bold">B</span>
+              {/* Bloco de Unidades da Rede */}
+              <div className="pt-4 border-t border-[#EAF2E8]">
+                <p className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] px-3 mb-2 flex items-center gap-1.5">
+                  <Building2 className="w-3 h-3 text-[#2F6B4F]" />
+                  <span>Unidades da Rede (7)</span>
+                </p>
+                <div className="space-y-1 text-xs text-[#5E6E64]">
+                  {LOJAS.slice(0, 5).map((l) => (
+                    <div
+                      key={l.id}
+                      className="px-3 py-1.5 rounded-lg hover:bg-[#F7FAF5] flex items-center justify-between"
+                    >
+                      <span className="truncate">{l.nome}</span>
+                      <span className="text-[10px] text-[#2F6B4F] font-mono">OK</span>
+                    </div>
+                  ))}
+                  <div className="px-3 pt-1 text-[11px] text-[#2F6B4F] font-medium">
+                    + Santana de Parnaíba e Guarulhos
                   </div>
-                  <span className="font-serif font-semibold text-base text-[#1D2B25]">
-                    Boutique
-                  </span>
                 </div>
+              </div>
+            </div>
+
+            {/* Suporte Interno do CRM */}
+            <div className="pt-4 border-t border-[#EAF2E8] text-xs text-[#5E6E64] space-y-2">
+              <div className="p-3 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-1.5">
+                <div className="flex items-center gap-1.5 font-semibold text-[#1D2B25] text-xs">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#2F6B4F]" />
+                  <span>Atendimento Integrado</span>
+                </div>
+                <p className="text-[11px] text-[#5E6E64] leading-tight">
+                  Painel unificado com disparos WhatsApp (wa.me) e histórico sincronizado.
+                </p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Drawer Mobile */}
+        {mobileOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setMobileOpen(false)}
+            />
+            <div className="fixed inset-y-0 left-0 w-72 bg-white p-5 shadow-2xl flex flex-col justify-between border-r border-[#A8C3A0]/30">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-[#EAF2E8]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#2F6B4F] flex items-center justify-center text-white">
+                      <span className="font-serif italic font-bold">B</span>
+                    </div>
+                    <div>
+                      <p className="font-serif italic font-semibold text-sm text-[#1D2B25]">
+                        Boutique CRM
+                      </p>
+                      <p className="text-[10px] text-[#5E6E64]">Gestão de Atendimento</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setMobileOpen(false)}
+                    className="p-1 rounded-lg hover:bg-[#EAF2E8] text-[#5E6E64]"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <nav className="space-y-1">
+                  {navItems.map((item) => {
+                    const active = isActive(item.href)
+                    const Icon = item.icon
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium ${
+                          active
+                            ? 'bg-[#2F6B4F] text-white font-semibold'
+                            : 'text-[#1D2B25] hover:bg-[#EAF2E8]'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span>{item.label}</span>
+                      </Link>
+                    )
+                  })}
+                </nav>
+              </div>
+
+              <div className="pt-4 border-t border-[#EAF2E8]">
                 <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-lg text-[#5E6E64] hover:bg-[#EAF2E8]"
-                  aria-label="Fechar menu"
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-red-50 text-red-700 text-xs font-semibold"
                 >
-                  <X className="w-5 h-5" />
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sair do Sistema</span>
                 </button>
               </div>
-
-              {/* Links de navegação mobile */}
-              <nav className="mt-6 flex flex-col gap-2">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    to={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`px-4 py-3 rounded-2xl text-base font-medium flex items-center justify-between ${
-                      isActive(link.href)
-                        ? 'bg-[#EAF2E8] text-[#2F6B4F] font-semibold'
-                        : 'text-[#1D2B25] hover:bg-[#F7FAF5]'
-                    }`}
-                  >
-                    <span>{link.label}</span>
-                    <ArrowRight className="w-4 h-4 opacity-40" />
-                  </Link>
-                ))}
-              </nav>
-
-              <div className="mt-6 pt-6 border-t border-[#EAF2E8]">
-                <Link
-                  to="/agendar"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full bg-[#2F6B4F] text-white text-base font-medium shadow-md shadow-[#2F6B4F]/20"
-                >
-                  <Calendar className="w-4 h-4 text-[#A8C3A0]" />
-                  <span>Agendar Visita Agora</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Informações de contato no Drawer */}
-            <div className="pt-6 border-t border-[#EAF2E8] text-xs text-[#5E6E64] space-y-2">
-              <p className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-[#2F6B4F]" />
-                <span>Seg. a Sáb., 9h às 18h</span>
-              </p>
-              <p className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-[#2F6B4F]" />
-                <span>(11) 98452-1134 (WhatsApp)</span>
-              </p>
-              <p className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-[#2F6B4F]" />
-                <span>7 Boutiques em SP e Região</span>
-              </p>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Conteúdo Principal */}
-      <main className="flex-1">{children}</main>
+        {/* Área Central / Conteúdo Principal */}
+        <main className="flex-1 min-w-0">{children}</main>
+      </div>
 
-      {/* Rodapé Global */}
-      <footer className="bg-[#1D2B25] text-white pt-16 pb-12 border-t border-[#2F6B4F]/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-white/10">
-            {/* Coluna 1: Marca e Contato Central */}
-            <div className="lg:col-span-4 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#2F6B4F] flex items-center justify-center text-white border border-[#A8C3A0]/40">
-                  <span className="font-serif italic text-xl font-bold">B</span>
-                </div>
-                <div>
-                  <h3 className="font-serif font-bold text-xl text-white">
-                    Boutique de Revestimentos
-                  </h3>
-                  <p className="text-xs text-[#A8C3A0] tracking-wider uppercase font-medium">
-                    Alto Padrão & Acabamentos
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-sm text-white/70 leading-relaxed max-w-sm">
-                Rede exclusiva de 7 boutiques especializadas em porcelanatos de grandes formatos,
-                mármores nobres e metais refinados para arquitetura de excelência em São Paulo.
-              </p>
-
-              <div className="space-y-2.5 pt-2 text-sm text-white/80">
-                <div className="flex items-start gap-2.5">
-                  <MapPin className="w-4 h-4 text-[#A8C3A0] mt-0.5 shrink-0" />
-                  <span>Central de Atendimento: Vila Olímpia, São Paulo - SP</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <Phone className="w-4 h-4 text-[#A8C3A0] shrink-0" />
-                  <a
-                    href="https://wa.me/5511984521134"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-white transition-colors"
-                  >
-                    (11) 98452-1134 (WhatsApp Geral)
-                  </a>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <Mail className="w-4 h-4 text-[#A8C3A0] shrink-0" />
-                  <a
-                    href="mailto:contato@boutiquerevestimentos.com.br"
-                    className="hover:text-white transition-colors"
-                  >
-                    contato@boutiquerevestimentos.com.br
-                  </a>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <Clock className="w-4 h-4 text-[#A8C3A0] shrink-0" />
-                  <span>
-                    {HORARIOS_ATENDIMENTO.dias}, {HORARIOS_ATENDIMENTO.horario}
-                  </span>
-                </div>
-              </div>
-
-              <div className="pt-2 flex items-center gap-3">
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#2F6B4F] flex items-center justify-center text-white transition-colors"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#2F6B4F] flex items-center justify-center text-white transition-colors"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://wa.me/5511984521134"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#2F6B4F] flex items-center justify-center text-white transition-colors"
-                  aria-label="WhatsApp"
-                >
-                  <Phone className="w-4 h-4" />
-                </a>
-              </div>
-            </div>
-
-            {/* Coluna 2: Nossas 7 Lojas */}
-            <div className="lg:col-span-5 space-y-4">
-              <h4 className="font-serif font-semibold text-lg text-white border-b border-white/10 pb-2">
-                Nossas 7 Boutiques em SP e Região
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/75">
-                {LOJAS.map((loja) => (
-                  <div
-                    key={loja.id}
-                    className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] transition-colors border border-white/5"
-                  >
-                    <p className="font-semibold text-white flex items-center justify-between">
-                      <span>{loja.nome}</span>
-                      <a
-                        href={loja.mapUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#A8C3A0] hover:text-white inline-flex items-center gap-0.5"
-                        title="Ver no mapa"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </p>
-                    <p className="text-white/60 line-clamp-1 mt-0.5">{loja.endereco}</p>
-                    <p className="text-[#A8C3A0] font-mono mt-1">{loja.telefone}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Coluna 3: Links rápidos e Acesso */}
-            <div className="lg:col-span-3 space-y-4">
-              <h4 className="font-serif font-semibold text-lg text-white border-b border-white/10 pb-2">
-                Acesso Rápido
-              </h4>
-              <ul className="space-y-2 text-sm text-white/70">
-                <li>
-                  <Link
-                    to="/"
-                    className="hover:text-white transition-colors flex items-center gap-1.5"
-                  >
-                    <ArrowRight className="w-3 h-3 text-[#A8C3A0]" />
-                    Página Inicial
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/servicos"
-                    className="hover:text-white transition-colors flex items-center gap-1.5"
-                  >
-                    <ArrowRight className="w-3 h-3 text-[#A8C3A0]" />
-                    Serviços e Catálogo
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/servicos#equipe"
-                    className="hover:text-white transition-colors flex items-center gap-1.5"
-                  >
-                    <ArrowRight className="w-3 h-3 text-[#A8C3A0]" />
-                    Especialistas & Equipe
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/agendar"
-                    className="hover:text-white transition-colors flex items-center gap-1.5 font-medium text-[#A8C3A0]"
-                  >
-                    <ArrowRight className="w-3 h-3 text-[#A8C3A0]" />
-                    Agendar Visita Exclusiva
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/pedidos"
-                    className="hover:text-white transition-colors flex items-center gap-1.5"
-                  >
-                    <ArrowRight className="w-3 h-3 text-[#A8C3A0]" />
-                    Painel de Solicitações
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/login"
-                    className="hover:text-white transition-colors flex items-center gap-1.5 text-xs text-white/50"
-                  >
-                    <ArrowRight className="w-3 h-3 text-white/40" />
-                    Acesso da Equipe (Login)
-                  </Link>
-                </li>
-              </ul>
-
-              <div className="pt-2">
-                <Link
-                  to="/agendar"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-[#A8C3A0] hover:bg-[#8eaf85] text-[#1D2B25] text-xs font-semibold uppercase tracking-wider transition-colors shadow-sm"
-                >
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>Reservar Horário</span>
-                </Link>
-              </div>
-            </div>
+      {/* Rodapé Operacional Interno do CRM */}
+      <footer className="mt-auto bg-[#1D2B25] text-white py-4 border-t border-[#2F6B4F]/40 text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/70">
+          <div className="flex items-center gap-2">
+            <span className="font-serif italic font-semibold text-white">
+              Boutique de Revestimentos
+            </span>
+            <span>•</span>
+            <span className="text-[11px] text-[#A8C3A0]">
+              CRM Interno de Atendimento às 7 Lojas
+            </span>
           </div>
 
-          {/* Linha de Copyright */}
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/50">
-            <p>
-              © {new Date().getFullYear()} Boutique de Revestimentos de Alto Padrão. Todos os
-              direitos reservados.
-            </p>
-            <p className="flex items-center gap-3">
-              <span>São Paulo • Barueri • Santana de Parnaíba • Guarulhos</span>
-              <span>•</span>
-              <span className="text-[#A8C3A0]">Porcelanatos, Mármores e Metais Premium</span>
-            </p>
+          <div className="flex items-center gap-4 text-[11px]">
+            <span>
+              Vila Olímpia • Higienópolis • Moema • Tatuapé • Alphaville • Santana • Guarulhos
+            </span>
+            <span className="hidden md:inline">•</span>
+            <span className="hidden md:inline text-white/50">v2.0 CRM</span>
           </div>
         </div>
       </footer>
