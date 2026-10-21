@@ -5,20 +5,17 @@ import {
   Building2,
   Phone,
   Mail,
-  MapPin,
   Sparkles,
-  Calendar,
   MessageSquare,
   ClockAlert,
   Plus,
   Loader2,
   Edit2,
   CheckCircle2,
-  AlertCircle,
   FileText,
-  Trash2,
+  AlertTriangle,
 } from 'lucide-react'
-import { buscarClientePorId, atualizarCliente, excluirCliente } from '@/services/clientes'
+import { buscarClientePorId, atualizarCliente } from '@/services/clientes'
 import { listarAtendimentosPorCliente, criarAtendimento } from '@/services/atendimentos'
 import {
   listarFollowUpsPorCliente,
@@ -26,16 +23,19 @@ import {
   marcarFollowUpConcluido,
   gerarLinkWhatsApp,
 } from '@/services/followUps'
+import { listarReclamacoesPorCliente, criarReclamacao } from '@/services/reclamacoes'
 import type {
   Cliente,
   Atendimento,
   FollowUp,
-  EtapaFunil,
+  Reclamacao,
+  StatusCliente,
   CanalAtendimento,
   StatusAtendimento,
   CanalFollowUp,
+  CategoriaReclamacao,
+  GravidadeReclamacao,
 } from '@/types/crm'
-import { LOJAS } from '@/data/boutiqueData'
 import { useToast } from '@/hooks/use-toast'
 import {
   Dialog,
@@ -45,12 +45,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-const ETAPAS_FUNIL: EtapaFunil[] = [
-  'Lead',
+const STATUS_CLIENTE_LIST: StatusCliente[] = [
+  'Novo',
   'Em atendimento',
-  'Proposta enviada',
-  'Cliente fechado',
-  'Perdido',
+  'Aguardando cliente',
+  'Atendimento concluído',
 ]
 
 export default function FichaClientePage() {
@@ -62,6 +61,7 @@ export default function FichaClientePage() {
   const [cliente, setCliente] = useState<Cliente | null>(null)
   const [atendimentos, setAtendimentos] = useState<Atendimento[]>([])
   const [followUps, setFollowUps] = useState<FollowUp[]>([])
+  const [reclamacoes, setReclamacoes] = useState<Reclamacao[]>([])
 
   // Modal Novo Atendimento
   const [modalAtendimento, setModalAtendimento] = useState(false)
@@ -73,8 +73,7 @@ export default function FichaClientePage() {
     horario: '10:00',
     interesse: '',
     resumo: '',
-    status: 'Em negociação' as StatusAtendimento,
-    valor_estimado: 0,
+    status: 'Em atendimento' as StatusAtendimento,
   })
 
   // Modal Novo Follow-up
@@ -89,7 +88,19 @@ export default function FichaClientePage() {
     mensagem_sugerida: '',
   })
 
-  // Edição rápida de notas e etapa
+  // Modal Nova Reclamação
+  const [modalReclamacao, setModalReclamacao] = useState(false)
+  const [salvandoReclamacao, setSalvandoReclamacao] = useState(false)
+  const [novaReclamacao, setNovaReclamacao] = useState({
+    categoria: 'Produto com defeito' as CategoriaReclamacao,
+    canal_origem: 'WhatsApp' as const,
+    gravidade: 'Média' as GravidadeReclamacao,
+    descricao: '',
+    responsavel: 'Consultor Boutique',
+    prazo_resolucao: new Date().toISOString().split('T')[0],
+  })
+
+  // Edição rápida de notas
   const [editandoNotas, setEditandoNotas] = useState(false)
   const [notasTemp, setNotasTemp] = useState('')
 
@@ -101,12 +112,14 @@ export default function FichaClientePage() {
       setCliente(cli)
       setNotasTemp(cli.notas_internas || '')
 
-      const [aList, fList] = await Promise.all([
+      const [aList, fList, rList] = await Promise.all([
         listarAtendimentosPorCliente(id),
         listarFollowUpsPorCliente(id),
+        listarReclamacoesPorCliente(id),
       ])
       setAtendimentos(aList)
       setFollowUps(fList)
+      setReclamacoes(rList)
     } catch (err) {
       console.error('Erro ao buscar cliente:', err)
       toast({
@@ -124,21 +137,23 @@ export default function FichaClientePage() {
     carregarFicha()
   }, [id])
 
-  // Troca de etapa do funil imediata
-  const handleMudarEtapa = async (novaEtapa: EtapaFunil) => {
+  // Troca de status de atendimento simples
+  const handleMudarStatus = async (novoStatus: StatusCliente) => {
     if (!cliente) return
     try {
-      const atualizado = await atualizarCliente(cliente.id, { etapa_funil: novaEtapa })
+      const atualizado = await atualizarCliente(cliente.id, {
+        status_atendimento: novoStatus,
+      })
       setCliente(atualizado)
       toast({
-        title: 'Etapa atualizada',
-        description: `Cliente movido para "${novaEtapa}".`,
+        title: 'Status atualizado',
+        description: `Cliente alterado para "${novoStatus}".`,
       })
     } catch (err) {
-      console.error('Falha ao atualizar etapa:', err)
+      console.error('Falha ao atualizar status:', err)
       toast({
         title: 'Erro',
-        description: 'Não foi possível alterar a etapa.',
+        description: 'Não foi possível alterar o status de atendimento.',
         variant: 'destructive',
       })
     }
@@ -153,7 +168,7 @@ export default function FichaClientePage() {
       setEditandoNotas(false)
       toast({
         title: 'Notas salvas',
-        description: 'Observações do cliente atualizadas.',
+        description: 'Observações internas do cliente atualizadas.',
       })
     } catch (err) {
       console.error('Falha ao salvar notas:', err)
@@ -179,9 +194,6 @@ export default function FichaClientePage() {
           novoAtendimento.interesse || cliente.interesse_principal || 'Revestimentos gerais',
         resumo: novoAtendimento.resumo,
         status: novoAtendimento.status,
-        valor_estimado: novoAtendimento.valor_estimado
-          ? Number(novoAtendimento.valor_estimado)
-          : undefined,
       })
 
       setAtendimentos((prev) => [at, ...prev])
@@ -193,8 +205,7 @@ export default function FichaClientePage() {
         horario: '10:00',
         interesse: '',
         resumo: '',
-        status: 'Em negociação',
-        valor_estimado: 0,
+        status: 'Em atendimento',
       })
 
       toast({
@@ -261,6 +272,54 @@ export default function FichaClientePage() {
     }
   }
 
+  // Criar Reclamação para o cliente
+  const handleCriarReclamação = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!cliente || !novaReclamacao.descricao) return
+
+    setSalvandoReclamacao(true)
+    try {
+      const rec = await criarReclamacao({
+        cliente: cliente.id,
+        cliente_nome: cliente.nome,
+        cliente_telefone: cliente.telefone,
+        loja: cliente.loja_origem,
+        canal_origem: novaReclamacao.canal_origem,
+        categoria: novaReclamacao.categoria,
+        gravidade: novaReclamacao.gravidade,
+        descricao: novaReclamacao.descricao,
+        responsavel: novaReclamacao.responsavel,
+        prazo_resolucao: novaReclamacao.prazo_resolucao,
+        status: 'Aberta',
+      })
+
+      setReclamacoes((prev) => [rec, ...prev])
+      setModalReclamacao(false)
+      setNovaReclamacao({
+        categoria: 'Produto com defeito',
+        canal_origem: 'WhatsApp',
+        gravidade: 'Média',
+        descricao: '',
+        responsavel: 'Consultor Boutique',
+        prazo_resolucao: new Date().toISOString().split('T')[0],
+      })
+
+      toast({
+        title: 'Reclamação registrada',
+        description: 'Ocorrência vinculada à ficha do cliente.',
+      })
+    } catch (err) {
+      console.error('Erro ao criar reclamação:', err)
+      toast({
+        title: 'Falha ao registrar',
+        description: 'Verifique os dados.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSalvandoReclamacao(false)
+    }
+  }
+
   const handleConcluirFollowUp = async (fuId: string) => {
     try {
       await marcarFollowUpConcluido(fuId, 'Concluído diretamente na ficha do cliente')
@@ -289,14 +348,16 @@ export default function FichaClientePage() {
     )
   }
 
+  const statusAtual = cliente.status_atendimento || cliente.etapa_funil || 'Novo'
+
   const waLink = gerarLinkWhatsApp(
     cliente.telefone,
-    `Olá ${cliente.nome}, aqui é da Boutique de Revestimentos (${cliente.loja_origem}). Tudo bem?`,
+    `Olá ${cliente.nome}, aqui é da equipe de atendimento da Boutique (${cliente.loja_origem}). Tudo bem?`,
   )
 
   return (
     <div className="space-y-6">
-      {/* Voltar + Topo */}
+      {/* Voltar */}
       <div className="flex items-center justify-between gap-4">
         <Link
           to="/clientes"
@@ -317,18 +378,16 @@ export default function FichaClientePage() {
               </h1>
               <span
                 className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                  cliente.etapa_funil === 'Cliente fechado'
+                  statusAtual === 'Atendimento concluído'
                     ? 'bg-emerald-100 text-emerald-800'
-                    : cliente.etapa_funil === 'Proposta enviada'
-                      ? 'bg-indigo-100 text-indigo-800'
-                      : cliente.etapa_funil === 'Em atendimento'
+                    : statusAtual === 'Aguardando cliente'
+                      ? 'bg-purple-100 text-purple-800'
+                      : statusAtual === 'Em atendimento'
                         ? 'bg-amber-100 text-amber-800'
-                        : cliente.etapa_funil === 'Perdido'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-blue-100 text-blue-800'
+                        : 'bg-blue-100 text-blue-800'
                 }`}
               >
-                {cliente.etapa_funil}
+                {statusAtual}
               </span>
             </div>
 
@@ -393,7 +452,7 @@ export default function FichaClientePage() {
 
                     <div>
                       <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                        Status
+                        Status do Atendimento
                       </label>
                       <select
                         value={novoAtendimento.status}
@@ -406,9 +465,9 @@ export default function FichaClientePage() {
                         className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
                       >
                         <option value="Aberto">Aberto</option>
-                        <option value="Em negociação">Em negociação</option>
-                        <option value="Fechado">Fechado</option>
-                        <option value="Perdido">Perdido</option>
+                        <option value="Em atendimento">Em atendimento</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
                       </select>
                     </div>
                   </div>
@@ -460,7 +519,7 @@ export default function FichaClientePage() {
                       onChange={(e) =>
                         setNovoAtendimento({ ...novoAtendimento, interesse: e.target.value })
                       }
-                      placeholder="Ex.: Porcelanato 120x120, louças e metais dourados"
+                      placeholder="Ex.: Porcelanato 120x120, louças e metais"
                       className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
                     />
                   </div>
@@ -476,45 +535,26 @@ export default function FichaClientePage() {
                       onChange={(e) =>
                         setNovoAtendimento({ ...novoAtendimento, resumo: e.target.value })
                       }
-                      placeholder="O que foi alinhado? Amostras entregues, dúvidas levantadas..."
+                      placeholder="O que foi alinhado? Amostras entregues, especificações avaliadas..."
                       className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                        Responsável
-                      </label>
-                      <input
-                        type="text"
-                        value={novoAtendimento.responsavel}
-                        onChange={(e) =>
-                          setNovoAtendimento({
-                            ...novoAtendimento,
-                            responsavel: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                        Valor Estimado (R$)
-                      </label>
-                      <input
-                        type="number"
-                        value={novoAtendimento.valor_estimado || ''}
-                        onChange={(e) =>
-                          setNovoAtendimento({
-                            ...novoAtendimento,
-                            valor_estimado: Number(e.target.value),
-                          })
-                        }
-                        placeholder="Ex.: 45000"
-                        className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Responsável
+                    </label>
+                    <input
+                      type="text"
+                      value={novoAtendimento.responsavel}
+                      onChange={(e) =>
+                        setNovoAtendimento({
+                          ...novoAtendimento,
+                          responsavel: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
+                    />
                   </div>
 
                   <div className="flex justify-end gap-2 pt-2 border-t">
@@ -602,7 +642,7 @@ export default function FichaClientePage() {
                       onChange={(e) =>
                         setNovoFollowUp({ ...novoFollowUp, assunto: e.target.value })
                       }
-                      placeholder="Ex.: Cobrar retorno sobre proposta de Calacatta..."
+                      placeholder="Ex.: Retornar sobre amostras de revestimento..."
                       className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
                     />
                   </div>
@@ -641,36 +681,151 @@ export default function FichaClientePage() {
                 </form>
               </DialogContent>
             </Dialog>
+
+            {/* Dialog Nova Reclamação */}
+            <Dialog open={modalReclamacao} onOpenChange={setModalReclamacao}>
+              <DialogTrigger asChild>
+                <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition-all">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Nova Reclamação</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="font-serif italic text-xl text-[#1D2B25]">
+                    Registrar Ocorrência / Reclamação
+                  </DialogTitle>
+                </DialogHeader>
+
+                <form onSubmit={handleCriarReclamação} className="space-y-3 pt-2">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                        Categoria
+                      </label>
+                      <select
+                        value={novaReclamacao.categoria}
+                        onChange={(e) =>
+                          setNovaReclamacao({
+                            ...novaReclamacao,
+                            categoria: e.target.value as CategoriaReclamacao,
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
+                      >
+                        <option value="Produto com defeito">Produto com defeito</option>
+                        <option value="Atraso na entrega">Atraso na entrega</option>
+                        <option value="Atendimento">Atendimento</option>
+                        <option value="Troca/devolução">Troca/devolução</option>
+                        <option value="Cobrança">Cobrança</option>
+                        <option value="Outro">Outro</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                        Gravidade
+                      </label>
+                      <select
+                        value={novaReclamacao.gravidade}
+                        onChange={(e) =>
+                          setNovaReclamacao({
+                            ...novaReclamacao,
+                            gravidade: e.target.value as GravidadeReclamacao,
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
+                      >
+                        <option value="Baixa">Baixa</option>
+                        <option value="Média">Média</option>
+                        <option value="Alta">Alta</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Prazo para Resolução *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={novaReclamacao.prazo_resolucao}
+                      onChange={(e) =>
+                        setNovaReclamacao({
+                          ...novaReclamacao,
+                          prazo_resolucao: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Descrição da Ocorrência *
+                    </label>
+                    <textarea
+                      rows={3}
+                      required
+                      value={novaReclamacao.descricao}
+                      onChange={(e) =>
+                        setNovaReclamacao({ ...novaReclamacao, descricao: e.target.value })
+                      }
+                      placeholder="Descreva o problema relatado pelo cliente..."
+                      className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2 border-t">
+                    <button
+                      type="button"
+                      onClick={() => setModalReclamacao(false)}
+                      className="px-4 py-1.5 rounded-full border text-xs"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={salvandoReclamacao}
+                      className="px-5 py-1.5 rounded-full bg-rose-700 text-white text-xs font-semibold"
+                    >
+                      {salvandoReclamacao ? 'Salvando...' : 'Registrar Reclamação'}
+                    </button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
-        {/* Funil Visual Rápido: Botões de mudança de etapa */}
+        {/* Status de Atendimento (sem conotação de venda) */}
         <div className="space-y-2">
           <p className="text-[11px] uppercase font-bold tracking-wider text-[#5E6E64]">
-            Progresso no Funil de Vendas:
+            Status Atual do Atendimento:
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {ETAPAS_FUNIL.map((et) => {
-              const ativo = cliente.etapa_funil === et
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {STATUS_CLIENTE_LIST.map((st) => {
+              const ativo = statusAtual === st
               return (
                 <button
-                  key={et}
+                  key={st}
                   type="button"
-                  onClick={() => handleMudarEtapa(et)}
+                  onClick={() => handleMudarStatus(st)}
                   className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all text-center border ${
                     ativo
                       ? 'bg-[#2F6B4F] text-white border-[#2F6B4F] shadow-sm'
                       : 'bg-[#F7FAF5] text-[#5E6E64] border-[#A8C3A0]/30 hover:bg-[#EAF2E8] hover:text-[#1D2B25]'
                   }`}
                 >
-                  {et}
+                  {st}
                 </button>
               )
             })}
           </div>
         </div>
 
-        {/* Informações de Contato e Obra */}
+        {/* Informações de Contato e Especificação */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs">
           <div className="p-3.5 rounded-2xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-1">
             <span className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64]">
@@ -696,7 +851,7 @@ export default function FichaClientePage() {
               <Sparkles className="w-3.5 h-3.5 text-[#2F6B4F]" />
               <span>{cliente.arquiteto_parceiro || 'Não informado / Direto'}</span>
             </p>
-            <p className="text-[#5E6E64]">Comissionamento e especificação</p>
+            <p className="text-[#5E6E64]">Alinhamento técnico e especificações</p>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-1">
@@ -714,7 +869,7 @@ export default function FichaClientePage() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-[#1D2B25] flex items-center gap-1.5">
               <FileText className="w-3.5 h-3.5 text-[#2F6B4F]" />
-              <span>Notas e Observações da Obra</span>
+              <span>Notas e Observações Internas</span>
             </span>
             {!editandoNotas ? (
               <button
@@ -760,10 +915,10 @@ export default function FichaClientePage() {
         </div>
       </div>
 
-      {/* Grid: Histórico de Atendimentos & Follow-ups */}
+      {/* Grid com Histórico de Atendimentos, Reclamações e Follow-ups */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Atendimentos do Cliente (7 cols) */}
-        <div className="lg:col-span-7 bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-4">
+        {/* Atendimentos do Cliente (6 cols) */}
+        <div className="lg:col-span-6 bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
             <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
               Histórico de Atendimentos ({atendimentos.length})
@@ -798,13 +953,13 @@ export default function FichaClientePage() {
                     </div>
                     <span
                       className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        at.status === 'Fechado'
+                        at.status === 'Concluído'
                           ? 'bg-emerald-100 text-emerald-800'
-                          : at.status === 'Em negociação'
-                            ? 'bg-amber-100 text-amber-800'
-                            : at.status === 'Perdido'
+                          : at.status === 'Em atendimento'
+                            ? 'bg-blue-100 text-blue-800'
+                            : at.status === 'Cancelado'
                               ? 'bg-rose-100 text-rose-800'
-                              : 'bg-blue-100 text-blue-800'
+                              : 'bg-amber-100 text-amber-800'
                       }`}
                     >
                       {at.status}
@@ -816,13 +971,8 @@ export default function FichaClientePage() {
                     {at.resumo}
                   </p>
 
-                  <div className="flex items-center justify-between text-[11px] text-[#5E6E64]">
+                  <div className="text-[11px] text-[#5E6E64]">
                     <span>Interesse: {at.interesse}</span>
-                    {at.valor_estimado ? (
-                      <span className="font-semibold text-[#1D2B25]">
-                        R$ {at.valor_estimado.toLocaleString('pt-BR')}
-                      </span>
-                    ) : null}
                   </div>
                 </div>
               ))}
@@ -830,86 +980,168 @@ export default function FichaClientePage() {
           )}
         </div>
 
-        {/* Follow-ups do Cliente (5 cols) */}
-        <div className="lg:col-span-5 bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
-            <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
-              Follow-ups & Retornos ({followUps.length})
-            </h2>
-            <button
-              onClick={() => setModalFollowUp(true)}
-              className="text-xs font-semibold text-[#2F6B4F] hover:underline flex items-center gap-1"
-            >
-              <Plus className="w-3 h-3" />
-              <span>Agendar</span>
-            </button>
-          </div>
+        {/* Coluna Direita: Reclamações & Follow-ups (6 cols) */}
+        <div className="lg:col-span-6 space-y-6">
+          {/* Reclamações do Cliente */}
+          <div className="bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-700" />
+                <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                  Reclamações ({reclamacoes.length})
+                </h2>
+              </div>
+              <button
+                onClick={() => setModalReclamacao(true)}
+                className="text-xs font-semibold text-rose-700 hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Nova Reclamação</span>
+              </button>
+            </div>
 
-          {followUps.length === 0 ? (
-            <p className="text-xs text-[#5E6E64] py-8 text-center">
-              Nenhum follow-up cadastrado para este cliente.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {followUps.map((fu) => {
-                const fuWa = gerarLinkWhatsApp(cliente.telefone, fu.mensagem_sugerida)
-                const isPendente = fu.status === 'Pendente'
-                return (
+            {reclamacoes.length === 0 ? (
+              <p className="text-xs text-[#5E6E64] py-4 text-center">
+                Nenhuma reclamação registrada para este cliente.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {reclamacoes.map((rec) => (
                   <div
-                    key={fu.id}
-                    className="p-3 rounded-2xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-2 text-xs"
+                    key={rec.id}
+                    className="p-3.5 rounded-2xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-2 text-xs"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-xs text-[#1D2B25]">{fu.canal}</span>
-                          <span className="font-mono text-[10px] text-[#5E6E64]">
-                            {fu.data_prevista}
+                          <span className="font-semibold text-xs text-[#1D2B25]">
+                            {rec.categoria}
+                          </span>
+                          <span
+                            className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${
+                              rec.gravidade === 'Alta'
+                                ? 'bg-rose-100 text-rose-800'
+                                : rec.gravidade === 'Média'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            {rec.gravidade}
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#1D2B25] font-medium mt-0.5">
-                          {fu.assunto}
+                        <p className="text-[11px] text-[#5E6E64]">
+                          Prazo: {rec.prazo_resolucao} • Resp: {rec.responsavel}
                         </p>
                       </div>
 
                       <span
                         className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                          fu.status === 'Concluído'
+                          rec.status === 'Resolvida'
                             ? 'bg-emerald-100 text-emerald-800'
                             : 'bg-amber-100 text-amber-800'
                         }`}
                       >
-                        {fu.status}
+                        {rec.status}
                       </span>
                     </div>
 
-                    {isPendente && (
-                      <div className="flex items-center justify-between pt-1 border-t border-[#A8C3A0]/20">
-                        <a
-                          href={fuWa}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-medium"
-                        >
-                          <MessageSquare className="w-3 h-3" />
-                          <span>WhatsApp</span>
-                        </a>
+                    <p className="text-[#1D2B25] bg-white p-2.5 rounded-xl border border-[#A8C3A0]/20">
+                      {rec.descricao}
+                    </p>
 
-                        <button
-                          type="button"
-                          onClick={() => handleConcluirFollowUp(fu.id)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#A8C3A0]/40 text-[#2F6B4F] text-[10px] font-semibold hover:bg-[#EAF2E8]"
-                        >
-                          <CheckCircle2 className="w-3 h-3 text-[#2F6B4F]" />
-                          <span>Concluir</span>
-                        </button>
-                      </div>
+                    {rec.resolucao_desfecho && (
+                      <p className="text-[11px] text-emerald-800 bg-emerald-50 p-2 rounded-lg">
+                        <strong>Desfecho: </strong>
+                        {rec.resolucao_desfecho}
+                      </p>
                     )}
                   </div>
-                )
-              })}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Follow-ups do Cliente */}
+          <div className="bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
+              <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                Follow-ups & Retornos ({followUps.length})
+              </h2>
+              <button
+                onClick={() => setModalFollowUp(true)}
+                className="text-xs font-semibold text-[#2F6B4F] hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Agendar</span>
+              </button>
             </div>
-          )}
+
+            {followUps.length === 0 ? (
+              <p className="text-xs text-[#5E6E64] py-4 text-center">
+                Nenhum follow-up cadastrado para este cliente.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {followUps.map((fu) => {
+                  const fuWa = gerarLinkWhatsApp(cliente.telefone, fu.mensagem_sugerida)
+                  const isPendente = fu.status === 'Pendente'
+                  return (
+                    <div
+                      key={fu.id}
+                      className="p-3 rounded-2xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-2 text-xs"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-semibold text-xs text-[#1D2B25]">{fu.canal}</span>
+                            <span className="font-mono text-[10px] text-[#5E6E64]">
+                              {fu.data_prevista}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#1D2B25] font-medium mt-0.5">
+                            {fu.assunto}
+                          </p>
+                        </div>
+
+                        <span
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            fu.status === 'Concluído'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {fu.status}
+                        </span>
+                      </div>
+
+                      {isPendente && (
+                        <div className="flex items-center justify-between pt-1 border-t border-[#A8C3A0]/20">
+                          <a
+                            href={fuWa}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-medium"
+                          >
+                            <MessageSquare className="w-3 h-3" />
+                            <span>WhatsApp</span>
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => handleConcluirFollowUp(fu.id)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#A8C3A0]/40 text-[#2F6B4F] text-[10px] font-semibold hover:bg-[#EAF2E8]"
+                          >
+                            <CheckCircle2 className="w-3 h-3 text-[#2F6B4F]" />
+                            <span>Concluir</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

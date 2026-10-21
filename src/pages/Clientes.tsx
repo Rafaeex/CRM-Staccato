@@ -5,17 +5,15 @@ import {
   Search,
   Filter,
   Plus,
-  Phone,
-  Mail,
   Building2,
   ChevronRight,
   Loader2,
-  ExternalLink,
+  Mail,
   MessageSquare,
   Sparkles,
 } from 'lucide-react'
 import { listarClientes, criarCliente } from '@/services/clientes'
-import type { Cliente, ClienteInput, EtapaFunil } from '@/types/crm'
+import type { Cliente, ClienteInput, StatusCliente } from '@/types/crm'
 import { LOJAS } from '@/data/boutiqueData'
 import { useToast } from '@/hooks/use-toast'
 import {
@@ -27,12 +25,11 @@ import {
 } from '@/components/ui/dialog'
 import { gerarLinkWhatsApp } from '@/services/followUps'
 
-const ETAPAS_FUNIL: EtapaFunil[] = [
-  'Lead',
+const STATUS_CLIENTE_LIST: StatusCliente[] = [
+  'Novo',
   'Em atendimento',
-  'Proposta enviada',
-  'Cliente fechado',
-  'Perdido',
+  'Aguardando cliente',
+  'Atendimento concluído',
 ]
 
 export default function ClientesPage() {
@@ -41,7 +38,7 @@ export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [busca, setBusca] = useState('')
   const [filtroLoja, setFiltroLoja] = useState<string>('todas')
-  const [filtroEtapa, setFiltroEtapa] = useState<string>('todas')
+  const [filtroStatus, setFiltroStatus] = useState<string>('todas')
   const [modalNovoAberto, setModalNovoAberto] = useState(false)
   const [salvando, setSalvando] = useState(false)
 
@@ -51,7 +48,7 @@ export default function ClientesPage() {
     telefone: '',
     email: '',
     loja_origem: LOJAS[0].nome,
-    etapa_funil: 'Lead',
+    status_atendimento: 'Novo',
     interesse_principal: '',
     arquiteto_parceiro: '',
     notas_internas: '',
@@ -100,7 +97,7 @@ export default function ClientesPage() {
         telefone: '',
         email: '',
         loja_origem: LOJAS[0].nome,
-        etapa_funil: 'Lead',
+        status_atendimento: 'Novo',
         interesse_principal: '',
         arquiteto_parceiro: '',
         notas_internas: '',
@@ -124,6 +121,7 @@ export default function ClientesPage() {
 
   // Filtragem
   const clientesFiltrados = clientes.filter((c) => {
+    const statusAtual = c.status_atendimento || c.etapa_funil || 'Novo'
     const matchBusca =
       c.nome.toLowerCase().includes(busca.toLowerCase()) ||
       c.telefone.includes(busca) ||
@@ -134,10 +132,25 @@ export default function ClientesPage() {
 
     const matchLoja =
       filtroLoja === 'todas' || c.loja_origem.toLowerCase().includes(filtroLoja.toLowerCase())
-    const matchEtapa = filtroEtapa === 'todas' || c.etapa_funil === filtroEtapa
+    const matchStatus = filtroStatus === 'todas' || statusAtual === filtroStatus
 
-    return matchBusca && matchLoja && matchEtapa
+    return matchBusca && matchLoja && matchStatus
   })
+
+  const getStatusBadge = (status: StatusCliente) => {
+    switch (status) {
+      case 'Novo':
+        return 'bg-blue-100 text-blue-800'
+      case 'Em atendimento':
+        return 'bg-amber-100 text-amber-800'
+      case 'Aguardando cliente':
+        return 'bg-purple-100 text-purple-800'
+      case 'Atendimento concluído':
+        return 'bg-emerald-100 text-emerald-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -146,13 +159,13 @@ export default function ClientesPage() {
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B4F] flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5" />
-            Base de Contatos & Funil
+            Controle de Clientes & Atendimento
           </span>
           <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
             Gestão de Clientes
           </h1>
           <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
-            Clientes, arquitetos parceiros e histórico das 7 boutiques da rede.
+            Controle de clientes, contatos e histórico de atendimento das 7 boutiques da rede.
           </p>
         </div>
 
@@ -251,18 +264,21 @@ export default function ClientesPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Etapa do Funil
+                    Status de Atendimento
                   </label>
                   <select
-                    value={novoCliente.etapa_funil}
+                    value={novoCliente.status_atendimento}
                     onChange={(e) =>
-                      setNovoCliente({ ...novoCliente, etapa_funil: e.target.value as EtapaFunil })
+                      setNovoCliente({
+                        ...novoCliente,
+                        status_atendimento: e.target.value as StatusCliente,
+                      })
                     }
                     className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
                   >
-                    {ETAPAS_FUNIL.map((et) => (
-                      <option key={et} value={et}>
-                        {et}
+                    {STATUS_CLIENTE_LIST.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
                       </option>
                     ))}
                   </select>
@@ -309,7 +325,7 @@ export default function ClientesPage() {
                   onChange={(e) =>
                     setNovoCliente({ ...novoCliente, notas_internas: e.target.value })
                   }
-                  placeholder="Detalhes sobre a obra, metragem aproximada, preferências..."
+                  placeholder="Detalhes sobre a obra, preferências, histórico de contatos..."
                   className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
                 />
               </div>
@@ -368,14 +384,14 @@ export default function ClientesPage() {
           <div className="flex items-center gap-1.5 bg-[#F7FAF5] border border-[#A8C3A0]/40 rounded-xl px-3 py-2 text-xs w-full md:w-auto">
             <Filter className="w-3.5 h-3.5 text-[#2F6B4F]" />
             <select
-              value={filtroEtapa}
-              onChange={(e) => setFiltroEtapa(e.target.value)}
+              value={filtroStatus}
+              onChange={(e) => setFiltroStatus(e.target.value)}
               className="bg-transparent text-xs text-[#1D2B25] focus:outline-none cursor-pointer"
             >
-              <option value="todas">Todas as Etapas</option>
-              {ETAPAS_FUNIL.map((et) => (
-                <option key={et} value={et}>
-                  {et}
+              <option value="todas">Todos os Status</option>
+              {STATUS_CLIENTE_LIST.map((st) => (
+                <option key={st} value={st}>
+                  {st}
                 </option>
               ))}
             </select>
@@ -396,15 +412,16 @@ export default function ClientesPage() {
             Nenhum cliente encontrado
           </h3>
           <p className="text-xs text-[#5E6E64] max-w-sm mx-auto">
-            Tente mudar o termo da busca ou os filtros de loja e etapa do funil.
+            Tente mudar o termo da busca ou os filtros de loja e status de atendimento.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {clientesFiltrados.map((cli) => {
+            const statusAtual = cli.status_atendimento || cli.etapa_funil || 'Novo'
             const waLink = gerarLinkWhatsApp(
               cli.telefone,
-              `Olá ${cli.nome}, aqui é da Boutique de Revestimentos.`,
+              `Olá ${cli.nome}, aqui é da equipe de atendimento da Boutique de Revestimentos.`,
             )
             return (
               <div
@@ -424,19 +441,11 @@ export default function ClientesPage() {
                     </div>
 
                     <span
-                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                        cli.etapa_funil === 'Cliente fechado'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : cli.etapa_funil === 'Proposta enviada'
-                            ? 'bg-indigo-100 text-indigo-800'
-                            : cli.etapa_funil === 'Em atendimento'
-                              ? 'bg-amber-100 text-amber-800'
-                              : cli.etapa_funil === 'Perdido'
-                                ? 'bg-rose-100 text-rose-800'
-                                : 'bg-blue-100 text-blue-800'
-                      }`}
+                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 ${getStatusBadge(
+                        statusAtual,
+                      )}`}
                     >
-                      {cli.etapa_funil}
+                      {statusAtual}
                     </span>
                   </div>
 

@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/dialog'
 
 const CANAIS: CanalAtendimento[] = ['Presencial', 'WhatsApp', 'Telefone', 'Reunião Online']
-const STATUS_LIST: StatusAtendimento[] = ['Aberto', 'Em negociação', 'Fechado', 'Perdido']
+const STATUS_LIST: StatusAtendimento[] = ['Aberto', 'Em atendimento', 'Concluído', 'Cancelado']
 
 export default function AtendimentosPage() {
   const { toast } = useToast()
@@ -65,7 +65,6 @@ export default function AtendimentosPage() {
     interesse: '',
     resumo: '',
     status: 'Aberto',
-    valor_estimado: undefined,
   })
 
   const carregarDados = async () => {
@@ -103,7 +102,6 @@ export default function AtendimentosPage() {
       interesse: '',
       resumo: '',
       status: 'Aberto',
-      valor_estimado: undefined,
     })
     setModalAberto(true)
   }
@@ -121,7 +119,6 @@ export default function AtendimentosPage() {
       interesse: at.interesse,
       resumo: at.resumo,
       status: at.status,
-      valor_estimado: at.valor_estimado,
     })
     setModalAberto(true)
   }
@@ -203,13 +200,13 @@ export default function AtendimentosPage() {
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B4F] flex items-center gap-1.5">
             <Headphones className="w-3.5 h-3.5" />
-            Consultoria Técnica e Comercial
+            Consultoria e Atendimento Técnico
           </span>
           <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
             Registro de Atendimentos
           </h1>
           <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
-            Presenciais, WhatsApp, telefone e reuniões técnicas com arquitetos e clientes.
+            Presenciais nas lojas, WhatsApp, telefone e alinhamentos de especificação técnica.
           </p>
         </div>
 
@@ -378,24 +375,6 @@ export default function AtendimentosPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                Valor Estimado (R$)
-              </label>
-              <input
-                type="number"
-                value={form.valor_estimado || ''}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    valor_estimado: e.target.value ? Number(e.target.value) : undefined,
-                  })
-                }
-                placeholder="Ex.: 35000"
-                className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-              />
-            </div>
-
             <div className="flex justify-end gap-2 pt-2 border-t border-[#EAF2E8]">
               <button
                 type="button"
@@ -517,13 +496,13 @@ export default function AtendimentosPage() {
                     </span>
                     <span
                       className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        at.status === 'Fechado'
+                        at.status === 'Concluído'
                           ? 'bg-emerald-100 text-emerald-800'
-                          : at.status === 'Em negociação'
-                            ? 'bg-amber-100 text-amber-800'
-                            : at.status === 'Perdido'
+                          : at.status === 'Em atendimento'
+                            ? 'bg-blue-100 text-blue-800'
+                            : at.status === 'Cancelado'
                               ? 'bg-rose-100 text-rose-800'
-                              : 'bg-blue-100 text-blue-800'
+                              : 'bg-amber-100 text-amber-800'
                       }`}
                     >
                       {at.status}
@@ -571,15 +550,6 @@ export default function AtendimentosPage() {
                 </p>
                 <p className="text-[#5E6E64] leading-relaxed">{at.resumo}</p>
               </div>
-
-              {at.valor_estimado ? (
-                <div className="text-right text-xs text-[#5E6E64]">
-                  Valor estimado em negociação:{' '}
-                  <strong className="text-base font-serif italic text-[#1D2B25] ml-1">
-                    R$ {at.valor_estimado.toLocaleString('pt-BR')}
-                  </strong>
-                </div>
-              ) : null}
             </div>
           ))}
         </div>

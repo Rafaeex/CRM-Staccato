@@ -7,6 +7,7 @@ import Clientes from './pages/Clientes'
 import FichaCliente from './pages/FichaCliente'
 import Atendimentos from './pages/Atendimentos'
 import Agenda from './pages/Agenda'
+import Reclamacoes from './pages/Reclamacoes'
 import FollowUps from './pages/FollowUps'
 import Login from './pages/Login'
 import NotFound from './pages/NotFound'
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/clientes/:id" element={<FichaCliente />} />
             <Route path="/atendimentos" element={<Atendimentos />} />
             <Route path="/agenda" element={<Agenda />} />
+            <Route path="/reclamacoes" element={<Reclamacoes />} />
             <Route path="/follow-ups" element={<FollowUps />} />
           </Route>
 

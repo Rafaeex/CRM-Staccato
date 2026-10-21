@@ -56,10 +56,10 @@ export default function AgendaPage() {
   // Concluir Atendimento
   const handleConcluirAtendimento = async (id: string) => {
     try {
-      const atAtualizado = await atualizarAtendimento(id, { status: 'Fechado' })
+      const atAtualizado = await atualizarAtendimento(id, { status: 'Concluído' })
       setAtendimentos((prev) => prev.map((a) => (a.id === id ? atAtualizado : a)))
       toast({
-        title: 'Atendimento marcado como Fechado',
+        title: 'Atendimento marcado como Concluído',
         description: 'Status atualizado com sucesso.',
       })
     } catch (err) {
@@ -232,20 +232,19 @@ export default function AgendaPage() {
                           {item.loja} • {item.canal} • Resp: {item.responsavel}
                         </p>
                       </div>
-
                       <span
                         className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                          item.status === 'Fechado'
+                          item.status === 'Concluído'
                             ? 'bg-emerald-100 text-emerald-800'
-                            : item.status === 'Em negociação'
-                              ? 'bg-amber-100 text-amber-800'
-                              : item.status === 'Perdido'
+                            : item.status === 'Em atendimento'
+                              ? 'bg-blue-100 text-blue-800'
+                              : item.status === 'Cancelado'
                                 ? 'bg-rose-100 text-rose-800'
-                                : 'bg-blue-100 text-blue-800'
+                                : 'bg-amber-100 text-amber-800'
                         }`}
                       >
                         {item.status}
-                      </span>
+                      </span>{' '}
                     </div>
 
                     <p className="text-xs text-[#1D2B25] bg-white p-2.5 rounded-xl border border-[#A8C3A0]/20">
@@ -259,16 +258,16 @@ export default function AgendaPage() {
                       </span>
 
                       <div className="flex items-center gap-2">
-                        {item.status !== 'Fechado' && (
+                        {item.status !== 'Concluído' && (
                           <button
                             type="button"
                             onClick={() => handleConcluirAtendimento(item.id)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#A8C3A0]/50 text-[#2F6B4F] text-[11px] font-semibold hover:bg-[#EAF2E8]"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#EAF2E8] hover:bg-[#2F6B4F] text-[#2F6B4F] hover:text-white font-semibold text-xs transition-colors"
                           >
-                            <CheckCircle2 className="w-3 h-3 text-[#2F6B4F]" />
-                            <span>Marcar Fechado</span>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Concluir</span>
                           </button>
-                        )}
+                        )}{' '}
                         <Link
                           to={`/clientes/${item.cliente}`}
                           className="text-[#2F6B4F] font-semibold text-xs hover:underline flex items-center gap-0.5"

@@ -1,11 +1,14 @@
 import type { RecordModel } from 'pocketbase'
 
-export type EtapaFunil =
-  | 'Lead'
+// Status de atendimento ao cliente (sem conotação comercial de vendas)
+export type StatusCliente =
+  | 'Novo'
   | 'Em atendimento'
-  | 'Proposta enviada'
-  | 'Cliente fechado'
-  | 'Perdido'
+  | 'Aguardando cliente'
+  | 'Atendimento concluído'
+
+// Mantido alias para compatibilidade reversa onde aplicável
+export type EtapaFunil = StatusCliente
 
 export interface Cliente extends RecordModel {
   id: string
@@ -13,7 +16,9 @@ export interface Cliente extends RecordModel {
   telefone: string
   email?: string
   loja_origem: string
-  etapa_funil: EtapaFunil
+  status_atendimento: StatusCliente
+  /** @deprecated mantido para compatibilidade temporária se algum código antigo ler */
+  etapa_funil?: StatusCliente
   interesse_principal?: string
   arquiteto_parceiro?: string
   notas_internas?: string
@@ -27,7 +32,8 @@ export interface ClienteInput {
   telefone: string
   email?: string
   loja_origem: string
-  etapa_funil: EtapaFunil
+  status_atendimento: StatusCliente
+  etapa_funil?: StatusCliente
   interesse_principal?: string
   arquiteto_parceiro?: string
   notas_internas?: string
@@ -35,7 +41,7 @@ export interface ClienteInput {
 }
 
 export type CanalAtendimento = 'Presencial' | 'WhatsApp' | 'Telefone' | 'Reunião Online'
-export type StatusAtendimento = 'Aberto' | 'Em negociação' | 'Fechado' | 'Perdido'
+export type StatusAtendimento = 'Aberto' | 'Em atendimento' | 'Concluído' | 'Cancelado'
 
 export interface Atendimento extends RecordModel {
   id: string
@@ -49,7 +55,6 @@ export interface Atendimento extends RecordModel {
   interesse: string
   resumo: string
   status: StatusAtendimento
-  valor_estimado?: number
   created: string
   updated: string
 }
@@ -65,7 +70,6 @@ export interface AtendimentoInput {
   interesse: string
   resumo: string
   status: StatusAtendimento
-  valor_estimado?: number
 }
 
 export type CanalFollowUp = 'WhatsApp' | 'Telefone' | 'E-mail' | 'Presencial'
@@ -104,6 +108,53 @@ export interface FollowUpInput {
   status?: StatusFollowUp
   data_conclusao?: string
   resultado_nota?: string
+}
+
+// NOVO: Tipos para o pilar de Reclamações
+export type CanalReclamacao = 'Loja' | 'WhatsApp' | 'Telefone' | 'E-mail'
+export type CategoriaReclamacao =
+  | 'Produto com defeito'
+  | 'Atraso na entrega'
+  | 'Atendimento'
+  | 'Troca/devolução'
+  | 'Cobrança'
+  | 'Outro'
+export type GravidadeReclamacao = 'Baixa' | 'Média' | 'Alta'
+export type StatusReclamacao = 'Aberta' | 'Em tratamento' | 'Resolvida'
+
+export interface Reclamacao extends RecordModel {
+  id: string
+  cliente: string
+  cliente_nome: string
+  cliente_telefone?: string
+  loja: string
+  canal_origem: CanalReclamacao
+  categoria: CategoriaReclamacao
+  descricao: string
+  gravidade: GravidadeReclamacao
+  responsavel: string
+  prazo_resolucao: string
+  status: StatusReclamacao
+  resolucao_desfecho?: string
+  data_resolucao?: string
+  created: string
+  updated: string
+}
+
+export interface ReclamacaoInput {
+  cliente: string
+  cliente_nome: string
+  cliente_telefone?: string
+  loja: string
+  canal_origem: CanalReclamacao
+  categoria: CategoriaReclamacao
+  descricao: string
+  gravidade: GravidadeReclamacao
+  responsavel: string
+  prazo_resolucao: string
+  status: StatusReclamacao
+  resolucao_desfecho?: string
+  data_resolucao?: string
 }
 
 export interface LojaCRM extends RecordModel {

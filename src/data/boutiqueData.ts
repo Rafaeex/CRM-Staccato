@@ -78,7 +78,7 @@ export const SERVICOS: ServicoItem[] = [
     id: 'atendimento-personalizado',
     titulo: 'Atendimento Personalizado',
     descricao:
-      'Consultoria exclusiva com especialistas dedicados para alinhar estética, técnica e orçamento.',
+      'Consultoria exclusiva com especialistas dedicados para alinhar estética, especificações técnicas e materiais nobres.',
     icone: 'Sparkles',
     destaque: 'Consultoria Individual',
   },
