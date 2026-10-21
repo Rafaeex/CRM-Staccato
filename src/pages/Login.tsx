@@ -139,7 +139,7 @@ export default function LoginPage() {
           <div className="flex items-center justify-between text-xs font-semibold text-[#2F6B4F]">
             <div className="flex items-center gap-1.5">
               <KeyRound className="w-3.5 h-3.5" />
-              <span>Acessos de Demonstração (Gestão × Atendente):</span>
+              <span>Acessos de Demonstração (Gestão × Atendente × Comercial):</span>
             </div>
           </div>
 
@@ -187,6 +187,32 @@ export default function LoginPage() {
                 </p>
                 <p className="font-mono text-[#2F6B4F] text-[11px] mt-0.5 font-medium">
                   atendente@boutique.com / atendente1234
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2.5 py-1 rounded-md border border-[#A8C3A0]/30 shadow-xs group-hover:bg-[#2F6B4F] group-hover:text-white transition-colors">
+                Entrar
+              </span>
+            </button>
+
+            {/* 3. Área Comercial (Novo Papel Solicitado) */}
+            <button
+              type="button"
+              onClick={() => fillCredentials('comercial@boutique.com', 'comercial1234')}
+              className="w-full text-left p-3 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/30 transition-colors flex items-center justify-between text-xs group"
+            >
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-[#1D2B25]">Área Comercial</span>
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-amber-700 text-white">
+                    Comercial
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#5E6E64] mt-0.5">
+                  Entrada rápida: registro de novas quebras/BOEM e reclamações sem ver o restante da
+                  operação
+                </p>
+                <p className="font-mono text-[#2F6B4F] text-[11px] mt-0.5 font-medium">
+                  comercial@boutique.com / comercial1234
                 </p>
               </div>
               <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2.5 py-1 rounded-md border border-[#A8C3A0]/30 shadow-xs group-hover:bg-[#2F6B4F] group-hover:text-white transition-colors">

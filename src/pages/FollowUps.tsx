@@ -24,8 +24,10 @@ import {
 } from '@/services/followUps'
 import { listarClientes } from '@/services/clientes'
 import { gerarFollowUpComIA } from '@/services/iaFollowUp'
+import { contarQuebrasEmAbertoPorCliente, listarQuebrasBoem } from '@/services/quebrasBoem'
 import { getUsuarioAtualInfo } from '@/services/permissoes'
 import type { FollowUp, FollowUpInput, Cliente, CanalFollowUp, UrgenciaFollowUp } from '@/types/crm'
+import { FileWarning } from 'lucide-react'
 import { LOJAS } from '@/data/boutiqueData'
 import { useToast } from '@/hooks/use-toast'
 import {
@@ -60,6 +62,8 @@ export default function FollowUpsPage() {
   const [salvando, setSalvando] = useState(false)
   const [gerandoIA, setGerandoIA] = useState(false)
   const [resumoIACompleto, setResumoIACompleto] = useState<string | null>(null)
+  const [quebrasClienteModal, setQuebrasClienteModal] = useState<number>(0)
+  const [clientesComQuebrasAbertas, setClientesComQuebrasAbertas] = useState<Set<string>>(new Set())
 
   const hoje = new Date().toISOString().split('T')[0]
 
@@ -83,9 +87,20 @@ export default function FollowUpsPage() {
   const carregarDados = async () => {
     setLoading(true)
     try {
-      const [fList, cList] = await Promise.all([listarFollowUps(), listarClientes()])
+      const [fList, cList, qList] = await Promise.all([
+        listarFollowUps(),
+        listarClientes(),
+        listarQuebrasBoem('status != "Resolvida"'),
+      ])
       setFollowUps(fList)
       setClientes(cList)
+
+      // Clientes que possuem quebras em aberto
+      const setIds = new Set<string>()
+      qList.forEach((q) => {
+        if (q.cliente) setIds.add(q.cliente)
+      })
+      setClientesComQuebrasAbertas(setIds)
     } catch (err) {
       console.error('Falha ao carregar follow-ups:', err)
       toast({
@@ -102,7 +117,7 @@ export default function FollowUpsPage() {
     carregarDados()
   }, [])
 
-  const handleClienteChange = (clienteId: string) => {
+  const handleClienteChange = async (clienteId: string) => {
     const sel = clientes.find((c) => c.id === clienteId)
     if (sel) {
       setForm((prev) => ({
@@ -112,6 +127,10 @@ export default function FollowUpsPage() {
         cliente_telefone: sel.telefone,
         loja: sel.loja_origem || prev.loja,
       }))
+      const qCount = await contarQuebrasEmAbertoPorCliente(sel.id)
+      setQuebrasClienteModal(qCount)
+    } else {
+      setQuebrasClienteModal(0)
     }
   }
 
@@ -306,6 +325,27 @@ export default function FollowUpsPage() {
                   ))}
                 </select>
               </div>
+
+              {/* Alerta de Quebras / BOEM em Aberto do Cliente Selecionado */}
+              {quebrasClienteModal > 0 && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <FileWarning className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span>
+                      Este cliente possui{' '}
+                      <strong>{quebrasClienteModal} quebra(s)/BOEM em aberto</strong>. A IA incluirá
+                      o acompanhamento na mensagem!
+                    </span>
+                  </div>
+                  <Link
+                    to="/quebras"
+                    target="_blank"
+                    className="text-[11px] font-semibold text-amber-900 underline shrink-0"
+                  >
+                    Ver quebras
+                  </Link>
+                </div>
+              )}
 
               {/* Botão de Análise do Agente de IA */}
               {form.cliente && (
@@ -574,6 +614,16 @@ export default function FollowUpsPage() {
                       <h3 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
                         {fu.cliente_nome}
                       </h3>{' '}
+                      {clientesComQuebrasAbertas.has(fu.cliente) && (
+                        <Link
+                          to="/quebras"
+                          title="Cliente com quebra/BOEM em aberto!"
+                          className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 transition-colors"
+                        >
+                          <FileWarning className="w-3 h-3 text-amber-800" />
+                          <span>Quebra em aberto</span>
+                        </Link>
+                      )}
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F7FAF5] border border-[#A8C3A0]/40 text-[#2F6B4F] font-semibold">
                         {fu.canal}
                       </span>

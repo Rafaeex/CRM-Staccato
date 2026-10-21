@@ -15,7 +15,7 @@ routerAdd(
         return e.badRequestError('cliente_id é obrigatório')
       }
 
-      // 1. Buscar dados do cliente (somente atendimento)
+      // 1. Buscar dados do cliente
       const cliente = app.findRecordById('clientes', clienteId)
       const atendimentos = app.findRecordsByFilter(
         'atendimentos',
@@ -39,6 +39,23 @@ routerAdd(
         0,
       )
 
+      // 2. CONSULTAR QUEBRAS & BOEM (Decisão do usuário: sempre checar se há quebras em aberto do cliente)
+      let quebras = []
+      try {
+        quebras = app.findRecordsByFilter(
+          'quebras_boem',
+          `cliente = "${clienteId}"`,
+          '-created',
+          5,
+          0,
+        )
+      } catch (_) {
+        // coleção pode ainda não ter registros para este cliente
+      }
+
+      const quebrasEmAberto = quebras.filter((q) => q.getString('status') !== 'Resolvida')
+      const temQuebraEmAberto = quebrasEmAberto.length > 0
+
       // Montar resumo do histórico para alimentar o agente
       const histAtendimentos = atendimentos
         .map(
@@ -61,6 +78,13 @@ routerAdd(
         )
         .join('\n')
 
+      const histQuebras = quebras
+        .map(
+          (q) =>
+            `- [Quebra/BOEM Pedido: ${q.getString('numero_pedido')} | Status: ${q.getString('status')}] Produtos: ${q.getString('produtos_envolvidos') || 'Não especificado'}. Resp: ${q.getString('responsabilidade_apurada') || 'Em apuração'}. Ação: ${q.getString('acao_adotada') || 'Em tratamento'}. ${q.getString('descricao_detalhada') ? 'Detalhes: ' + q.getString('descricao_detalhada') : ''}`,
+        )
+        .join('\n')
+
       const promptMensagem = `Analise os dados de atendimento deste cliente e gere a recomendação estruturada de próximo follow-up:
 CLIENTE: ${cliente.getString('nome')}
 LOJA: ${cliente.getString('loja_origem')}
@@ -69,6 +93,10 @@ STATUS ATUAL: ${cliente.getString('status_atendimento')}
 INTERESSE PRINCIPAL: ${cliente.getString('interesse_principal') || 'Não especificado'}
 ARQUITETO/PARCEIRO: ${cliente.getString('arquiteto_parceiro') || 'Nenhum'}
 NOTAS INTERNAS: ${cliente.getString('notas_internas') || 'Nenhuma'}
+
+OCORRÊNCIAS DE QUEBRAS / BOEM DO CLIENTE:
+${histQuebras || 'Nenhuma quebra ou BOEM registrado.'}
+${temQuebraEmAberto ? `ATENÇÃO PRIORITÁRIA: Este cliente possui ${quebrasEmAberto.length} ocorrência(s) de Quebra/BOEM EM ABERTO! Você DEVE citar o andamento da quebra/reposição na mensagem e atribuir urgência Alta.` : ''}
 
 HISTÓRICO RECENTE DE ATENDIMENTOS:
 ${histAtendimentos || 'Nenhum atendimento anterior registrado.'}
@@ -79,7 +107,7 @@ ${histReclamacoes || 'Nenhuma reclamação registrada.'}
 HISTÓRICO DE FOLLOW-UPS ANTERIORES:
 ${histFollowUps || 'Nenhum follow-up anterior registrado.'}
 
-Por favor, forneça o resumo do histórico e formule exatamente o próximo follow-up sugerido (Assunto, Mensagem WhatsApp, Urgência [Alta, Média ou Baixa], Data/Prazo sugerido e Justificativa).`
+Por favor, forneça o resumo do histórico e formule exatamente o próximo follow-up sugerido (Assunto, Mensagem WhatsApp, Urgência [Alta, Média ou Baixa], Data/Prazo sugerido e Justificativa). ${temQuebraEmAberto ? 'Lembre-se de mencionar a quebra/BOEM em aberto com cuidado e presteza na mensagem sugerida.' : ''}`
 
       let respostaTexto = ''
       try {
@@ -89,8 +117,21 @@ Por favor, forneça o resumo do histórico e formule exatamente o próximo follo
         })
         respostaTexto = aiResult.content
       } catch (agentErr) {
-        // Fallback se a quota do gateway estiver em aquecimento
-        respostaTexto = `RESUMO DO HISTÓRICO:
+        // Fallback robusto se a IA nativa estiver em aquecimento
+        const quebraDestaque = quebrasEmAberto[0]
+        if (temQuebraEmAberto && quebraDestaque) {
+          respostaTexto = `RESUMO DO HISTÓRICO:
+O cliente ${cliente.getString('nome')} possui ${quebrasEmAberto.length} ocorrência(s) de Quebra/BOEM em andamento referente ao pedido ${quebraDestaque.getString('numero_pedido')} (${quebraDestaque.getString('produtos_envolvidos') || 'revestimentos'}).
+
+SUGESTÃO DE PRÓXIMO FOLLOW-UP:
+- Assunto: Atualização sobre reposição e BOEM (Pedido ${quebraDestaque.getString('numero_pedido')})
+- Canal: WhatsApp
+- Mensagem Pronta para WhatsApp: Olá ${cliente.getString('nome')}, tudo bem? Aqui é da Boutique de Revestimentos (${cliente.getString('loja_origem')}). Estamos acompanhando de perto o processo de reposição da ocorrência referente ao pedido ${quebraDestaque.getString('numero_pedido')} e gostaríamos de posicioná-lo sobre a previsão de envio das novas peças. Ficamos à sua inteira disposição!
+- Nível de Urgência: Alta
+- Prazo Sugerido: Hoje
+- Justificativa: Cliente possui ocorrência de quebra/BOEM em aberto; pós-venda ágil é mandatório para resguardar a experiência de alto padrão.`
+        } else {
+          respostaTexto = `RESUMO DO HISTÓRICO:
 O cliente ${cliente.getString('nome')} está com status "${cliente.getString('status_atendimento')}" na unidade ${cliente.getString('loja_origem')}, com interesse registrado em ${cliente.getString('interesse_principal') || 'revestimentos de alto padrão'}.
 
 SUGESTÃO DE PRÓXIMO FOLLOW-UP:
@@ -100,20 +141,28 @@ SUGESTÃO DE PRÓXIMO FOLLOW-UP:
 - Nível de Urgência: Média
 - Prazo Sugerido: Amanhã
 - Justificativa: Manter contato ativo dentro do padrão de pós-atendimento da rede de boutiques.`
+        }
       }
 
-      // Extração inteligente de campos para preencher o follow-up
-      let assuntoSugerido = `Follow-up: Acompanhamento de Atendimento (${cliente.getString('nome')})`
-      let mensagemWhatsApp = `Olá ${cliente.getString('nome')}, tudo bem? Aqui é da Boutique de Revestimentos (${cliente.getString('loja_origem')}). Gostaríamos de dar continuidade ao seu atendimento!`
-      let urgencia = 'Média'
+      // Extração inteligente de campos
+      let assuntoSugerido = temQuebraEmAberto
+        ? `Acompanhamento de Quebra/BOEM (${cliente.getString('nome')})`
+        : `Follow-up: Acompanhamento de Atendimento (${cliente.getString('nome')})`
+
+      let mensagemWhatsApp = temQuebraEmAberto
+        ? `Olá ${cliente.getString('nome')}, tudo bem? Aqui é da Boutique de Revestimentos (${cliente.getString('loja_origem')}). Estamos acompanhando a tratativa da ocorrência de quebra do seu pedido e gostaríamos de te atualizar!`
+        : `Olá ${cliente.getString('nome')}, tudo bem? Aqui é da Boutique de Revestimentos (${cliente.getString('loja_origem')}). Gostaríamos de dar continuidade ao seu atendimento!`
+
+      let urgencia = temQuebraEmAberto ? 'Alta' : 'Média'
 
       if (
+        temQuebraEmAberto ||
         respostaTexto.includes('Alta') ||
         histReclamacoes.includes('Alta') ||
         histReclamacoes.includes('Aberta')
       ) {
         urgencia = 'Alta'
-      } else if (respostaTexto.includes('Baixa')) {
+      } else if (respostaTexto.includes('Baixa') && !temQuebraEmAberto) {
         urgencia = 'Baixa'
       }
 
@@ -132,7 +181,6 @@ SUGESTÃO DE PRÓXIMO FOLLOW-UP:
           .replace(/^[\*\-_]+|[\*\-_]+$/g, '')
       }
 
-      // Calcular data prevista sugerida (hoje se urgente, senão amanhã ou em 2 dias)
       const targetDate = new Date()
       if (urgencia === 'Alta') {
         // hoje
@@ -150,6 +198,13 @@ SUGESTÃO DE PRÓXIMO FOLLOW-UP:
         cliente_telefone: cliente.getString('telefone'),
         loja: cliente.getString('loja_origem'),
         resposta_completa_ia: respostaTexto,
+        quebras_em_aberto_count: quebrasEmAberto.length,
+        quebras_em_aberto: quebrasEmAberto.map((q) => ({
+          id: q.id,
+          numero_pedido: q.getString('numero_pedido'),
+          produtos: q.getString('produtos_envolvidos'),
+          status: q.getString('status'),
+        })),
         sugestao: {
           assunto: assuntoSugerido,
           mensagem_sugerida: mensagemWhatsApp,
@@ -157,7 +212,7 @@ SUGESTÃO DE PRÓXIMO FOLLOW-UP:
           urgencia: urgencia,
           data_prevista: dataPrevistaStr,
           horario_previsto: '14:30',
-          justificativa: respostaTexto.substring(0, 300),
+          justificativa: respostaTexto.substring(0, 320),
         },
       })
     } catch (err) {

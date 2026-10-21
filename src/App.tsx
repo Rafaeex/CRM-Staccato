@@ -8,6 +8,7 @@ import FichaCliente from './pages/FichaCliente'
 import Atendimentos from './pages/Atendimentos'
 import Agenda from './pages/Agenda'
 import Reclamacoes from './pages/Reclamacoes'
+import QuebrasBoem from './pages/QuebrasBoem'
 import FollowUps from './pages/FollowUps'
 import Quadro from './pages/Quadro'
 import Login from './pages/Login'
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/atendimentos" element={<Atendimentos />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/reclamacoes" element={<Reclamacoes />} />
+            <Route path="/quebras" element={<QuebrasBoem />} />
             <Route path="/follow-ups" element={<FollowUps />} />
           </Route>
 

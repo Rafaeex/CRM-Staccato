@@ -16,6 +16,7 @@ import {
   ChevronRight,
   UserCheck,
   Sparkles,
+  FileWarning,
 } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { LOJAS } from '@/data/boutiqueData'
@@ -36,9 +37,9 @@ export default function Layout({ children }: LayoutProps) {
   const isAuth = pb.authStore.isValid
   const isLoginPage = location.pathname === '/login'
 
-  // Lista de lojas a exibir na sidebar (atendente vê apenas sua unidade; gestor vê todas as 7)
+  // Lista de lojas a exibir na sidebar (atendente ou comercial vê sua unidade; gestor vê todas as 7)
   const lojasExibidas =
-    userInfo.isAtendente && userInfo.loja
+    (userInfo.isAtendente || userInfo.isComercial) && userInfo.loja
       ? LOJAS.filter(
           (l) =>
             l.nome.toLowerCase().includes(userInfo.loja.toLowerCase()) ||
@@ -67,53 +68,79 @@ export default function Layout({ children }: LayoutProps) {
     navigate('/login')
   }
 
-  // Itens de navegação adaptáveis: se atendente, foco no fluxo operacional próprio
-  const navItems = [
-    {
-      label: userInfo.isAtendente ? 'Meu Dia' : 'Painel de Gestão',
-      href: '/',
-      icon: LayoutDashboard,
-      description: userInfo.isAtendente
-        ? 'Seus clientes, pendências e tarefas'
-        : 'KPIs consolidados das 7 lojas',
-    },
-    {
-      label: 'Quadro Kanban',
-      href: '/quadro',
-      icon: Kanban,
-      description: 'Fluxo com anexos de projetos',
-    },
-    {
-      label: 'Clientes',
-      href: '/clientes',
-      icon: Users,
-      description: 'Fichas e históricos',
-    },
-    {
-      label: 'Follow-ups',
-      href: '/follow-ups',
-      icon: ClockAlert,
-      description: 'Retornos e IA automática',
-    },
-    {
-      label: 'Atendimentos',
-      href: '/atendimentos',
-      icon: Headphones,
-      description: 'Registros e consultorias',
-    },
-    {
-      label: 'Agenda',
-      href: '/agenda',
-      icon: CalendarDays,
-      description: 'Visitas e horários',
-    },
-    {
-      label: 'Reclamações',
-      href: '/reclamacoes',
-      icon: AlertTriangle,
-      description: userInfo.isAtendente ? 'Minhas ocorrências' : 'Ocorrências da rede',
-    },
-  ]
+  // Itens de navegação adaptáveis por papel:
+  // - Comercial: Focado estritamente em registrar reclamações e quebras/BOEM (Decisão 3 do usuário)
+  // - Atendente: Meu Dia, Clientes, Follow-ups, Atendimentos, Agenda, Reclamações, Quebras & BOEM
+  // - Gestor: Vê todos os módulos da rede
+  const navItems = userInfo.isComercial
+    ? [
+        {
+          label: 'Quebras & BOEM',
+          href: '/quebras',
+          icon: FileWarning,
+          description: 'Registro de quebras e avarias',
+        },
+        {
+          label: 'Reclamações',
+          href: '/reclamacoes',
+          icon: AlertTriangle,
+          description: 'Abertura de SAC e ocorrências',
+        },
+      ]
+    : [
+        {
+          label: userInfo.isAtendente ? 'Meu Dia' : 'Painel de Gestão',
+          href: '/',
+          icon: LayoutDashboard,
+          description: userInfo.isAtendente
+            ? 'Seus clientes, pendências e tarefas'
+            : 'KPIs consolidados das 7 lojas',
+        },
+        {
+          label: 'Quebras & BOEM',
+          href: '/quebras',
+          icon: FileWarning,
+          description: userInfo.isAtendente
+            ? 'Ocorrências da minha loja'
+            : 'Esteira simples da rede',
+        },
+        {
+          label: 'Quadro Kanban',
+          href: '/quadro',
+          icon: Kanban,
+          description: 'Fluxo com anexos de projetos',
+        },
+        {
+          label: 'Clientes',
+          href: '/clientes',
+          icon: Users,
+          description: 'Fichas e históricos',
+        },
+        {
+          label: 'Follow-ups',
+          href: '/follow-ups',
+          icon: ClockAlert,
+          description: 'Retornos e IA automática',
+        },
+        {
+          label: 'Atendimentos',
+          href: '/atendimentos',
+          icon: Headphones,
+          description: 'Registros e consultorias',
+        },
+        {
+          label: 'Agenda',
+          href: '/agenda',
+          icon: CalendarDays,
+          description: 'Visitas e horários',
+        },
+        {
+          label: 'Reclamações',
+          href: '/reclamacoes',
+          icon: AlertTriangle,
+          description: userInfo.isAtendente ? 'Minhas ocorrências' : 'Ocorrências da rede',
+        },
+      ]
 
   const isActive = (path: string) => {
     if (path === '/') {
@@ -121,6 +148,13 @@ export default function Layout({ children }: LayoutProps) {
     }
     return location.pathname.startsWith(path)
   }
+
+  // Se usuário tem papel COMERCIAL e tentar acessar raiz /, redirecionar para seu módulo /quebras
+  useEffect(() => {
+    if (isAuth && userInfo.isComercial && location.pathname === '/') {
+      navigate('/quebras', { replace: true })
+    }
+  }, [isAuth, userInfo.isComercial, location.pathname, navigate])
 
   // Se estiver na tela de login, renderiza apenas o contêiner de login limpo com estilo da marca
   if (isLoginPage) {
@@ -156,7 +190,9 @@ export default function Layout({ children }: LayoutProps) {
                 <span className="text-[10px] uppercase tracking-[0.16em] text-[#A8C3A0] font-medium hidden sm:inline">
                   {userInfo.isAtendente
                     ? `Painel do Atendente • ${userInfo.loja || 'Minha Loja'}`
-                    : 'Painel de Gestão • Rede 7 Lojas'}
+                    : userInfo.isComercial
+                      ? `Área Comercial • ${userInfo.loja || 'Entrada Rápida'}`
+                      : 'Painel de Gestão • Rede 7 Lojas'}
                 </span>
               </div>
             </Link>{' '}
@@ -202,7 +238,11 @@ export default function Layout({ children }: LayoutProps) {
                         {userInfo.name}
                       </span>
                       <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-white/20 text-[#A8C3A0]">
-                        {userInfo.role}
+                        {userInfo.isGestor
+                          ? 'Gestor'
+                          : userInfo.isComercial
+                            ? 'Comercial'
+                            : 'Atendente'}
                       </span>
                     </div>
                     <span className="text-[10px] text-white/60 leading-tight">

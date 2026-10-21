@@ -24,13 +24,15 @@ import {
   gerarLinkWhatsApp,
 } from '@/services/followUps'
 import { listarReclamacoesPorCliente, criarReclamacao } from '@/services/reclamacoes'
+import { listarQuebrasPorCliente } from '@/services/quebrasBoem'
 import { gerarFollowUpComIA } from '@/services/iaFollowUp'
-import { Bot, RefreshCw } from 'lucide-react'
+import { Bot, RefreshCw, FileWarning } from 'lucide-react'
 import type {
   Cliente,
   Atendimento,
   FollowUp,
   Reclamacao,
+  QuebraBoem,
   StatusCliente,
   CanalAtendimento,
   StatusAtendimento,
@@ -64,6 +66,7 @@ export default function FichaClientePage() {
   const [atendimentos, setAtendimentos] = useState<Atendimento[]>([])
   const [followUps, setFollowUps] = useState<FollowUp[]>([])
   const [reclamacoes, setReclamacoes] = useState<Reclamacao[]>([])
+  const [quebras, setQuebras] = useState<QuebraBoem[]>([])
 
   // Modal Novo Atendimento
   const [modalAtendimento, setModalAtendimento] = useState(false)
@@ -128,14 +131,16 @@ export default function FichaClientePage() {
       setCliente(cli)
       setNotasTemp(cli.notas_internas || '')
 
-      const [aList, fList, rList] = await Promise.all([
+      const [aList, fList, rList, qList] = await Promise.all([
         listarAtendimentosPorCliente(id),
         listarFollowUpsPorCliente(id),
         listarReclamacoesPorCliente(id),
+        listarQuebrasPorCliente(id),
       ])
       setAtendimentos(aList)
       setFollowUps(fList)
       setReclamacoes(rList)
+      setQuebras(qList)
     } catch (err) {
       console.error('Erro ao buscar cliente:', err)
       toast({
@@ -431,6 +436,38 @@ export default function FichaClientePage() {
           <span>Voltar para Lista de Clientes</span>
         </Link>
       </div>
+
+      {/* Alerta de Quebras / BOEM em Aberto do Cliente (Decisão de Produto) */}
+      {quebras.filter((q) => q.status !== 'Resolvida').length > 0 && (
+        <div className="bg-amber-50/90 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-900 shadow-sm">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0">
+              <FileWarning className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs sm:text-sm font-semibold">
+                Este cliente possui {quebras.filter((q) => q.status !== 'Resolvida').length}{' '}
+                ocorrência(s) de Quebra/BOEM em aberto
+              </p>
+              <p className="text-[11px] text-amber-800/80">
+                Pedidos com avaria ou reposição em andamento:{' '}
+                {quebras
+                  .filter((q) => q.status !== 'Resolvida')
+                  .map((q) => `${q.numero_pedido} (${q.status})`)
+                  .join(', ')}
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/quebras"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-amber-900 font-semibold text-xs border border-amber-300 hover:bg-amber-100 transition-colors shrink-0"
+          >
+            <span>Ver no Módulo Quebras & BOEM</span>
+            <ArrowLeft className="w-3 h-3 rotate-180" />
+          </Link>
+        </div>
+      )}
 
       {/* Ficha Principal Header */}
       <div className="bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-6">
@@ -1233,6 +1270,81 @@ export default function FichaClientePage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Seção Exclusiva de Quebras & BOEM Deste Cliente */}
+      <div className="bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
+          <div className="flex items-center gap-2">
+            <FileWarning className="w-4 h-4 text-amber-700" />
+            <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
+              Histórico de Quebras & BOEM ({quebras.length})
+            </h2>
+          </div>
+          <Link
+            to="/quebras?novo=true"
+            className="text-xs font-semibold text-[#2F6B4F] hover:underline flex items-center gap-1"
+          >
+            <Plus className="w-3 h-3" />
+            <span>Nova Quebra</span>
+          </Link>
+        </div>
+
+        {quebras.length === 0 ? (
+          <p className="text-xs text-[#5E6E64] py-4 text-center">
+            Nenhuma ocorrência de quebra ou BOEM registrada para este cliente.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {quebras.map((q) => {
+              const isAberta = q.status !== 'Resolvida'
+              return (
+                <div
+                  key={q.id}
+                  className={`p-3.5 rounded-2xl border text-xs space-y-2 ${
+                    isAberta
+                      ? 'bg-amber-50/40 border-amber-200'
+                      : 'bg-[#F7FAF5] border-[#A8C3A0]/30'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-[#1D2B25]">{q.numero_pedido}</span>
+                      {q.nf_saida && (
+                        <span className="text-[11px] text-[#5E6E64] font-mono">({q.nf_saida})</span>
+                      )}
+                      <span
+                        className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                          q.status === 'Resolvida'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {q.status}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-[#5E6E64]">
+                      Resp: {q.responsabilidade_apurada || 'Em apuração'}
+                    </span>
+                  </div>
+
+                  {q.produtos_envolvidos && (
+                    <p className="text-[#1D2B25] font-medium">
+                      Produtos:{' '}
+                      <span className="text-[#5E6E64] font-normal">{q.produtos_envolvidos}</span>
+                    </p>
+                  )}
+
+                  {q.acao_adotada && (
+                    <p className="text-[#5E6E64] italic bg-white p-2 rounded-xl border border-[#A8C3A0]/20">
+                      "{q.acao_adotada}"
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

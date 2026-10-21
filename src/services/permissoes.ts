@@ -9,6 +9,7 @@ export interface UsuarioAutenticadoInfo {
   loja: string
   isGestor: boolean
   isAtendente: boolean
+  isComercial: boolean
 }
 
 export function getUsuarioAtualInfo(): UsuarioAutenticadoInfo {
@@ -23,19 +24,31 @@ export function getUsuarioAtualInfo(): UsuarioAutenticadoInfo {
       loja: '',
       isGestor: true,
       isAtendente: false,
+      isComercial: false,
     }
   }
 
-  const role: RoleUsuario = user.role === 'atendente' ? 'atendente' : 'gestor'
+  let role: RoleUsuario = 'gestor'
+  if (user.role === 'atendente') {
+    role = 'atendente'
+  } else if (user.role === 'comercial') {
+    role = 'comercial'
+  } else {
+    role = 'gestor'
+  }
+
   const loja = user.loja || ''
 
   return {
     id: user.id,
     email: user.email,
-    name: user.name || (role === 'atendente' ? 'Atendente' : 'Gestor'),
+    name:
+      user.name ||
+      (role === 'atendente' ? 'Atendente' : role === 'comercial' ? 'Comercial' : 'Gestor'),
     role,
     loja,
     isGestor: role === 'gestor',
     isAtendente: role === 'atendente',
+    isComercial: role === 'comercial',
   }
 }

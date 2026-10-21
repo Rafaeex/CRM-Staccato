@@ -160,7 +160,7 @@ export interface CartaoKanbanInput {
   anexos?: File[]
 }
 
-export type RoleUsuario = 'gestor' | 'atendente'
+export type RoleUsuario = 'gestor' | 'atendente' | 'comercial'
 
 export interface UsuarioCRM extends RecordModel {
   id: string
@@ -169,6 +169,63 @@ export interface UsuarioCRM extends RecordModel {
   role?: RoleUsuario
   loja?: string
   avatar?: string
+}
+
+// NOVO: Tipos para o módulo de Quebras & BOEM (Trello BOT IA)
+export type StatusQuebra = 'Registro' | 'Em análise' | 'Resolvida'
+export type ResponsabilidadeQuebra =
+  | 'Transportadora'
+  | 'Fábrica / Fornecedor'
+  | 'Armazém / Expedição'
+  | 'Cliente / Obra'
+  | 'Instalação / Assentamento'
+  | 'Em apuração'
+export type ResultadoBoem =
+  | 'Pendente'
+  | 'Procedente (Reposição Autorizada)'
+  | 'Procedente (Reembolso / Crédito)'
+  | 'Improcedente'
+  | 'Acordo Comercial'
+
+export interface QuebraBoem extends RecordModel {
+  id: string
+  numero_pedido: string
+  nf_saida?: string
+  cliente?: string
+  cliente_nome: string
+  loja: string
+  produtos_envolvidos?: string
+  responsabilidade_apurada?: ResponsabilidadeQuebra
+  acao_adotada?: string
+  resultado_boem?: ResultadoBoem
+  status: StatusQuebra
+  responsavel?: string
+  data_ocorrencia?: string
+  data_resolucao?: string
+  descricao_detalhada?: string
+  origem_trello_id?: string
+  anexos?: string[]
+  created: string
+  updated: string
+}
+
+export interface QuebraBoemInput {
+  numero_pedido: string
+  nf_saida?: string
+  cliente?: string
+  cliente_nome: string
+  loja: string
+  produtos_envolvidos?: string
+  responsabilidade_apurada?: ResponsabilidadeQuebra
+  acao_adotada?: string
+  resultado_boem?: ResultadoBoem
+  status: StatusQuebra
+  responsavel?: string
+  data_ocorrencia?: string
+  data_resolucao?: string
+  descricao_detalhada?: string
+  origem_trello_id?: string
+  anexos?: File[]
 }
 
 // NOVO: Tipos para o pilar de Reclamações

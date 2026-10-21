@@ -18,6 +18,13 @@ export interface RespostaFollowUpIA {
   cliente_telefone: string
   loja: string
   resposta_completa_ia: string
+  quebras_em_aberto_count?: number
+  quebras_em_aberto?: Array<{
+    id: string
+    numero_pedido: string
+    produtos: string
+    status: string
+  }>
   sugestao: SugestaoFollowUpIA
   error?: string
 }
