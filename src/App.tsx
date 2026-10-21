@@ -9,6 +9,7 @@ import Atendimentos from './pages/Atendimentos'
 import Agenda from './pages/Agenda'
 import Reclamacoes from './pages/Reclamacoes'
 import FollowUps from './pages/FollowUps'
+import Quadro from './pages/Quadro'
 import Login from './pages/Login'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
@@ -26,6 +27,7 @@ const App = () => (
           {/* Rotas protegidas do CRM */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/quadro" element={<Quadro />} />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/clientes/:id" element={<FichaCliente />} />
             <Route path="/atendimentos" element={<Atendimentos />} />

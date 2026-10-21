@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
+  Kanban,
   Users,
   Headphones,
   CalendarDays,
@@ -14,9 +15,11 @@ import {
   ShieldCheck,
   ChevronRight,
   UserCheck,
+  Sparkles,
 } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { LOJAS } from '@/data/boutiqueData'
+import { getUsuarioAtualInfo } from '@/services/permissoes'
 
 interface LayoutProps {
   children?: React.ReactNode
@@ -28,8 +31,8 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // Usuário autenticado
-  const currentUser = pb.authStore.record
+  // Informações de autenticação e papel
+  const userInfo = getUsuarioAtualInfo()
   const isAuth = pb.authStore.isValid
   const isLoginPage = location.pathname === '/login'
 
@@ -42,42 +45,51 @@ export default function Layout({ children }: LayoutProps) {
     navigate('/login')
   }
 
+  // Itens de navegação adaptáveis: se atendente, foco no fluxo operacional próprio
   const navItems = [
     {
-      label: 'Dashboard',
+      label: userInfo.isAtendente ? 'Meu Dia' : 'Painel de Gestão',
       href: '/',
       icon: LayoutDashboard,
-      description: 'KPIs e situação do atendimento',
+      description: userInfo.isAtendente
+        ? 'Seus clientes, pendências e tarefas'
+        : 'KPIs consolidados das 7 lojas',
+    },
+    {
+      label: 'Quadro Kanban',
+      href: '/quadro',
+      icon: Kanban,
+      description: 'Fluxo com anexos de projetos',
     },
     {
       label: 'Clientes',
       href: '/clientes',
       icon: Users,
-      description: 'Controle e status de clientes',
-    },
-    {
-      label: 'Atendimentos',
-      href: '/atendimentos',
-      icon: Headphones,
-      description: 'Consultorias e atendimentos',
-    },
-    {
-      label: 'Agenda',
-      href: '/agenda',
-      icon: CalendarDays,
-      description: 'Visitas e compromissos',
-    },
-    {
-      label: 'Reclamações',
-      href: '/reclamacoes',
-      icon: AlertTriangle,
-      description: 'Ocorrências e resoluções',
+      description: 'Fichas e históricos',
     },
     {
       label: 'Follow-ups',
       href: '/follow-ups',
       icon: ClockAlert,
-      description: 'Retornos e pendências',
+      description: 'Retornos e IA automática',
+    },
+    {
+      label: 'Atendimentos',
+      href: '/atendimentos',
+      icon: Headphones,
+      description: 'Registros e consultorias',
+    },
+    {
+      label: 'Agenda',
+      href: '/agenda',
+      icon: CalendarDays,
+      description: 'Visitas e horários',
+    },
+    {
+      label: 'Reclamações',
+      href: '/reclamacoes',
+      icon: AlertTriangle,
+      description: userInfo.isAtendente ? 'Minhas ocorrências' : 'Ocorrências da rede',
     },
   ]
 
@@ -111,7 +123,6 @@ export default function Layout({ children }: LayoutProps) {
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-
             <Link to="/" className="flex items-center gap-2.5 group">
               <div className="w-8 h-8 rounded-full bg-[#2F6B4F] flex items-center justify-center text-white border border-[#A8C3A0]/40 group-hover:scale-105 transition-transform">
                 <span className="font-serif italic text-base font-bold text-[#F7FAF5]">B</span>
@@ -120,11 +131,13 @@ export default function Layout({ children }: LayoutProps) {
                 <span className="font-serif italic font-semibold text-base sm:text-lg leading-tight tracking-tight text-white">
                   Boutique de Revestimentos
                 </span>
-                <span className="text-[10px] uppercase tracking-[0.2em] text-[#A8C3A0] font-medium hidden sm:inline">
-                  CRM de Atendimento • 7 Lojas
+                <span className="text-[10px] uppercase tracking-[0.18em] text-[#A8C3A0] font-medium hidden sm:inline">
+                  {userInfo.isAtendente
+                    ? `Painel do Atendente • ${userInfo.loja || 'Minha Loja'}`
+                    : 'Painel de Gestão • Rede 7 Lojas'}
                 </span>
               </div>
-            </Link>
+            </Link>{' '}
           </div>
 
           {/* Filtro Rápido de Unidade & Perfil do Consultor */}
@@ -154,11 +167,16 @@ export default function Layout({ children }: LayoutProps) {
                     <UserCheck className="w-3.5 h-3.5" />
                   </div>
                   <div className="hidden sm:flex flex-col text-left">
-                    <span className="text-xs font-medium text-white leading-none">
-                      {currentUser?.name || 'Consultor Boutique'}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium text-white leading-none">
+                        {userInfo.name}
+                      </span>
+                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-white/20 text-[#A8C3A0]">
+                        {userInfo.role}
+                      </span>
+                    </div>
                     <span className="text-[10px] text-white/60 leading-tight">
-                      {currentUser?.email || 'demo@boutique.com'}
+                      {userInfo.email}
                     </span>
                   </div>
                 </div>

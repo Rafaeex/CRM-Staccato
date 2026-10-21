@@ -136,39 +136,61 @@ export default function LoginPage() {
 
         {/* Bloco de Credenciais de Demonstração (Conforme Requisito do Usuário) */}
         <div className="mt-8 pt-6 border-t border-[#EAF2E8] space-y-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#2F6B4F]">
-            <KeyRound className="w-3.5 h-3.5" />
-            <span>Credenciais Oficiais de Demonstração:</span>
+          <div className="flex items-center justify-between text-xs font-semibold text-[#2F6B4F]">
+            <div className="flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5" />
+              <span>Acessos de Demonstração (Gestão × Atendente):</span>
+            </div>
           </div>
 
           <div className="space-y-2">
+            {/* 1. Painel de Gestão */}
             <button
               type="button"
               onClick={() => fillCredentials('demo@boutique.com', 'demo1234')}
-              className="w-full text-left p-3 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/30 transition-colors flex items-center justify-between text-xs"
+              className="w-full text-left p-3 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/30 transition-colors flex items-center justify-between text-xs group"
             >
               <div>
-                <p className="font-semibold text-[#1D2B25]">Consultor Comercial (Demo)</p>
-                <p className="font-mono text-[#5E6E64] text-[11px]">demo@boutique.com / demo1234</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-[#1D2B25]">Painel de Gestão</span>
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-[#2F6B4F] text-white">
+                    Gestor
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#5E6E64] mt-0.5">
+                  Visão consolidada das 7 lojas, KPIs de qualidade e relatórios
+                </p>
+                <p className="font-mono text-[#2F6B4F] text-[11px] mt-0.5 font-medium">
+                  demo@boutique.com / demo1234
+                </p>
               </div>
-              <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2.5 py-1 rounded-md border border-[#A8C3A0]/30 shadow-xs">
-                Preencher
+              <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2.5 py-1 rounded-md border border-[#A8C3A0]/30 shadow-xs group-hover:bg-[#2F6B4F] group-hover:text-white transition-colors">
+                Entrar
               </span>
             </button>
 
+            {/* 2. Painel do Atendente */}
             <button
               type="button"
-              onClick={() => fillCredentials('rafaelteizen@gmail.com', 'Skip@Pass')}
-              className="w-full text-left p-3 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/30 transition-colors flex items-center justify-between text-xs"
+              onClick={() => fillCredentials('atendente@boutique.com', 'atendente1234')}
+              className="w-full text-left p-3 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/30 transition-colors flex items-center justify-between text-xs group"
             >
               <div>
-                <p className="font-semibold text-[#1D2B25]">Administrador Geral</p>
-                <p className="font-mono text-[#5E6E64] text-[11px]">
-                  rafaelteizen@gmail.com / Skip@Pass
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-[#1D2B25]">Painel do Atendente</span>
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                    Atendente • Vila Olímpia
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#5E6E64] mt-0.5">
+                  Foco no próprio dia: seus clientes, seus atendimentos e seu kanban
+                </p>
+                <p className="font-mono text-[#2F6B4F] text-[11px] mt-0.5 font-medium">
+                  atendente@boutique.com / atendente1234
                 </p>
               </div>
-              <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2.5 py-1 rounded-md border border-[#A8C3A0]/30 shadow-xs">
-                Preencher
+              <span className="text-[11px] font-semibold text-[#2F6B4F] bg-white px-2.5 py-1 rounded-md border border-[#A8C3A0]/30 shadow-xs group-hover:bg-[#2F6B4F] group-hover:text-white transition-colors">
+                Entrar
               </span>
             </button>
           </div>

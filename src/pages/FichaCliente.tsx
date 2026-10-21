@@ -24,6 +24,8 @@ import {
   gerarLinkWhatsApp,
 } from '@/services/followUps'
 import { listarReclamacoesPorCliente, criarReclamacao } from '@/services/reclamacoes'
+import { gerarFollowUpComIA } from '@/services/iaFollowUp'
+import { Bot, RefreshCw } from 'lucide-react'
 import type {
   Cliente,
   Atendimento,
@@ -79,13 +81,27 @@ export default function FichaClientePage() {
   // Modal Novo Follow-up
   const [modalFollowUp, setModalFollowUp] = useState(false)
   const [salvandoFollowUp, setSalvandoFollowUp] = useState(false)
-  const [novoFollowUp, setNovoFollowUp] = useState({
+  const [gerandoFollowUpIA, setGerandoFollowUpIA] = useState(false)
+  const [novoFollowUp, setNovoFollowUp] = useState<{
+    responsavel: string
+    canal: CanalFollowUp
+    data_prevista: string
+    horario_previsto: string
+    assunto: string
+    mensagem_sugerida: string
+    gerado_por_ia: boolean
+    urgencia: import('@/types/crm').UrgenciaFollowUp
+    justificativa_ia: string
+  }>({
     responsavel: 'Consultor Boutique',
-    canal: 'WhatsApp' as CanalFollowUp,
+    canal: 'WhatsApp',
     data_prevista: new Date().toISOString().split('T')[0],
     horario_previsto: '15:00',
     assunto: '',
     mensagem_sugerida: '',
+    gerado_por_ia: false,
+    urgencia: 'Média',
+    justificativa_ia: '',
   })
 
   // Modal Nova Reclamação
@@ -175,7 +191,44 @@ export default function FichaClientePage() {
     }
   }
 
-  // Criar Atendimento para o cliente
+  // Gerar follow-up automático com IA para este cliente
+  const handleGerarFollowUpAutomaticoIA = async () => {
+    if (!cliente) return
+    setGerandoFollowUpIA(true)
+    try {
+      const res = await gerarFollowUpComIA(cliente.id)
+      if (res.sucesso && res.sugestao) {
+        setNovoFollowUp({
+          responsavel: cliente.consultor_responsavel || 'Consultor Boutique',
+          canal: (res.sugestao.canal as CanalFollowUp) || 'WhatsApp',
+          data_prevista: res.sugestao.data_prevista || new Date().toISOString().split('T')[0],
+          horario_previsto: res.sugestao.horario_previsto || '14:30',
+          assunto: res.sugestao.assunto,
+          mensagem_sugerida: res.sugestao.mensagem_sugerida,
+          gerado_por_ia: true,
+          urgencia: res.sugestao.urgencia,
+          justificativa_ia: res.sugestao.justificativa,
+        })
+        setModalFollowUp(true)
+        toast({
+          title: 'Follow-up formulado por IA!',
+          description: 'Revise o texto pré-redigido antes de confirmar.',
+        })
+      }
+    } catch (err) {
+      console.error(err)
+      toast({
+        title: 'Falha na IA',
+        description: 'Preencha o follow-up manualmente.',
+        variant: 'destructive',
+      })
+      setModalFollowUp(true)
+    } finally {
+      setGerandoFollowUpIA(false)
+    }
+  }
+
+  // Criar Atendimento para o cliente (e sugerir follow-up automático em seguida)
   const handleCriarAtendimento = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!cliente) return
@@ -209,9 +262,14 @@ export default function FichaClientePage() {
       })
 
       toast({
-        title: 'Atendimento registrado',
-        description: 'O atendimento foi adicionado ao histórico.',
+        title: 'Atendimento registrado!',
+        description: 'Gerando próximo follow-up automático com IA...',
       })
+
+      // Disparar automaticamente a recomendação de follow-up por IA
+      setTimeout(() => {
+        handleGerarFollowUpAutomaticoIA()
+      }, 600)
     } catch (err) {
       console.error('Erro ao criar atendimento:', err)
       toast({
@@ -243,6 +301,9 @@ export default function FichaClientePage() {
         assunto: novoFollowUp.assunto,
         mensagem_sugerida: novoFollowUp.mensagem_sugerida,
         status: 'Pendente',
+        gerado_por_ia: novoFollowUp.gerado_por_ia,
+        urgencia: novoFollowUp.urgencia,
+        justificativa_ia: novoFollowUp.justificativa_ia,
       })
 
       setFollowUps((prev) => [fu, ...prev])
@@ -254,6 +315,9 @@ export default function FichaClientePage() {
         horario_previsto: '15:00',
         assunto: '',
         mensagem_sugerida: '',
+        gerado_por_ia: false,
+        urgencia: 'Média',
+        justificativa_ia: '',
       })
 
       toast({
@@ -412,12 +476,32 @@ export default function FichaClientePage() {
               <span>WhatsApp</span>
             </a>
 
+            {/* Botão IA: Resumir & Gerar Próximo Follow-up */}
+            <button
+              type="button"
+              onClick={handleGerarFollowUpAutomaticoIA}
+              disabled={gerandoFollowUpIA}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+            >
+              {gerandoFollowUpIA ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>IA analisando...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 text-[#A8C3A0]" />
+                  <span>Próximo Follow-up com IA</span>
+                </>
+              )}
+            </button>
+
             {/* Dialog Novo Atendimento */}
             <Dialog open={modalAtendimento} onOpenChange={setModalAtendimento}>
               <DialogTrigger asChild>
-                <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold shadow-sm transition-all">
-                  <Plus className="w-3.5 h-3.5 text-[#A8C3A0]" />
-                  <span>Novo Atendimento</span>
+                <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-[#A8C3A0]/40 text-[#2F6B4F] hover:bg-[#EAF2E8] text-xs font-semibold transition-all">
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Registrar Atendimento</span>
                 </button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg">
@@ -1097,6 +1181,12 @@ export default function FichaClientePage() {
                             <span className="font-mono text-[10px] text-[#5E6E64]">
                               {fu.data_prevista}
                             </span>
+                            {fu.gerado_por_ia && (
+                              <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-[#EAF2E8] text-[#2F6B4F] flex items-center gap-0.5">
+                                <Sparkles className="w-2.5 h-2.5" />
+                                <span>IA</span>
+                              </span>
+                            )}
                           </div>
                           <p className="text-[11px] text-[#1D2B25] font-medium mt-0.5">
                             {fu.assunto}

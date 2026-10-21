@@ -75,6 +75,8 @@ export interface AtendimentoInput {
 export type CanalFollowUp = 'WhatsApp' | 'Telefone' | 'E-mail' | 'Presencial'
 export type StatusFollowUp = 'Pendente' | 'Concluído' | 'Cancelado'
 
+export type UrgenciaFollowUp = 'Baixa' | 'Média' | 'Alta'
+
 export interface FollowUp extends RecordModel {
   id: string
   cliente: string
@@ -90,6 +92,9 @@ export interface FollowUp extends RecordModel {
   status: StatusFollowUp
   data_conclusao?: string
   resultado_nota?: string
+  gerado_por_ia?: boolean
+  urgencia?: UrgenciaFollowUp
+  justificativa_ia?: string
   created: string
   updated: string
 }
@@ -108,6 +113,62 @@ export interface FollowUpInput {
   status?: StatusFollowUp
   data_conclusao?: string
   resultado_nota?: string
+  gerado_por_ia?: boolean
+  urgencia?: UrgenciaFollowUp
+  justificativa_ia?: string
+}
+
+export type ColunaKanban = 'A fazer' | 'Fazendo hoje' | 'Aguardando cliente' | 'Resolvido'
+export type PrioridadeKanban = 'Baixa' | 'Média' | 'Alta' | 'Urgente'
+
+export interface ItemChecklist {
+  id: string
+  texto: string
+  concluido: boolean
+}
+
+export interface CartaoKanban extends RecordModel {
+  id: string
+  titulo: string
+  cliente?: string
+  cliente_nome?: string
+  loja: string
+  responsavel: string
+  coluna: ColunaKanban
+  prioridade?: PrioridadeKanban
+  descricao?: string
+  data_limite?: string
+  ordem?: number
+  checklist_json?: string
+  anexos?: string[]
+  created: string
+  updated: string
+}
+
+export interface CartaoKanbanInput {
+  titulo: string
+  cliente?: string
+  cliente_nome?: string
+  loja: string
+  responsavel: string
+  coluna: ColunaKanban
+  prioridade?: PrioridadeKanban
+  descricao?: string
+  data_limite?: string
+  ordem?: number
+  checklist_json?: string
+  anexos?: File[]
+}
+
+export type RoleUsuario = 'gestor' | 'atendente'
+
+export interface UsuarioCRM extends RecordModel {
+  id: string
+  email: string
+  name: string
+  role?: RoleUsuario
+  loja?: string
+  avatar?: string
 }
 
 // NOVO: Tipos para o pilar de Reclamações
