@@ -453,13 +453,11 @@ export default function Layout({ children }: LayoutProps) {
               Boutique de Revestimentos
             </span>
             <span>•</span>
-            <span className="text-[11px] text-[#A8C3A0]">CRM Interno de Atendimento • 7 Lojas</span>
+            <span className="text-[11px] text-[#A8C3A0]">CRM Interno de Atendimento</span>
           </div>
 
           <div className="flex items-center gap-4 text-[11px]">
-            <span>
-              Vila Olímpia • Higienópolis • Moema • Tatuapé • Alphaville • Santana • Guarulhos
-            </span>
+            <span>Rede SP • Alto Padrão</span>
             <span className="hidden md:inline">•</span>
             <span className="hidden md:inline text-white/50">v2.0 CRM</span>
           </div>

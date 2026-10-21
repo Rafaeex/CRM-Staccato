@@ -383,24 +383,136 @@ export default function QuadroPage() {
     return true
   })
 
+  // Métricas compactas calculadas
+  const totalCartoes = cartoesFiltrados.length
+  const totalResolvidos = cartoesFiltrados.filter((c) => c.coluna === 'Resolvido').length
+  const taxaConclusao = totalCartoes > 0 ? Math.round((totalResolvidos / totalCartoes) * 100) : 0
+
+  const totalComAnexos = cartoesFiltrados.filter(
+    (c) => Array.isArray(c.anexos) && c.anexos.length > 0,
+  ).length
+  const pctAnexos = totalCartoes > 0 ? Math.round((totalComAnexos / totalCartoes) * 100) : 0
+
+  const urgentesOuAltos = cartoesFiltrados.filter(
+    (c) => c.coluna !== 'Resolvido' && (c.prioridade === 'Urgente' || c.prioridade === 'Alta'),
+  ).length
+  const pctUrgentes = totalCartoes > 0 ? Math.round((urgentesOuAltos / totalCartoes) * 100) : 0
+
+  const hojeStr = new Date().toISOString().split('T')[0]
+  const vencidos = cartoesFiltrados.filter(
+    (c) => c.coluna !== 'Resolvido' && c.data_limite && c.data_limite < hojeStr,
+  ).length
+
+  // Helper para anéis circulares (SVG radial/donut compacto)
+  const renderMiniRadial = (pct: number, corStroke: string, corTrack: string = '#EAF2E8') => {
+    const size = 38
+    const strokeWidth = 3.5
+    const radius = (size - strokeWidth) / 2
+    const circumference = 2 * Math.PI * radius
+    const safePct = Math.max(0, Math.min(100, pct))
+    const strokeDashoffset = circumference - (safePct / 100) * circumference
+
+    return (
+      <svg width={size} height={size} className="transform -rotate-90 shrink-0">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={corTrack}
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={corStroke}
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          className="transition-all duration-500 ease-out"
+        />
+      </svg>
+    )
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Topo Limpo e Arejado */}
-      <div className="bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="space-y-4">
+      {/* Topo Limpo, Sóbrio e Arejado com Indicadores Redondos Pequenos Integrados */}
+      <div className="bg-white rounded-2xl p-5 border border-[#A8C3A0]/30 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B4F] flex items-center gap-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#2F6B4F] flex items-center gap-1.5">
             <Kanban className="w-3.5 h-3.5" />
-            Quadro Kanban Interno • Estilo Trello
+            Quadro Operacional de Obras
           </span>
-          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
-            Fluxo de Atendimento das Obras
+          <h1 className="font-semibold text-2xl text-[#1D2B25] tracking-tight mt-0.5">
+            Fluxo de Atendimento
           </h1>
-          <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
-            Cartões com clientes vinculados, prazos, checklists e{' '}
-            <strong>anexos de projetos</strong> (PDF, imagens e plantas).
+          <p className="text-xs text-[#5E6E64] mt-0.5">
+            Checklists, prazos técnicos e anexos de plantas por cartão.
           </p>
         </div>
 
+        {/* Indicadores redondos e relativamente pequenos (radial/donut compactos) */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Indicador 1: Taxa de Resolução */}
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30">
+            <div className="relative flex items-center justify-center">
+              {renderMiniRadial(taxaConclusao, '#2F6B4F', '#EAF2E8')}
+              <span className="absolute text-[10px] font-bold text-[#1D2B25] font-mono">
+                {taxaConclusao}%
+              </span>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5E6E64]">
+                Conclusão
+              </span>
+              <span className="text-xs font-bold text-[#1D2B25]">
+                {totalResolvidos} de {totalCartoes}
+              </span>
+            </div>
+          </div>
+
+          {/* Indicador 2: Prioridade Crítica */}
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30">
+            <div className="relative flex items-center justify-center">
+              {renderMiniRadial(
+                pctUrgentes,
+                urgentesOuAltos > 0 ? '#C27803' : '#2F6B4F',
+                '#FEF3C7',
+              )}
+              <span className="absolute text-[10px] font-bold text-[#1D2B25] font-mono">
+                {urgentesOuAltos}
+              </span>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5E6E64]">
+                Alta / Urgente
+              </span>
+              <span className="text-xs font-medium text-[#5E6E64]">{pctUrgentes}% em aberto</span>
+            </div>
+          </div>
+
+          {/* Indicador 3: Plantas & Anexos Técnicos */}
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30">
+            <div className="relative flex items-center justify-center">
+              {renderMiniRadial(pctAnexos, '#2563EB', '#DBEAFE')}
+              <span className="absolute text-[10px] font-bold text-[#1D2B25] font-mono">
+                {totalComAnexos}
+              </span>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5E6E64]">
+                Com Anexos
+              </span>
+              <span className="text-xs font-medium text-[#5E6E64]">{pctAnexos}% dos cartões</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Botão Novo Cartão */}
         <Dialog open={modalNovoAberto} onOpenChange={setModalNovoAberto}>
           <DialogTrigger asChild>
             <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99]">
@@ -609,7 +721,7 @@ export default function QuadroPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          {userInfo.isGestor && (
+          {userInfo.isGestor ? (
             <div className="flex items-center gap-1.5 bg-[#F7FAF5] border border-[#A8C3A0]/40 rounded-xl px-3 py-2 text-xs">
               <Building2 className="w-3.5 h-3.5 text-[#2F6B4F]" />
               <select
@@ -617,13 +729,20 @@ export default function QuadroPage() {
                 onChange={(e) => setFiltroLoja(e.target.value)}
                 className="bg-transparent text-xs text-[#1D2B25] focus:outline-none cursor-pointer"
               >
-                <option value="todas">Todas as Lojas</option>
+                <option value="todas">Filtrar por loja (todas)</option>
                 {LOJAS.map((l) => (
                   <option key={l.id} value={l.nome}>
-                    {l.nome}
+                    {l.nome.replace(' (SP)', '')}
                   </option>
                 ))}
               </select>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 bg-[#F7FAF5] border border-[#A8C3A0]/40 rounded-xl px-3 py-2 text-xs text-[#5E6E64]">
+              <Building2 className="w-3.5 h-3.5 text-[#2F6B4F]" />
+              <span className="font-medium text-[#1D2B25]">
+                {userInfo.loja ? userInfo.loja.replace(' (SP)', '') : 'Minha Unidade'}
+              </span>
             </div>
           )}
 

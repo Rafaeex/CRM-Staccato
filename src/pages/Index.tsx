@@ -568,63 +568,128 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Régua de Qualidade do Atendimento */}
-          <div className="bg-[#1D2B25] text-white rounded-[24px] p-6 shadow-sm">
-            <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <h3 className="font-semibold text-base sm:text-lg text-white">
-                Índices de Qualidade da Operação • 7 Lojas
-              </h3>
-              <span className="text-xs text-[#A8C3A0]">{lojaFiltro}</span>
+          {/* Régua de Qualidade do Atendimento — Cartão Claro com Gráficos Redondos Compactos */}
+          <div className="bg-white rounded-2xl p-5 border border-[#A8C3A0]/30 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
+              <div>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#2F6B4F]">
+                  Indicadores Operacionais
+                </span>
+                <h3 className="font-semibold text-base text-[#1D2B25] mt-0.5">
+                  Índices de Qualidade do Atendimento
+                </h3>
+              </div>
+              <span className="text-xs text-[#5E6E64] font-medium px-2.5 py-1 rounded-full bg-[#F7FAF5] border border-[#A8C3A0]/30">
+                {lojaFiltro === 'Todas as Lojas'
+                  ? 'Consolidado Rede'
+                  : lojaFiltro.replace(' (SP)', '')}
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-5">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#A8C3A0] uppercase font-bold tracking-wider text-[10px]">
-                    Taxa de Resolução de Reclamações
-                  </span>
-                  <span className="font-bold text-white font-mono">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+              {/* Radial 1: Resolução de Reclamações */}
+              <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/25">
+                <div className="relative flex items-center justify-center shrink-0">
+                  <svg width="46" height="46" className="transform -rotate-90">
+                    <circle cx="23" cy="23" r="19" stroke="#EAF2E8" strokeWidth="4" fill="none" />
+                    <circle
+                      cx="23"
+                      cy="23"
+                      r="19"
+                      stroke="#2F6B4F"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 19}
+                      strokeDashoffset={
+                        2 * Math.PI * 19 -
+                        (Math.min(100, Math.max(0, taxaResolucaoReclamacoes)) / 100) *
+                          (2 * Math.PI * 19)
+                      }
+                      strokeLinecap="round"
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+                  <span className="absolute text-[11px] font-bold text-[#1D2B25] font-mono">
                     {taxaResolucaoReclamacoes}%
                   </span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-white/15 overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-400 rounded-full"
-                    style={{ width: `${Math.min(100, taxaResolucaoReclamacoes)}%` }}
-                  />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] block truncate">
+                    Resolução de Ocorrências
+                  </span>
+                  <p className="text-xs font-semibold text-[#1D2B25] mt-0.5">
+                    {totalResolvidas} de {totalReclamacoes} tratadas
+                  </p>
+                  <p className="text-[11px] text-[#5E6E64] truncate">com desfecho final</p>
                 </div>
-                <p className="text-[11px] text-white/70">
-                  {totalResolvidas} de {totalReclamacoes} tratadas com desfecho
-                </p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#A8C3A0] uppercase font-bold tracking-wider text-[10px]">
-                    Follow-ups Cumpridos no Prazo
+              {/* Radial 2: Follow-ups no Prazo */}
+              <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/25">
+                <div className="relative flex items-center justify-center shrink-0">
+                  <svg width="46" height="46" className="transform -rotate-90">
+                    <circle cx="23" cy="23" r="19" stroke="#EAF2E8" strokeWidth="4" fill="none" />
+                    <circle
+                      cx="23"
+                      cy="23"
+                      r="19"
+                      stroke="#2F6B4F"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 19}
+                      strokeDashoffset={
+                        2 * Math.PI * 19 -
+                        (Math.min(100, Math.max(0, taxaFollowUpsNoPrazo)) / 100) *
+                          (2 * Math.PI * 19)
+                      }
+                      strokeLinecap="round"
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+                  <span className="absolute text-[11px] font-bold text-[#1D2B25] font-mono">
+                    {taxaFollowUpsNoPrazo}%
                   </span>
-                  <span className="font-bold text-white font-mono">{taxaFollowUpsNoPrazo}%</span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-white/15 overflow-hidden">
-                  <div
-                    className="h-full bg-[#A8C3A0] rounded-full"
-                    style={{ width: `${Math.min(100, taxaFollowUpsNoPrazo)}%` }}
-                  />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] block truncate">
+                    Follow-ups no Prazo
+                  </span>
+                  <p className="text-xs font-semibold text-[#1D2B25] mt-0.5">
+                    {followUpsNoPrazo.length} de {followUpsConcluidos.length || 1} pontuais
+                  </p>
+                  <p className="text-[11px] text-[#5E6E64] truncate">cronograma cumprido</p>
                 </div>
-                <p className="text-[11px] text-white/70">Retornos dentro do cronograma pactuado</p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#A8C3A0] uppercase font-bold tracking-wider text-[10px]">
-                    Padrão de Resolução da Rede
+              {/* Radial 3: SLA da Rede */}
+              <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/25">
+                <div className="relative flex items-center justify-center shrink-0">
+                  <svg width="46" height="46" className="transform -rotate-90">
+                    <circle cx="23" cy="23" r="19" stroke="#EAF2E8" strokeWidth="4" fill="none" />
+                    <circle
+                      cx="23"
+                      cy="23"
+                      r="19"
+                      stroke="#3B82F6"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 19}
+                      strokeDashoffset={2 * Math.PI * 19 - 0.85 * (2 * Math.PI * 19)}
+                      strokeLinecap="round"
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+                  <span className="absolute text-[11px] font-bold text-[#1D2B25] font-mono">
+                    85%
                   </span>
-                  <span className="font-bold text-white font-mono">Até 3 dias</span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-white/15 overflow-hidden">
-                  <div className="h-full bg-amber-400 rounded-full" style={{ width: '85%' }} />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] block truncate">
+                    Padrão de Resolução
+                  </span>
+                  <p className="text-xs font-semibold text-[#1D2B25] mt-0.5">Até 3 dias úteis</p>
+                  <p className="text-[11px] text-[#5E6E64] truncate">meta mantida na rede</p>
                 </div>
-                <p className="text-[11px] text-white/70">Meta de satisfação ao cliente mantida</p>
               </div>
             </div>
           </div>
