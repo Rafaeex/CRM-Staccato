@@ -20,6 +20,7 @@ import {
 import pb from '@/lib/pocketbase/client'
 import { LOJAS } from '@/data/boutiqueData'
 import { getUsuarioAtualInfo } from '@/services/permissoes'
+import { carregarIndicadoresPorLoja, IndicadoresAtendimentoLoja } from '@/services/indicadoresLoja'
 
 interface LayoutProps {
   children?: React.ReactNode
@@ -36,9 +37,64 @@ export default function Layout({ children }: LayoutProps) {
   const isAuth = pb.authStore.isValid
   const isLoginPage = location.pathname === '/login'
 
+  // Estado dos indicadores de atendimento por loja
+  const [indicadoresPorLoja, setIndicadoresPorLoja] = useState<
+    Record<string, IndicadoresAtendimentoLoja>
+  >({})
+  const [loadingIndicadores, setLoadingIndicadores] = useState(false)
+
+  // Lista de lojas a exibir na sidebar (atendente vê apenas sua unidade; gestor vê todas as 7)
+  const lojasExibidas =
+    userInfo.isAtendente && userInfo.loja
+      ? LOJAS.filter(
+          (l) =>
+            l.nome.toLowerCase().includes(userInfo.loja.toLowerCase()) ||
+            userInfo.loja.toLowerCase().includes(l.nome.toLowerCase()),
+        )
+      : LOJAS
+
+  // Obter parâmetro loja atual da URL (caso esteja no dashboard ou navegado com filtro)
+  const params = new URLSearchParams(location.search)
+  const lojaParamAtual = params.get('loja')
+
+  useEffect(() => {
+    if (lojaParamAtual) {
+      setLojaSelecionada(lojaParamAtual)
+    } else {
+      setLojaSelecionada('Todas as Lojas')
+    }
+  }, [lojaParamAtual])
+
   useEffect(() => {
     setMobileOpen(false)
   }, [location.pathname])
+
+  // Carrega contadores agregados por loja
+  useEffect(() => {
+    if (!isAuth || isLoginPage) return
+
+    let cancelado = false
+    const fetchIndicadores = async () => {
+      setLoadingIndicadores(true)
+      try {
+        const nomes = LOJAS.map((l) => l.nome)
+        const dados = await carregarIndicadoresPorLoja(nomes)
+        if (!cancelado) {
+          setIndicadoresPorLoja(dados)
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar indicadores:', err)
+      } finally {
+        if (!cancelado) setLoadingIndicadores(false)
+      }
+    }
+
+    fetchIndicadores()
+
+    return () => {
+      cancelado = true
+    }
+  }, [isAuth, isLoginPage])
 
   const handleLogout = () => {
     pb.authStore.clear()
@@ -146,7 +202,15 @@ export default function Layout({ children }: LayoutProps) {
               <Building2 className="w-3.5 h-3.5 text-[#A8C3A0]" />
               <select
                 value={lojaSelecionada}
-                onChange={(e) => setLojaSelecionada(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setLojaSelecionada(val)
+                  if (val === 'Todas as Lojas') {
+                    navigate('/')
+                  } else {
+                    navigate(`/?loja=${encodeURIComponent(val)}`)
+                  }
+                }}
                 className="bg-transparent text-white focus:outline-none cursor-pointer text-xs pr-1"
               >
                 <option value="Todas as Lojas" className="text-[#1D2B25] bg-white">
@@ -157,7 +221,7 @@ export default function Layout({ children }: LayoutProps) {
                     {l.nome}
                   </option>
                 ))}
-              </select>
+              </select>{' '}
             </div>
 
             {isAuth && (
@@ -243,23 +307,147 @@ export default function Layout({ children }: LayoutProps) {
 
               {/* Bloco de Unidades da Rede */}
               <div className="pt-4 border-t border-[#EAF2E8]">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] px-3 mb-2 flex items-center gap-1.5">
-                  <Building2 className="w-3 h-3 text-[#2F6B4F]" />
-                  <span>Unidades da Rede (7)</span>
-                </p>
-                <div className="space-y-1 text-xs text-[#5E6E64]">
-                  {LOJAS.slice(0, 5).map((l) => (
-                    <div
-                      key={l.id}
-                      className="px-3 py-1.5 rounded-lg hover:bg-[#F7FAF5] flex items-center justify-between"
+                <div className="px-3 mb-2 flex items-center justify-between">
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] flex items-center gap-1.5">
+                    <Building2 className="w-3 h-3 text-[#2F6B4F]" />
+                    <span>
+                      {userInfo.isAtendente
+                        ? 'Sua Unidade de Atendimento'
+                        : `Unidades da Rede (${lojasExibidas.length})`}
+                    </span>
+                  </p>
+                  {!userInfo.isAtendente && lojaParamAtual && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/')}
+                      className="text-[10px] text-[#2F6B4F] hover:underline font-semibold"
+                      title="Ver todas as lojas"
                     >
-                      <span className="truncate">{l.nome}</span>
-                      <span className="text-[10px] text-[#2F6B4F] font-mono">OK</span>
-                    </div>
-                  ))}
-                  <div className="px-3 pt-1 text-[11px] text-[#2F6B4F] font-medium">
-                    + Santana de Parnaíba e Guarulhos
-                  </div>
+                      Ver todas
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-1 text-xs text-[#5E6E64]">
+                  {lojasExibidas.map((l) => {
+                    const stats = indicadoresPorLoja[l.nome] || {
+                      totalKanbanNaoResolvidos: 0,
+                      kanbanAtrasadosOuUrgentes: 0,
+                      followUpsPendentes: 0,
+                      followUpsAtrasados: 0,
+                      reclamacoesAbertas: 0,
+                      reclamacoesAtrasadas: 0,
+                      temAlerta: false,
+                    }
+
+                    const isSelecionada =
+                      lojaParamAtual &&
+                      (lojaParamAtual.toLowerCase().includes(l.nome.toLowerCase()) ||
+                        l.nome.toLowerCase().includes(lojaParamAtual.toLowerCase()))
+
+                    const kanbanCount = stats.totalKanbanNaoResolvidos
+                    const temAlertaKanban = stats.kanbanAtrasadosOuUrgentes > 0
+
+                    return (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => {
+                          if (userInfo.isAtendente) {
+                            navigate('/')
+                          } else {
+                            // Se já estiver selecionada, limpa para "todas"; senão filtra por ela
+                            if (isSelecionada) {
+                              navigate('/')
+                            } else {
+                              navigate(`/?loja=${encodeURIComponent(l.nome)}`)
+                            }
+                          }
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-xl transition-all group ${
+                          isSelecionada
+                            ? 'bg-[#EAF2E8] border border-[#A8C3A0]/60 shadow-xs'
+                            : 'hover:bg-[#F7FAF5] border border-transparent'
+                        }`}
+                        title={`Clique para filtrar o dashboard por ${l.nome}`}
+                      >
+                        {/* Linha principal: Nome da Loja + Badge de Cartões do Kanban */}
+                        <div className="flex items-center justify-between gap-1.5">
+                          <span
+                            className={`truncate text-xs font-medium transition-colors ${
+                              isSelecionada
+                                ? 'text-[#1D2B25] font-semibold'
+                                : 'text-[#1D2B25] group-hover:text-[#2F6B4F]'
+                            }`}
+                          >
+                            {l.nome}
+                          </span>
+
+                          {/* Badge discreta de cartões kanban pendentes */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            {temAlertaKanban ? (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-900 border border-amber-300/80"
+                                title={`${kanbanCount} cartões pendentes (${stats.kanbanAtrasadosOuUrgentes} urgente ou atrasado)`}
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+                                <span>{kanbanCount}</span>
+                              </span>
+                            ) : (
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium ${
+                                  kanbanCount > 0
+                                    ? 'bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/40'
+                                    : 'bg-stone-100 text-stone-500'
+                                }`}
+                                title={`${kanbanCount} cartões pendentes no Kanban`}
+                              >
+                                {kanbanCount > 0 ? `${kanbanCount}` : '0'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Micro-resumo de atendimento: cartões, follow-ups e reclamações */}
+                        <div className="flex items-center gap-1.5 text-[10px] text-[#5E6E64] mt-0.5 leading-tight">
+                          <span>
+                            {kanbanCount} {kanbanCount === 1 ? 'quadro' : 'quadros'}
+                          </span>
+                          <span className="text-[#A8C3A0]">•</span>
+                          <span
+                            className={
+                              stats.followUpsAtrasados > 0
+                                ? 'text-rose-700 font-semibold'
+                                : undefined
+                            }
+                            title={
+                              stats.followUpsAtrasados > 0
+                                ? `${stats.followUpsAtrasados} atrasado(s)`
+                                : undefined
+                            }
+                          >
+                            {stats.followUpsPendentes} f-up
+                            {stats.followUpsPendentes !== 1 ? 's' : ''}
+                          </span>
+
+                          {stats.reclamacoesAbertas > 0 && (
+                            <>
+                              <span className="text-[#A8C3A0]">•</span>
+                              <span
+                                className={
+                                  stats.reclamacoesAtrasadas > 0
+                                    ? 'text-rose-700 font-semibold inline-flex items-center gap-0.5'
+                                    : 'text-amber-800 font-medium'
+                                }
+                              >
+                                {stats.reclamacoesAbertas} rec
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -329,6 +517,69 @@ export default function Layout({ children }: LayoutProps) {
                     )
                   })}
                 </nav>
+
+                {/* Bloco de Unidades da Rede no Mobile */}
+                <div className="pt-4 border-t border-[#EAF2E8]">
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] px-1 mb-2 flex items-center gap-1.5">
+                    <Building2 className="w-3 h-3 text-[#2F6B4F]" />
+                    <span>
+                      {userInfo.isAtendente
+                        ? 'Sua Unidade'
+                        : `Unidades da Rede (${lojasExibidas.length})`}
+                    </span>
+                  </p>
+                  <div className="space-y-1 text-xs">
+                    {lojasExibidas.map((l) => {
+                      const stats = indicadoresPorLoja[l.nome] || {
+                        totalKanbanNaoResolvidos: 0,
+                        kanbanAtrasadosOuUrgentes: 0,
+                        followUpsPendentes: 0,
+                        followUpsAtrasados: 0,
+                        reclamacoesAbertas: 0,
+                        reclamacoesAtrasadas: 0,
+                        temAlerta: false,
+                      }
+
+                      const kanbanCount = stats.totalKanbanNaoResolvidos
+                      const temAlerta = stats.kanbanAtrasadosOuUrgentes > 0
+
+                      return (
+                        <button
+                          key={l.id}
+                          type="button"
+                          onClick={() => {
+                            setMobileOpen(false)
+                            if (userInfo.isAtendente) {
+                              navigate('/')
+                            } else {
+                              navigate(`/?loja=${encodeURIComponent(l.nome)}`)
+                            }
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7FAF5] transition-colors flex items-center justify-between"
+                        >
+                          <div className="min-w-0">
+                            <p className="font-medium text-xs text-[#1D2B25] truncate">{l.nome}</p>
+                            <p className="text-[10px] text-[#5E6E64]">
+                              {kanbanCount} quadros • {stats.followUpsPendentes} f-ups
+                              {stats.reclamacoesAbertas > 0
+                                ? ` • ${stats.reclamacoesAbertas} rec`
+                                : ''}
+                            </p>
+                          </div>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold shrink-0 ml-2 ${
+                              temAlerta
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                : 'bg-[#EAF2E8] text-[#2F6B4F]'
+                            }`}
+                          >
+                            {kanbanCount}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
 
               <div className="pt-4 border-t border-[#EAF2E8]">

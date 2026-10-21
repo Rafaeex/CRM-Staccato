@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   Users,
   Headphones,
@@ -33,9 +33,31 @@ export default function DashboardPage() {
   const userInfo = getUsuarioAtualInfo()
 
   const [loading, setLoading] = useState(true)
-  const [lojaFiltro, setLojaFiltro] = useState<string>(
-    userInfo.isAtendente && userInfo.loja ? userInfo.loja : 'Todas as Lojas',
-  )
+  const [searchParams, setSearchParams] = useSearchParams()
+  const lojaParam = searchParams.get('loja')
+
+  const [lojaFiltro, setLojaFiltro] = useState<string>(() => {
+    if (userInfo.isAtendente && userInfo.loja) {
+      return userInfo.loja
+    }
+    if (lojaParam) {
+      return lojaParam
+    }
+    return 'Todas as Lojas'
+  })
+
+  // Sincroniza se a query param mudar na URL (ex: clique na sidebar)
+  useEffect(() => {
+    if (userInfo.isAtendente && userInfo.loja) {
+      setLojaFiltro(userInfo.loja)
+      return
+    }
+    if (lojaParam) {
+      setLojaFiltro(lojaParam)
+    } else {
+      setLojaFiltro('Todas as Lojas')
+    }
+  }, [lojaParam, userInfo.isAtendente, userInfo.loja])
 
   const [atendimentos, setAtendimentos] = useState<Atendimento[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -85,10 +107,14 @@ export default function DashboardPage() {
   // Filtragem unificada por loja e por papel
   const filtraPorLoja = (itemLoja: string) => {
     if (userInfo.isAtendente && userInfo.loja) {
-      return itemLoja.toLowerCase().includes(userInfo.loja.toLowerCase())
+      const uLoja = userInfo.loja.toLowerCase().trim()
+      const iLoja = (itemLoja || '').toLowerCase().trim()
+      return iLoja.includes(uLoja) || uLoja.includes(iLoja)
     }
     if (lojaFiltro === 'Todas as Lojas') return true
-    return itemLoja.toLowerCase().includes(lojaFiltro.toLowerCase())
+    const fLoja = lojaFiltro.toLowerCase().trim()
+    const iLoja = (itemLoja || '').toLowerCase().trim()
+    return iLoja.includes(fLoja) || fLoja.includes(iLoja)
   }
 
   const atendimentosFiltrados = atendimentos.filter((a) => filtraPorLoja(a.loja))
@@ -227,7 +253,17 @@ export default function DashboardPage() {
             <Building2 className="w-4 h-4 text-[#2F6B4F] ml-2 shrink-0" />
             <select
               value={lojaFiltro}
-              onChange={(e) => setLojaFiltro(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value
+                setLojaFiltro(val)
+                if (val === 'Todas as Lojas') {
+                  const next = new URLSearchParams(searchParams)
+                  next.delete('loja')
+                  setSearchParams(next)
+                } else {
+                  setSearchParams({ loja: val })
+                }
+              }}
               className="bg-transparent text-xs sm:text-sm font-semibold text-[#1D2B25] focus:outline-none cursor-pointer pr-3 py-1"
             >
               <option value="Todas as Lojas">Todas as 7 Lojas</option>
