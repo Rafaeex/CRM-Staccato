@@ -264,7 +264,7 @@ export default function FollowUpsPage() {
             <Sparkles className="w-3.5 h-3.5" />
             Follow-ups & IA Nativa do Atendimento
           </span>
-          <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
+          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
             Gestão de Retornos & Prazos
           </h1>
           <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
@@ -282,7 +282,7 @@ export default function FollowUpsPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-serif italic text-2xl text-[#1D2B25]">
+              <DialogTitle className="font-semibold text-xl text-[#1D2B25]">
                 Novo Follow-up de Atendimento
               </DialogTitle>
             </DialogHeader>
@@ -545,7 +545,7 @@ export default function FollowUpsPage() {
       ) : followUpsFiltrados.length === 0 ? (
         <div className="bg-white rounded-[24px] p-12 text-center border border-[#A8C3A0]/30 shadow-sm space-y-3">
           <CheckCircle2 className="w-10 h-10 text-[#2F6B4F] mx-auto opacity-70" />
-          <h3 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+          <h3 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
             Nenhum follow-up encontrado
           </h3>
           <p className="text-xs text-[#5E6E64]">Não há pendências com os filtros selecionados.</p>
@@ -571,13 +571,12 @@ export default function FollowUpsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                      <h3 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
                         {fu.cliente_nome}
-                      </h3>
+                      </h3>{' '}
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F7FAF5] border border-[#A8C3A0]/40 text-[#2F6B4F] font-semibold">
                         {fu.canal}
                       </span>
-
                       {/* Tag de IA vs Manual */}
                       {fu.gerado_por_ia ? (
                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/50 flex items-center gap-1">
@@ -589,7 +588,6 @@ export default function FollowUpsPage() {
                           Manual
                         </span>
                       )}
-
                       {isVencido && (
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">
                           Vencido

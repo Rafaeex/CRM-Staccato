@@ -161,7 +161,7 @@ export default function ClientesPage() {
             <Users className="w-3.5 h-3.5" />
             Controle de Clientes & Atendimento
           </span>
-          <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
+          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
             Gestão de Clientes
           </h1>
           <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
@@ -178,7 +178,7 @@ export default function ClientesPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-serif italic text-2xl text-[#1D2B25]">
+              <DialogTitle className="font-semibold text-xl text-[#1D2B25]">
                 Cadastrar Novo Cliente
               </DialogTitle>
             </DialogHeader>
@@ -408,7 +408,7 @@ export default function ClientesPage() {
       ) : clientesFiltrados.length === 0 ? (
         <div className="bg-white rounded-[24px] p-12 text-center border border-[#A8C3A0]/30 shadow-sm space-y-3">
           <Users className="w-10 h-10 text-[#5E6E64] mx-auto opacity-50" />
-          <h3 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+          <h3 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
             Nenhum cliente encontrado
           </h3>
           <p className="text-xs text-[#5E6E64] max-w-sm mx-auto">
@@ -431,9 +431,9 @@ export default function ClientesPage() {
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-serif italic font-semibold text-lg text-[#1D2B25] leading-snug">
+                      <h3 className="font-semibold text-base sm:text-lg text-[#1D2B25] leading-snug">
                         {cli.nome}
-                      </h3>
+                      </h3>{' '}
                       <p className="text-xs text-[#5E6E64] flex items-center gap-1 mt-0.5">
                         <Building2 className="w-3 h-3 text-[#2F6B4F]" />
                         <span>{cli.loja_origem}</span>

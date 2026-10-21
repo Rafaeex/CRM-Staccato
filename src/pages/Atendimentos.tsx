@@ -202,7 +202,7 @@ export default function AtendimentosPage() {
             <Headphones className="w-3.5 h-3.5" />
             Consultoria e Atendimento Técnico
           </span>
-          <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
+          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
             Registro de Atendimentos
           </h1>
           <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
@@ -223,7 +223,7 @@ export default function AtendimentosPage() {
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-serif italic text-2xl text-[#1D2B25]">
+            <DialogTitle className="font-semibold text-xl text-[#1D2B25]">
               {editandoId ? 'Editar Atendimento' : 'Registrar Novo Atendimento'}
             </DialogTitle>
           </DialogHeader>
@@ -471,7 +471,7 @@ export default function AtendimentosPage() {
       ) : atendimentosFiltrados.length === 0 ? (
         <div className="bg-white rounded-[24px] p-12 text-center border border-[#A8C3A0]/30 shadow-sm space-y-3">
           <Headphones className="w-10 h-10 text-[#5E6E64] mx-auto opacity-50" />
-          <h3 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+          <h3 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
             Nenhum atendimento encontrado
           </h3>
           <p className="text-xs text-[#5E6E64]">
@@ -488,9 +488,9 @@ export default function AtendimentosPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                    <h3 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
                       {at.cliente_nome}
-                    </h3>
+                    </h3>{' '}
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F7FAF5] border border-[#A8C3A0]/40 text-[#2F6B4F] font-semibold">
                       {at.canal}
                     </span>

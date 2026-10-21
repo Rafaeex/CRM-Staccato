@@ -437,7 +437,7 @@ export default function FichaClientePage() {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-[#EAF2E8]">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25]">
+              <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight">
                 {cliente.nome}
               </h1>
               <span
@@ -506,9 +506,9 @@ export default function FichaClientePage() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                  <DialogTitle className="font-serif italic text-xl text-[#1D2B25]">
-                    Registrar Atendimento — {cliente.nome}
-                  </DialogTitle>
+                  <DialogTitle className="font-semibold text-lg text-[#1D2B25]">
+                    Registrar Atendimento para {cliente.nome}
+                  </DialogTitle>{' '}
                 </DialogHeader>
 
                 <form onSubmit={handleCriarAtendimento} className="space-y-3 pt-2">
@@ -671,9 +671,9 @@ export default function FichaClientePage() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle className="font-serif italic text-xl text-[#1D2B25]">
-                    Agendar Retorno para {cliente.nome}
-                  </DialogTitle>
+                  <DialogTitle className="font-semibold text-lg text-[#1D2B25]">
+                    Agendar Follow-up para {cliente.nome}
+                  </DialogTitle>{' '}
                 </DialogHeader>
 
                 <form onSubmit={handleCriarFollowUp} className="space-y-3 pt-2">
@@ -776,7 +776,7 @@ export default function FichaClientePage() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle className="font-serif italic text-xl text-[#1D2B25]">
+                  <DialogTitle className="font-semibold text-lg text-[#1D2B25]">
                     Registrar Ocorrência / Reclamação
                   </DialogTitle>
                 </DialogHeader>
@@ -1004,7 +1004,7 @@ export default function FichaClientePage() {
         {/* Atendimentos do Cliente (6 cols) */}
         <div className="lg:col-span-6 bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
-            <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+            <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
               Histórico de Atendimentos ({atendimentos.length})
             </h2>
             <button
@@ -1071,9 +1071,9 @@ export default function FichaClientePage() {
             <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-rose-700" />
-                <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
-                  Reclamações ({reclamacoes.length})
-                </h2>
+                <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
+                  Ocorrências & Reclamações ({reclamacoes.length})
+                </h2>{' '}
               </div>
               <button
                 onClick={() => setModalReclamacao(true)}
@@ -1148,9 +1148,9 @@ export default function FichaClientePage() {
           {/* Follow-ups do Cliente */}
           <div className="bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
-              <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
-                Follow-ups & Retornos ({followUps.length})
-              </h2>
+              <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
+                Follow-ups Programados ({followUps.length})
+              </h2>{' '}
               <button
                 onClick={() => setModalFollowUp(true)}
                 className="text-xs font-semibold text-[#2F6B4F] hover:underline flex items-center gap-1"

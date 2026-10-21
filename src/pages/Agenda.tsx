@@ -123,7 +123,7 @@ export default function AgendaPage() {
             <CalendarDays className="w-3.5 h-3.5" />
             Compromissos & Visitas
           </span>
-          <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
+          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
             Agenda de Atendimentos
           </h1>
           <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
@@ -199,9 +199,9 @@ export default function AgendaPage() {
                   <CalendarDays className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
-                    Atendimentos nas Boutiques ({atendimentosFiltrados.length})
-                  </h2>
+                  <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
+                    Atendimentos Agendados ({atendimentosFiltrados.length})
+                  </h2>{' '}
                   <p className="text-xs text-[#5E6E64]">Consultorias marcadas com clientes</p>
                 </div>
               </div>
@@ -291,7 +291,7 @@ export default function AgendaPage() {
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                  <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
                     Follow-ups Agendados ({followUpsFiltrados.length})
                   </h2>
                   <p className="text-xs text-[#5E6E64]">Retornos por canal e responsável</p>

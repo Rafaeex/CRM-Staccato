@@ -300,9 +300,9 @@ export default function ReclamacoesPage() {
             <AlertTriangle className="w-3.5 h-3.5" />
             Pilar de Qualidade & Atendimento
           </span>
-          <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
-            Gestão de Reclamações
-          </h1>
+          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
+            Gestão de Reclamações & Ocorrências
+          </h1>{' '}
           <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
             Registro de ocorrências, acompanhamento de prazos e resolução rápida nas 7 boutiques.
           </p>
@@ -324,7 +324,7 @@ export default function ReclamacoesPage() {
             <span className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64]">
               Abertas
             </span>
-            <p className="font-serif italic font-bold text-2xl text-[#1D2B25] mt-0.5">
+            <p className="font-bold text-2xl text-[#1D2B25] tracking-tight mt-0.5">
               {abertasCount}
             </p>
           </div>
@@ -338,9 +338,9 @@ export default function ReclamacoesPage() {
             <span className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64]">
               Em Tratamento
             </span>
-            <p className="font-serif italic font-bold text-2xl text-blue-700 mt-0.5">
+            <p className="font-bold text-2xl text-blue-700 tracking-tight mt-0.5">
               {emTratamentoCount}
-            </p>
+            </p>{' '}
           </div>
           <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
             <UserCheck className="w-4 h-4" />
@@ -356,9 +356,9 @@ export default function ReclamacoesPage() {
             <span className="text-[10px] uppercase font-bold tracking-wider text-rose-700">
               Vencidas (Atrasadas)
             </span>
-            <p className="font-serif italic font-bold text-2xl text-rose-700 mt-0.5">
+            <p className="font-bold text-2xl text-rose-700 tracking-tight mt-0.5">
               {vencidasCount}
-            </p>
+            </p>{' '}
           </div>
           <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center">
             <AlertCircle className="w-4 h-4" />
@@ -370,9 +370,9 @@ export default function ReclamacoesPage() {
             <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-800">
               Resolvidas
             </span>
-            <p className="font-serif italic font-bold text-2xl text-emerald-700 mt-0.5">
+            <p className="font-bold text-2xl text-emerald-700 tracking-tight mt-0.5">
               {resolvidasCount}
-            </p>
+            </p>{' '}
           </div>
           <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
             <CheckCircle2 className="w-4 h-4" />
@@ -455,7 +455,7 @@ export default function ReclamacoesPage() {
       ) : reclamacoesFiltradas.length === 0 ? (
         <div className="bg-white rounded-[24px] p-12 text-center border border-[#A8C3A0]/30 shadow-sm space-y-3">
           <CheckCircle2 className="w-10 h-10 text-[#2F6B4F] mx-auto opacity-70" />
-          <h3 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+          <h3 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
             Nenhuma ocorrência encontrada
           </h3>
           <p className="text-xs text-[#5E6E64]">
@@ -489,10 +489,9 @@ export default function ReclamacoesPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                      <h3 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
                         {rec.cliente_nome}
                       </h3>
-
                       {/* Categoria Badge */}
                       <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#F7FAF5] border border-[#A8C3A0]/40 text-[#2F6B4F]">
                         {rec.categoria}
@@ -639,7 +638,7 @@ export default function ReclamacoesPage() {
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-serif italic text-2xl text-[#1D2B25]">
+            <DialogTitle className="font-semibold text-xl text-[#1D2B25]">
               {editandoId ? 'Editar Reclamação' : 'Registrar Nova Reclamação'}
             </DialogTitle>
           </DialogHeader>
@@ -845,10 +844,10 @@ export default function ReclamacoesPage() {
       <Dialog open={modalResolverAberto} onOpenChange={setModalResolverAberto}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-serif italic text-2xl text-[#1D2B25] flex items-center gap-2">
+            <DialogTitle className="font-semibold text-xl text-[#1D2B25] flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              <span>Concluir e Resolver Reclamação</span>
-            </DialogTitle>
+              <span>Concluir Resolução de Reclamação</span>
+            </DialogTitle>{' '}
           </DialogHeader>
 
           <form onSubmit={handleConfirmarResolucao} className="space-y-4 pt-2">

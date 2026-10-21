@@ -222,9 +222,9 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-2">
             <span
-              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+              className={`text-[11px] font-medium px-2.5 py-0.5 rounded-md ${
                 userInfo.isAtendente
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                  ? 'bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/40'
                   : 'bg-[#2F6B4F] text-white'
               }`}
             >
@@ -235,7 +235,7 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1.5">
+          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
             {userInfo.isAtendente
               ? `Olá, ${userInfo.name.split(' ')[0]} — O que temos para hoje`
               : 'Painel Consolidado de Atendimento'}
@@ -300,7 +300,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="mt-3">
-                <p className="font-serif italic font-bold text-3xl text-[#1D2B25]">
+                <p className="font-bold text-3xl text-[#1D2B25] tracking-tight">
                   {atendimentosHoje.length}
                 </p>
                 <p className="text-[11px] text-[#5E6E64] mt-1">Agendados na sua loja para hoje</p>
@@ -319,7 +319,7 @@ export default function DashboardPage() {
               </div>
               <div className="mt-3">
                 <div className="flex items-baseline gap-2">
-                  <p className="font-serif italic font-bold text-3xl text-[#1D2B25]">
+                  <p className="font-bold text-3xl text-[#1D2B25] tracking-tight">
                     {followUpsPendentes.length}
                   </p>
                   {followUpsVencidos.length > 0 && (
@@ -335,28 +335,29 @@ export default function DashboardPage() {
             </div>
 
             {/* Minhas Reclamações */}
-            <div
-              className={`bg-white rounded-2xl p-5 border shadow-sm flex flex-col justify-between ${
-                reclamacoesVencidas.length > 0
-                  ? 'border-rose-300 bg-rose-50/20'
-                  : 'border-[#A8C3A0]/30'
-              }`}
-            >
+            <div className="bg-white rounded-2xl p-5 border border-[#A8C3A0]/30 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#5E6E64]">
                   Ocorrências sob Minha Responsabilidade
                 </span>
-                <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-[#F7FAF5] text-[#5E6E64] border border-[#A8C3A0]/30 flex items-center justify-center">
                   <AlertTriangle className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3">
-                <p className="font-serif italic font-bold text-3xl text-rose-800">
-                  {minhasReclamacoes.length}
-                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="font-bold text-3xl text-[#1D2B25] tracking-tight">
+                    {minhasReclamacoes.length}
+                  </p>
+                  {minhasReclamacoes.filter((r) => r.prazo_resolucao < hoje).length > 0 && (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-stone-100 text-stone-700">
+                      {minhasReclamacoes.filter((r) => r.prazo_resolucao < hoje).length} expira(m)
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-[#5E6E64] mt-1">
-                  {minhasReclamacoes.filter((r) => r.prazo_resolucao < hoje).length} com prazo
-                  expirado
+                  {minhasReclamacoes.filter((r) => r.prazo_resolucao >= hoje).length} em prazo
+                  regular
                 </p>
               </div>
             </div>
@@ -369,7 +370,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
                 <div className="flex items-center gap-2">
                   <Kanban className="w-4 h-4 text-[#2F6B4F]" />
-                  <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                  <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
                     Meu Quadro Hoje ({meusCartoesHoje.length})
                   </h2>
                 </div>
@@ -420,7 +421,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
                 <div className="flex items-center gap-2">
                   <ClockAlert className="w-4 h-4 text-[#2F6B4F]" />
-                  <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                  <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
                     Retornos Pendentes ({followUpsPendentes.length})
                   </h2>
                 </div>
@@ -497,7 +498,7 @@ export default function DashboardPage() {
                 Atendimentos Hoje
               </span>
               <div className="mt-3">
-                <p className="font-serif italic font-bold text-3xl text-[#1D2B25]">
+                <p className="font-bold text-3xl text-[#1D2B25] tracking-tight">
                   {atendimentosHoje.length}
                 </p>
                 <p className="text-[11px] text-[#5E6E64] mt-1">
@@ -512,7 +513,7 @@ export default function DashboardPage() {
               </span>
               <div className="mt-3">
                 <div className="flex items-baseline gap-2">
-                  <p className="font-serif italic font-bold text-3xl text-[#1D2B25]">
+                  <p className="font-bold text-3xl text-[#1D2B25] tracking-tight">
                     {followUpsPendentes.length}
                   </p>
                   {followUpsVencidos.length > 0 && (
@@ -527,29 +528,23 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div
-              className={`bg-white rounded-2xl p-5 border shadow-sm flex flex-col justify-between ${
-                reclamacoesVencidas.length > 0
-                  ? 'border-rose-300 bg-rose-50/20'
-                  : 'border-[#A8C3A0]/30'
-              }`}
-            >
-              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800">
+            <div className="bg-white rounded-2xl p-5 border border-[#A8C3A0]/30 shadow-sm flex flex-col justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#5E6E64]">
                 Reclamações em Aberto
               </span>
               <div className="mt-3">
                 <div className="flex items-baseline gap-2">
-                  <p className="font-serif italic font-bold text-3xl text-rose-800">
+                  <p className="font-bold text-3xl text-[#1D2B25] tracking-tight">
                     {reclamacoesAbertas.length}
                   </p>
                   {reclamacoesVencidas.length > 0 && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-600 text-white">
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-stone-100 text-stone-700">
                       {reclamacoesVencidas.length} fora do prazo
                     </span>
                   )}
                 </div>
                 <p className="text-[11px] text-[#5E6E64] mt-1">
-                  {totalResolvidas} resolvidas na rede
+                  {totalResolvidas} resolvidas no histórico
                 </p>
               </div>
             </div>
@@ -559,7 +554,7 @@ export default function DashboardPage() {
                 Clientes na Base
               </span>
               <div className="mt-3">
-                <p className="font-serif italic font-bold text-3xl text-[#1D2B25]">
+                <p className="font-bold text-3xl text-[#1D2B25] tracking-tight">
                   {clientesFiltrados.length}
                 </p>
                 <p className="text-[11px] text-[#5E6E64] mt-1">
@@ -576,7 +571,7 @@ export default function DashboardPage() {
           {/* Régua de Qualidade do Atendimento */}
           <div className="bg-[#1D2B25] text-white rounded-[24px] p-6 shadow-sm">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <h3 className="font-serif italic font-semibold text-lg text-white">
+              <h3 className="font-semibold text-base sm:text-lg text-white">
                 Índices de Qualidade da Operação • 7 Lojas
               </h3>
               <span className="text-xs text-[#A8C3A0]">{lojaFiltro}</span>
@@ -640,7 +635,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-rose-700" />
-                  <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                  <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
                     Reclamações Críticas ({reclamacoesAbertas.length})
                   </h2>
                 </div>
@@ -697,7 +692,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
                 <div className="flex items-center gap-2">
                   <Kanban className="w-4 h-4 text-[#2F6B4F]" />
-                  <h2 className="font-serif italic font-semibold text-lg text-[#1D2B25]">
+                  <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
                     Visão Geral do Quadro Kanban ({cartoesFiltrados.length})
                   </h2>
                 </div>
@@ -721,7 +716,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6E64]">
                         {col}
                       </span>
-                      <p className="font-serif italic font-bold text-2xl text-[#1D2B25]">{count}</p>
+                      <p className="font-bold text-2xl text-[#1D2B25] tracking-tight">{count}</p>
                     </div>
                   )
                 })}
@@ -745,7 +740,7 @@ export default function DashboardPage() {
       <Dialog open={modalResolverAberto} onOpenChange={setModalResolverAberto}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-serif italic text-2xl text-[#1D2B25] flex items-center gap-2">
+            <DialogTitle className="font-semibold text-xl text-[#1D2B25] flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
               <span>Resolver Reclamação</span>
             </DialogTitle>

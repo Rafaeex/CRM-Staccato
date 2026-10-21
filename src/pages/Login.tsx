@@ -57,14 +57,14 @@ export default function LoginPage() {
       <div className="max-w-md w-full bg-white rounded-[24px] p-8 sm:p-10 border border-[#A8C3A0]/40 shadow-xl shadow-[#2F6B4F]/5 animate-fade-in">
         {/* Monograma & Título */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#2F6B4F] to-[#1D2B25] flex items-center justify-center text-white mx-auto shadow-md border-2 border-[#A8C3A0]/50 mb-4">
-            <span className="font-serif italic text-2xl font-bold text-[#F7FAF5]">B</span>
+          <div className="w-12 h-12 rounded-xl bg-[#2F6B4F] flex items-center justify-center text-white mx-auto shadow-sm border border-[#A8C3A0]/50 mb-3">
+            <span className="text-xl font-bold text-[#F7FAF5] tracking-wider">B</span>
           </div>
-          <span className="text-[11px] uppercase font-bold tracking-[0.25em] text-[#2F6B4F] flex items-center justify-center gap-1.5">
+          <span className="text-[11px] uppercase font-semibold tracking-[0.16em] text-[#2F6B4F] flex items-center justify-center gap-1.5">
             <Building2 className="w-3.5 h-3.5" />
             CRM Interno de Atendimento
           </span>
-          <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
+          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
             Boutique de Revestimentos
           </h1>
           <p className="mt-1 text-xs text-[#5E6E64]">
@@ -178,7 +178,7 @@ export default function LoginPage() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-[#1D2B25]">Painel do Atendente</span>
-                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                  <span className="text-[10px] font-medium uppercase px-1.5 py-0.5 rounded bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/30">
                     Atendente • Vila Olímpia
                   </span>
                 </div>

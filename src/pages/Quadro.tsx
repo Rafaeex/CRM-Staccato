@@ -392,7 +392,7 @@ export default function QuadroPage() {
             <Kanban className="w-3.5 h-3.5" />
             Quadro Kanban Interno • Estilo Trello
           </span>
-          <h1 className="font-serif italic font-semibold text-2xl sm:text-3xl text-[#1D2B25] mt-1">
+          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
             Fluxo de Atendimento das Obras
           </h1>
           <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
@@ -410,9 +410,9 @@ export default function QuadroPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle className="font-serif italic text-2xl text-[#1D2B25]">
-                Novo Cartão de Atendimento
-              </DialogTitle>
+              <DialogTitle className="font-semibold text-xl text-[#1D2B25]">
+                Novo Cartão Operacional
+              </DialogTitle>{' '}
             </DialogHeader>
 
             <form onSubmit={handleCriarCartao} className="space-y-4 pt-2">
@@ -671,9 +671,9 @@ export default function QuadroPage() {
                 {/* Cabeçalho da Coluna */}
                 <div className="flex items-center justify-between pb-3 px-1 border-b border-[#EAF2E8]">
                   <div className="flex items-center gap-2">
-                    <span className="font-serif italic font-semibold text-sm sm:text-base text-[#1D2B25]">
+                    <span className="font-semibold text-sm sm:text-base text-[#1D2B25]">
                       {coluna.label}
-                    </span>
+                    </span>{' '}
                     <span className="w-5 h-5 rounded-full bg-[#F7FAF5] border border-[#A8C3A0]/40 text-[#2F6B4F] text-[10px] font-bold flex items-center justify-center">
                       {cardsNaColuna.length}
                     </span>
@@ -722,7 +722,7 @@ export default function QuadroPage() {
                             </span>
                           </div>
 
-                          <h4 className="font-serif italic font-semibold text-sm text-[#1D2B25] group-hover:text-[#2F6B4F] transition-colors line-clamp-2 leading-snug">
+                          <h4 className="font-semibold text-sm text-[#1D2B25] group-hover:text-[#2F6B4F] transition-colors line-clamp-2 leading-snug">
                             {card.titulo}
                           </h4>
 
@@ -802,9 +802,9 @@ export default function QuadroPage() {
                     <span>Excluir</span>
                   </button>
                 </div>
-                <DialogTitle className="font-serif italic text-2xl text-[#1D2B25] text-left pt-1">
+                <DialogTitle className="font-semibold text-xl text-[#1D2B25] text-left pt-1">
                   {cartaoDetalhe.titulo}
-                </DialogTitle>
+                </DialogTitle>{' '}
               </DialogHeader>
 
               {/* Metadados */}
