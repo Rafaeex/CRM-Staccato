@@ -496,16 +496,16 @@ export default function AtendimentosPage() {
                     </span>
                     <span
                       className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                        atend.status === 'Concluído'
+                        at.status === 'Concluído'
                           ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                          : atend.status === 'Em atendimento'
+                          : at.status === 'Em atendimento'
                             ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : atend.status === 'Cancelado'
+                            : at.status === 'Cancelado'
                               ? 'bg-stone-100 text-stone-600 border border-stone-200'
                               : 'bg-stone-100 text-stone-700 border border-stone-200'
                       }`}
                     >
-                      {atend.status}
+                      {at.status}
                     </span>{' '}
                   </div>
 

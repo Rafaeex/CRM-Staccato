@@ -328,12 +328,12 @@ export default function AgendaPage() {
                         </div>
                         <span
                           className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                            ag.status === 'Concluído'
+                            fu.status === 'Concluído'
                               ? 'bg-slate-100 text-slate-700 border border-slate-200'
                               : 'bg-blue-50 text-blue-700 border border-blue-200'
                           }`}
                         >
-                          {ag.status}
+                          {fu.status}
                         </span>{' '}
                       </div>
 
