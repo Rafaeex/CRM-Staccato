@@ -262,7 +262,7 @@ export default function AgendaPage() {
                           <button
                             type="button"
                             onClick={() => handleConcluirAtendimento(item.id)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#EAF2E8] hover:bg-[#2F6B4F] text-[#2F6B4F] hover:text-white font-semibold text-xs transition-colors"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#F7FAF5] hover:bg-[#2F6B4F] border border-[#A8C3A0]/30 text-[#2F6B4F] hover:text-white font-semibold text-xs transition-colors"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             <span>Concluir</span>
@@ -346,7 +346,7 @@ export default function AgendaPage() {
                           href={waLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#3A6652] hover:bg-[#2F5342] text-white text-[11px] font-medium shadow-xs transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-[11px] font-medium shadow-xs transition-colors"
                         >
                           <MessageSquare className="w-3 h-3" />
                           <span>WhatsApp</span>
@@ -356,10 +356,10 @@ export default function AgendaPage() {
                           <button
                             type="button"
                             onClick={() => handleConcluirFollowUp(fu.id)}
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-[#A8C3A0]/50 text-[#2F6B4F] text-[11px] font-semibold hover:bg-[#EAF2E8]"
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/40 text-[#2F6B4F] text-[11px] font-semibold hover:bg-[#EAF2E8] transition-colors"
                           >
                             <CheckCircle2 className="w-3 h-3 text-[#2F6B4F]" />
-                            <span>Marcar Concluído</span>
+                            <span>Concluir</span>
                           </button>
                         )}
                       </div>

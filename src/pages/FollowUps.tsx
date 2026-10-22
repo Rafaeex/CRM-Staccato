@@ -215,7 +215,7 @@ export default function FollowUpsPage() {
       setFollowUps((prev) => prev.map((f) => (f.id === id ? atualizado : f)))
       toast({
         title: 'Follow-up concluído!',
-        description: `Retorno com ${clienteNome} registrado.`,
+        description: `Retorno com ${clienteNome} registrado. Sugestão: feche o ciclo checando a satisfação (close the loop).`,
       })
     } catch (err) {
       console.error('Falha ao marcar como concluído:', err)
@@ -294,7 +294,7 @@ export default function FollowUpsPage() {
 
         <Dialog open={modalAberto} onOpenChange={setModalAberto}>
           <DialogTrigger asChild>
-            <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99]">
+            <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors">
               <Plus className="w-4 h-4 text-[#A8C3A0]" />
               <span>Agendar Follow-up</span>
             </button>
@@ -359,7 +359,7 @@ export default function FollowUpsPage() {
                       type="button"
                       onClick={handleGerarComIA}
                       disabled={gerandoIA}
-                      className="px-3 py-1 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-[11px] font-semibold flex items-center gap-1 transition-all disabled:opacity-50"
+                      className="px-3 py-1 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-[11px] font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
                     >
                       {gerandoIA ? (
                         <>
@@ -496,14 +496,14 @@ export default function FollowUpsPage() {
                     setModalAberto(false)
                     setResumoIACompleto(null)
                   }}
-                  className="px-4 py-2 rounded-full border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 rounded-xl border border-stone-200 text-xs font-medium text-[#5E6E64] hover:bg-stone-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={salvando}
-                  className="px-5 py-2 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold shadow-sm disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold shadow-xs disabled:opacity-50"
                 >
                   {salvando ? 'Salvando...' : 'Agendar Follow-up'}
                 </button>
@@ -668,45 +668,46 @@ export default function FollowUpsPage() {
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-auto">
-                    {/* Botão WhatsApp wa.me */}
+                    {/* Botão WhatsApp wa.me (Ação Primária) */}
                     {waLink && fu.status === 'Pendente' && (
                       <a
                         href={waLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold shadow-xs transition-colors"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Abrir WhatsApp</span>
+                        <span>WhatsApp</span>
                       </a>
                     )}
 
+                    {/* Concluir (Ação Secundária) */}
                     {fu.status === 'Pendente' && (
                       <button
                         type="button"
                         onClick={() => handleMarcarConcluido(fu.id, fu.cliente_nome)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white hover:bg-[#EAF2E8] border border-[#A8C3A0]/50 text-[#2F6B4F] text-xs font-semibold transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] border border-[#A8C3A0]/40 text-[#2F6B4F] text-xs font-semibold transition-colors"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#2F6B4F]" />
-                        <span>Marcar Feito</span>
+                        <span>Concluir</span>
                       </button>
                     )}
 
                     <Link
                       to={`/clientes/${fu.cliente}`}
-                      className="p-1.5 rounded-lg border border-[#A8C3A0]/30 hover:bg-[#EAF2E8] text-[#5E6E64] hover:text-[#2F6B4F] transition-colors"
-                      title="Abrir ficha do cliente"
+                      className="p-1.5 rounded-xl border border-[#A8C3A0]/30 hover:bg-[#EAF2E8] text-[#5E6E64] hover:text-[#2F6B4F] transition-colors"
+                      title="Ficha do cliente"
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <ExternalLink className="w-3.5 h-3.5" />
                     </Link>
 
                     <button
                       type="button"
                       onClick={() => handleExcluir(fu.id)}
-                      className="p-1.5 rounded-lg border border-transparent hover:border-rose-200 text-gray-400 hover:text-rose-600 transition-colors"
-                      title="Excluir"
+                      className="p-1.5 rounded-xl border border-transparent hover:bg-stone-100 text-[#5E6E64] hover:text-rose-600 transition-colors"
+                      title="Excluir follow-up"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>

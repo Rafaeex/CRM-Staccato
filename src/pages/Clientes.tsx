@@ -171,7 +171,7 @@ export default function ClientesPage() {
 
         <Dialog open={modalNovoAberto} onOpenChange={setModalNovoAberto}>
           <DialogTrigger asChild>
-            <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99]">
+            <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors">
               <Plus className="w-4 h-4 text-[#A8C3A0]" />
               <span>Novo Cliente</span>
             </button>
@@ -494,7 +494,7 @@ export default function ClientesPage() {
 
                   <Link
                     to={`/clientes/${cli.id}`}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#EAF2E8] hover:bg-[#2F6B4F] text-[#2F6B4F] hover:text-white font-semibold text-xs transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#F7FAF5] hover:bg-[#2F6B4F] border border-[#A8C3A0]/30 text-[#2F6B4F] hover:text-white font-semibold text-xs transition-colors"
                   >
                     <span>Ficha</span>
                     <ChevronRight className="w-3.5 h-3.5" />

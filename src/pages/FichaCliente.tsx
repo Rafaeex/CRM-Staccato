@@ -794,7 +794,7 @@ export default function FichaClientePage() {
                     <button
                       type="submit"
                       disabled={salvandoFollowUp}
-                      className="px-5 py-1.5 rounded-full bg-[#2F6B4F] text-white text-xs font-semibold"
+                      className="px-4 py-1.5 rounded-xl bg-[#2F6B4F] text-white text-xs font-semibold"
                     >
                       {salvandoFollowUp ? 'Salvando...' : 'Agendar Follow-up'}
                     </button>
@@ -806,7 +806,7 @@ export default function FichaClientePage() {
             {/* Dialog Nova Ocorrência */}
             <Dialog open={modalReclamacao} onOpenChange={setModalReclamacao}>
               <DialogTrigger asChild>
-                <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   <span>Nova Ocorrência</span>
                 </button>
@@ -909,7 +909,7 @@ export default function FichaClientePage() {
                     <button
                       type="submit"
                       disabled={salvandoReclamacao}
-                      className="px-5 py-1.5 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold"
+                      className="px-4 py-1.5 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold"
                     >
                       {salvandoReclamacao ? 'Salvando...' : 'Registrar Ocorrência'}
                     </button>

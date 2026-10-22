@@ -403,44 +403,9 @@ export default function QuadroPage() {
     (c) => c.coluna !== 'Resolvido' && c.data_limite && c.data_limite < hojeStr,
   ).length
 
-  // Helper para anéis circulares (SVG radial/donut compacto)
-  const renderMiniRadial = (pct: number, corStroke: string, corTrack: string = '#EAF2E8') => {
-    const size = 38
-    const strokeWidth = 3.5
-    const radius = (size - strokeWidth) / 2
-    const circumference = 2 * Math.PI * radius
-    const safePct = Math.max(0, Math.min(100, pct))
-    const strokeDashoffset = circumference - (safePct / 100) * circumference
-
-    return (
-      <svg width={size} height={size} className="transform -rotate-90 shrink-0">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={corTrack}
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={corStroke}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
-        />
-      </svg>
-    )
-  }
-
   return (
     <div className="space-y-4">
-      {/* Topo Limpo, Sóbrio e Arejado com Indicadores Redondos Pequenos Integrados */}
+      {/* Topo Limpo, Sóbrio e Arejado com Indicadores Estáticos Simples */}
       <div className="bg-white rounded-2xl p-5 border border-[#A8C3A0]/30 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[#2F6B4F] flex items-center gap-1.5">
@@ -455,21 +420,18 @@ export default function QuadroPage() {
           </p>
         </div>
 
-        {/* Indicadores redondos e relativamente pequenos (radial/donut compactos) */}
+        {/* Indicadores estáticos simples: etiquetas com número + rótulo sem círculos nem animações */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {/* Indicador 1: Taxa de Resolução */}
           <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30">
-            <div className="relative flex items-center justify-center">
-              {renderMiniRadial(taxaConclusao, '#2F6B4F', '#EAF2E8')}
-              <span className="absolute text-[10px] font-bold text-[#1D2B25] font-mono">
-                {taxaConclusao}%
-              </span>
-            </div>
+            <span className="px-2 py-0.5 rounded-md bg-[#EAF2E8] border border-[#A8C3A0]/40 text-xs font-bold text-[#2F6B4F] font-mono">
+              {taxaConclusao}%
+            </span>
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5E6E64]">
                 Conclusão
               </span>
-              <span className="text-xs font-bold text-[#1D2B25]">
+              <span className="text-xs font-medium text-[#1D2B25]">
                 {totalResolvidos} de {totalCartoes}
               </span>
             </div>
@@ -477,16 +439,11 @@ export default function QuadroPage() {
 
           {/* Indicador 2: Prioridade Crítica */}
           <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30">
-            <div className="relative flex items-center justify-center">
-              {renderMiniRadial(
-                pctUrgentes,
-                urgentesOuAltos > 0 ? '#C27803' : '#2F6B4F',
-                '#FEF3C7',
-              )}
-              <span className="absolute text-[10px] font-bold text-[#1D2B25] font-mono">
-                {urgentesOuAltos}
-              </span>
-            </div>
+            <span
+              className={`px-2 py-0.5 rounded-md text-xs font-bold font-mono ${urgentesOuAltos > 0 ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}
+            >
+              {urgentesOuAltos}
+            </span>
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5E6E64]">
                 Alta / Urgente
@@ -497,12 +454,9 @@ export default function QuadroPage() {
 
           {/* Indicador 3: Plantas & Anexos Técnicos */}
           <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30">
-            <div className="relative flex items-center justify-center">
-              {renderMiniRadial(pctAnexos, '#2563EB', '#DBEAFE')}
-              <span className="absolute text-[10px] font-bold text-[#1D2B25] font-mono">
-                {totalComAnexos}
-              </span>
-            </div>
+            <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold font-mono">
+              {totalComAnexos}
+            </span>
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5E6E64]">
                 Com Anexos
@@ -515,7 +469,7 @@ export default function QuadroPage() {
         {/* Botão Novo Cartão */}
         <Dialog open={modalNovoAberto} onOpenChange={setModalNovoAberto}>
           <DialogTrigger asChild>
-            <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99]">
+            <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors">
               <Plus className="w-4 h-4 text-[#A8C3A0]" />
               <span>Novo Cartão</span>
             </button>

@@ -172,6 +172,9 @@ Por favor, forneça o resumo do histórico, a situação atual do cliente e form
       } catch (agentErr) {
         // Fallback robusto se a IA nativa estiver em aquecimento
         const quebraDestaque = quebrasEmAberto[0]
+        const temCasoResolvido =
+          reclamacoes.some((r) => r.getString('status') === 'Resolvida') ||
+          quebras.some((q) => q.getString('status') === 'Resolvida')
         if (temQuebraEmAberto && quebraDestaque) {
           respostaTexto = `RESUMO DO HISTÓRICO:
 O cliente ${cliente.getString('nome')} possui ${quebrasEmAberto.length} ocorrência(s) de Quebra/BOEM em andamento referente ao pedido ${quebraDestaque.getString('numero_pedido')} (${quebraDestaque.getString('produtos_envolvidos') || 'revestimentos'}).
@@ -183,6 +186,17 @@ SUGESTÃO DE PRÓXIMO FOLLOW-UP:
 - Nível de Urgência: Alta
 - Prazo Sugerido: Hoje
 - Justificativa: Cliente possui ocorrência de quebra/BOEM em aberto; pós-venda ágil é mandatório para resguardar a experiência de alto padrão.`
+        } else if (temCasoResolvido) {
+          respostaTexto = `RESUMO DO HISTÓRICO:
+O cliente ${cliente.getString('nome')} teve uma ocorrência/atendimento recentemente resolvido com sucesso na unidade ${cliente.getString('loja_origem')}.
+
+SUGESTÃO DE PRÓXIMO FOLLOW-UP (CLOSE THE LOOP / SATISFAÇÃO):
+- Assunto: Verificação de satisfação pós-resolução (${cliente.getString('nome')})
+- Canal: WhatsApp
+- Mensagem Pronta para WhatsApp: Olá ${cliente.getString('nome')}, tudo bem? Aqui é da Boutique de Revestimentos (${cliente.getString('loja_origem')}). Passando para checar se o desfecho do seu caso atendeu plenamente às suas expectativas e se as peças/revestimentos ficaram em perfeita ordem na sua obra. Sua satisfação é nossa prioridade!
+- Nível de Urgência: Média
+- Prazo Sugerido: Amanhã
+- Justificativa: Fechamento de ciclo (close the loop) pós-resolução para assegurar excelência e medir satisfação do cliente.`
         } else {
           respostaTexto = `RESUMO DO HISTÓRICO:
 O cliente ${cliente.getString('nome')} está com status "${cliente.getString('status_atendimento')}" na unidade ${cliente.getString('loja_origem')}, com interesse registrado em ${cliente.getString('interesse_principal') || 'revestimentos de alto padrão'}.
