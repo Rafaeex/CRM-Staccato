@@ -100,9 +100,9 @@ export default function ReclamacoesPage() {
       setReclamacoes(rList)
       setClientes(cList)
     } catch (err) {
-      console.error('Falha ao carregar reclamações:', err)
+      console.error('Falha ao carregar ocorrências:', err)
       toast({
-        title: 'Erro ao carregar reclamações',
+        title: 'Erro ao carregar ocorrências',
         description: 'Tente recarregar a página.',
         variant: 'destructive',
       })
@@ -186,23 +186,23 @@ export default function ReclamacoesPage() {
         const atualizado = await atualizarReclamacao(editandoId, form)
         setReclamacoes((prev) => prev.map((r) => (r.id === editandoId ? atualizado : r)))
         toast({
-          title: 'Reclamação atualizada',
+          title: 'Ocorrência atualizada',
           description: 'Alterações gravadas com sucesso.',
         })
       } else {
         const criado = await criarReclamacao(form)
         setReclamacoes((prev) => [criado, ...prev])
         toast({
-          title: 'Reclamação registrada',
-          description: `Chamado para ${criado.cliente_nome} aberto com sucesso.`,
+          title: 'Ocorrência registrada',
+          description: `Ocorrência para ${criado.cliente_nome} aberta com sucesso.`,
         })
       }
       setModalAberto(false)
     } catch (err) {
-      console.error('Falha ao salvar reclamação:', err)
+      console.error('Falha ao salvar ocorrência:', err)
       toast({
         title: 'Erro ao salvar',
-        description: 'Não foi possível gravar a reclamação.',
+        description: 'Não foi possível gravar a ocorrência.',
         variant: 'destructive',
       })
     } finally {
@@ -222,7 +222,7 @@ export default function ReclamacoesPage() {
     if (!resolvendoId || !desfechoTexto.trim()) {
       toast({
         title: 'Desfecho obrigatório',
-        description: 'Descreva a solução adotada para concluir a reclamação.',
+        description: 'Descreva a solução adotada para concluir a ocorrência.',
         variant: 'destructive',
       })
       return
@@ -234,11 +234,11 @@ export default function ReclamacoesPage() {
       setReclamacoes((prev) => prev.map((r) => (r.id === resolvendoId ? atualizada : r)))
       setModalResolverAberto(false)
       toast({
-        title: 'Reclamação resolvida!',
+        title: 'Ocorrência resolvida!',
         description: 'O desfecho e a data de resolução foram gravados.',
       })
     } catch (err) {
-      console.error('Erro ao resolver reclamação:', err)
+      console.error('Erro ao resolver ocorrência:', err)
       toast({
         title: 'Falha ao resolver',
         description: 'Tente novamente.',
@@ -293,18 +293,19 @@ export default function ReclamacoesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Topo do Módulo Reclamações */}
+      {/* Topo do Módulo Ocorrências */}
       <div className="bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
-            <AlertTriangle className="w-3.5 h-3.5" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 text-slate-500" />
             Pilar de Qualidade & Atendimento
           </span>
           <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
-            Gestão de Reclamações & Ocorrências
+            Gestão de Ocorrências
           </h1>{' '}
           <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
-            Registro de ocorrências, acompanhamento de prazos e resolução rápida nas 7 boutiques.
+            Registro de ocorrências de variados assuntos, acompanhamento de prazos e resolução nas 7
+            boutiques.
           </p>
         </div>
 
@@ -313,7 +314,7 @@ export default function ReclamacoesPage() {
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99]"
         >
           <Plus className="w-4 h-4 text-[#A8C3A0]" />
-          <span>Registrar Reclamação</span>
+          <span>Registrar Ocorrência</span>
         </button>
       </div>
 
@@ -338,43 +339,51 @@ export default function ReclamacoesPage() {
             <span className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64]">
               Em Tratamento
             </span>
-            <p className="font-bold text-2xl text-blue-700 tracking-tight mt-0.5">
+            <p className="font-bold text-2xl text-slate-800 tracking-tight mt-0.5">
               {emTratamentoCount}
             </p>{' '}
           </div>
-          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
             <UserCheck className="w-4 h-4" />
           </div>
         </div>
 
         <div
           className={`bg-white rounded-2xl p-4 border shadow-sm flex items-center justify-between ${
-            vencidasCount > 0 ? 'border-rose-300 bg-rose-50/20' : 'border-[#A8C3A0]/30'
+            vencidasCount > 0
+              ? 'border-rose-400 bg-rose-50/25 ring-1 ring-rose-300'
+              : 'border-[#A8C3A0]/30'
           }`}
         >
           <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-rose-700">
+            <span
+              className={`text-[10px] uppercase font-bold tracking-wider ${vencidasCount > 0 ? 'text-rose-700' : 'text-[#5E6E64]'}`}
+            >
               Vencidas (Atrasadas)
             </span>
-            <p className="font-bold text-2xl text-rose-700 tracking-tight mt-0.5">
+            <p
+              className={`font-bold text-2xl tracking-tight mt-0.5 ${vencidasCount > 0 ? 'text-rose-700' : 'text-[#1D2B25]'}`}
+            >
               {vencidasCount}
             </p>{' '}
           </div>
-          <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center">
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center ${vencidasCount > 0 ? 'bg-rose-600 text-white animate-pulse' : 'bg-slate-100 text-slate-600'}`}
+          >
             <AlertCircle className="w-4 h-4" />
           </div>
         </div>
 
         <div className="bg-white rounded-2xl p-4 border border-[#A8C3A0]/30 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-800">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-600">
               Resolvidas
             </span>
-            <p className="font-bold text-2xl text-emerald-700 tracking-tight mt-0.5">
+            <p className="font-bold text-2xl text-slate-800 tracking-tight mt-0.5">
               {resolvidasCount}
             </p>{' '}
           </div>
-          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
             <CheckCircle2 className="w-4 h-4" />
           </div>
         </div>
@@ -450,7 +459,7 @@ export default function ReclamacoesPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-[#2F6B4F]" />
-          <span className="text-xs font-medium text-[#5E6E64]">Carregando reclamações...</span>
+          <span className="text-xs font-medium text-[#5E6E64]">Carregando ocorrências...</span>
         </div>
       ) : reclamacoesFiltradas.length === 0 ? (
         <div className="bg-white rounded-[24px] p-12 text-center border border-[#A8C3A0]/30 shadow-sm space-y-3">
@@ -497,27 +506,25 @@ export default function ReclamacoesPage() {
                         {rec.categoria}
                       </span>
 
-                      {/* Gravidade Badge */}
+                      {/* Gravidade Badge - Tons frios, vermelho apenas se Alta */}
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                           rec.gravidade === 'Alta'
-                            ? 'bg-rose-100 text-rose-800'
-                            : rec.gravidade === 'Média'
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-slate-100 text-slate-700'
+                            ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
                         }`}
                       >
                         Gravidade {rec.gravidade}
                       </span>
 
-                      {/* Status Badge */}
+                      {/* Status Badge - Tons frios e sóbrios */}
                       <span
-                        className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
+                        className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full ${
                           rec.status === 'Resolvida'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-slate-100 text-slate-700 border border-slate-200'
                             : rec.status === 'Em tratamento'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-amber-100 text-amber-800'
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : 'bg-stone-100 text-stone-700 border border-stone-200'
                         }`}
                       >
                         {rec.status}
@@ -554,7 +561,7 @@ export default function ReclamacoesPage() {
                         href={waLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#3A6652] hover:bg-[#2F5342] text-white text-xs font-semibold shadow-xs transition-all"
                         title="Falar no WhatsApp"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
@@ -634,12 +641,12 @@ export default function ReclamacoesPage() {
         </div>
       )}
 
-      {/* Modal Criar / Editar Reclamação */}
+      {/* Modal Criar / Editar Ocorrência */}
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-semibold text-xl text-[#1D2B25]">
-              {editandoId ? 'Editar Reclamação' : 'Registrar Nova Reclamação'}
+              {editandoId ? 'Editar Ocorrência' : 'Registrar Nova Ocorrência'}
             </DialogTitle>
           </DialogHeader>
 
@@ -772,7 +779,7 @@ export default function ReclamacoesPage() {
 
             <div>
               <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                Status da Reclamação
+                Status da Ocorrência
               </label>
               <select
                 value={form.status}
@@ -832,21 +839,21 @@ export default function ReclamacoesPage() {
                 {salvando
                   ? 'Salvando...'
                   : editandoId
-                    ? 'Atualizar Reclamação'
-                    : 'Registrar Reclamação'}
+                    ? 'Atualizar Ocorrência'
+                    : 'Registrar Ocorrência'}
               </button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Modal Específico para Resolver Reclamação */}
+      {/* Modal Específico para Resolver Ocorrência */}
       <Dialog open={modalResolverAberto} onOpenChange={setModalResolverAberto}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-semibold text-xl text-[#1D2B25] flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              <span>Concluir Resolução de Reclamação</span>
+              <CheckCircle2 className="w-5 h-5 text-slate-700" />
+              <span>Concluir Resolução da Ocorrência</span>
             </DialogTitle>{' '}
           </DialogHeader>
 
@@ -889,7 +896,7 @@ export default function ReclamacoesPage() {
               <button
                 type="submit"
                 disabled={salvandoResolucao}
-                className="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm disabled:opacity-50"
+                className="px-5 py-2 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold shadow-sm disabled:opacity-50"
               >
                 {salvandoResolucao ? 'Salvando...' : 'Confirmar Resolução'}
               </button>

@@ -51,13 +51,13 @@ import {
 
 const COLUNAS: { id: ColunaKanban; label: string; cor: string }[] = [
   { id: 'A fazer', label: 'A fazer', cor: 'border-slate-300 bg-slate-50/50' },
-  { id: 'Fazendo hoje', label: 'Fazendo hoje', cor: 'border-amber-300 bg-amber-50/30' },
+  { id: 'Fazendo hoje', label: 'Fazendo hoje', cor: 'border-slate-300 bg-slate-50/40' },
   {
     id: 'Aguardando cliente',
     label: 'Aguardando cliente',
-    cor: 'border-purple-300 bg-purple-50/30',
+    cor: 'border-stone-200 bg-stone-50/40',
   },
-  { id: 'Resolvido', label: 'Resolvido', cor: 'border-emerald-300 bg-emerald-50/30' },
+  { id: 'Resolvido', label: 'Resolvido', cor: 'border-slate-300 bg-slate-50/30' },
 ]
 
 export default function QuadroPage() {
@@ -824,18 +824,16 @@ export default function QuadroPage() {
                         >
                           <div className="flex items-start justify-between gap-1.5">
                             <span
-                              className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                              className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
                                 card.prioridade === 'Urgente'
-                                  ? 'bg-rose-100 text-rose-800'
+                                  ? 'bg-rose-100 text-rose-800 border border-rose-200'
                                   : card.prioridade === 'Alta'
-                                    ? 'bg-amber-100 text-amber-800'
-                                    : card.prioridade === 'Baixa'
-                                      ? 'bg-slate-100 text-slate-700'
-                                      : 'bg-emerald-100 text-emerald-800'
+                                    ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                                    : 'bg-slate-100 text-slate-700 border border-slate-200'
                               }`}
                             >
                               {card.prioridade || 'Média'}
-                            </span>
+                            </span>{' '}
                             <span className="text-[10px] text-[#5E6E64] font-medium truncate max-w-[120px]">
                               {card.loja.replace(' (SP)', '')}
                             </span>
@@ -915,7 +913,7 @@ export default function QuadroPage() {
                   <button
                     type="button"
                     onClick={() => handleExcluirCartao(cartaoDetalhe.id)}
-                    className="text-xs text-rose-600 hover:text-rose-700 flex items-center gap-1"
+                    className="text-xs text-slate-500 hover:text-rose-600 flex items-center gap-1 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Excluir</span>

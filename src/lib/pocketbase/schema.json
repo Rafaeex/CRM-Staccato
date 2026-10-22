@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T22:27:52.477Z",
+  "generatedAt": "2026-10-22T00:20:49.503Z",
   "collections": [
     {
       "name": "users",
@@ -530,6 +530,18 @@
         },
         {
           "name": "justificativa_ia",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "situacao_atual",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "proximos_passos",
           "type": "text",
           "required": false,
           "system": false

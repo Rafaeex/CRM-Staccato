@@ -495,18 +495,18 @@ export default function AtendimentosPage() {
                       {at.canal}
                     </span>
                     <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        at.status === 'Concluído'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : at.status === 'Em atendimento'
-                            ? 'bg-blue-100 text-blue-800'
-                            : at.status === 'Cancelado'
-                              ? 'bg-rose-100 text-rose-800'
-                              : 'bg-amber-100 text-amber-800'
+                      className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                        atend.status === 'Concluído'
+                          ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                          : atend.status === 'Em atendimento'
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                            : atend.status === 'Cancelado'
+                              ? 'bg-stone-100 text-stone-600 border border-stone-200'
+                              : 'bg-stone-100 text-stone-700 border border-stone-200'
                       }`}
                     >
-                      {at.status}
-                    </span>
+                      {atend.status}
+                    </span>{' '}
                   </div>
 
                   <p className="text-xs text-[#5E6E64] flex items-center gap-2 mt-1">

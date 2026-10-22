@@ -21,40 +21,80 @@ routerAdd(
         'atendimentos',
         `cliente = "${clienteId}"`,
         '-data_atendimento',
-        5,
+        10,
         0,
       )
       const reclamacoes = app.findRecordsByFilter(
         'reclamacoes',
         `cliente = "${clienteId}"`,
         '-created',
-        5,
+        10,
         0,
       )
       const followUpsAnt = app.findRecordsByFilter(
         'follow_ups',
         `cliente = "${clienteId}"`,
         '-created',
-        5,
+        10,
         0,
       )
 
-      // 2. CONSULTAR QUEBRAS & BOEM (Decisão do usuário: sempre checar se há quebras em aberto do cliente)
+      // 2. CONSULTAR QUEBRAS & BOEM E QUADRO KANBAN
       let quebras = []
       try {
         quebras = app.findRecordsByFilter(
           'quebras_boem',
           `cliente = "${clienteId}"`,
           '-created',
-          5,
+          10,
           0,
         )
       } catch (_) {
         // coleção pode ainda não ter registros para este cliente
       }
 
+      let cartoes = []
+      try {
+        cartoes = app.findRecordsByFilter(
+          'kanban_cartoes',
+          `cliente = "${clienteId}"`,
+          '-created',
+          10,
+          0,
+        )
+      } catch (_) {
+        // sem cartoes para o cliente
+      }
+
       const quebrasEmAberto = quebras.filter((q) => q.getString('status') !== 'Resolvida')
       const temQuebraEmAberto = quebrasEmAberto.length > 0
+
+      // Montar resumo do histórico para alimentar o agente
+      // Mapear último contato registrado (entre atendimentos e follow-ups)
+      const listaContatos = []
+      atendimentos.forEach((a) => {
+        listaContatos.push({
+          tipo: 'Atendimento',
+          data: a.getString('data_atendimento') || a.getString('created')?.split(' ')[0] || '',
+          canal: a.getString('canal') || 'Não informado',
+          responsavel: a.getString('responsavel') || 'Consultor',
+          resumo: a.getString('resumo') || '',
+        })
+      })
+      followUpsAnt.forEach((f) => {
+        listaContatos.push({
+          tipo: 'Follow-up',
+          data: f.getString('data_prevista') || f.getString('created')?.split(' ')[0] || '',
+          canal: f.getString('canal') || 'WhatsApp',
+          responsavel: f.getString('responsavel') || 'Consultor',
+          resumo: `${f.getString('assunto')} - ${f.getString('mensagem_sugerida') || f.getString('resultado_nota') || ''}`,
+        })
+      })
+      listaContatos.sort((x, y) => (y.data || '').localeCompare(x.data || ''))
+      const ultimoContato = listaContatos[0] || null
+      const ultimoContatoTexto = ultimoContato
+        ? `${ultimoContato.tipo} realizado em ${ultimoContato.data} via ${ultimoContato.canal} por ${ultimoContato.responsavel}. Resumo: "${ultimoContato.resumo}"`
+        : 'Nenhum contato anterior registrado.'
 
       // Montar resumo do histórico para alimentar o agente
       const histAtendimentos = atendimentos
@@ -67,7 +107,7 @@ routerAdd(
       const histReclamacoes = reclamacoes
         .map(
           (r) =>
-            `- [Reclamação ${r.getString('status')} / ${r.getString('gravidade')}] Categoria: ${r.getString('categoria')}. Descrição: ${r.getString('descricao')}. ${r.getString('resolucao_desfecho') ? 'Desfecho: ' + r.getString('resolucao_desfecho') : ''}`,
+            `- [Ocorrência ${r.getString('status')} / ${r.getString('gravidade')}] Categoria: ${r.getString('categoria')}. Descrição: ${r.getString('descricao')}. ${r.getString('resolucao_desfecho') ? 'Desfecho: ' + r.getString('resolucao_desfecho') : ''}`,
         )
         .join('\n')
 
@@ -85,6 +125,13 @@ routerAdd(
         )
         .join('\n')
 
+      const histCartoes = cartoes
+        .map(
+          (k) =>
+            `- [Coluna Kanban: ${k.getString('coluna')}] Cartão: ${k.getString('titulo')} (${k.getString('descricao') || ''})`,
+        )
+        .join('\n')
+
       const promptMensagem = `Analise os dados de atendimento deste cliente e gere a recomendação estruturada de próximo follow-up:
 CLIENTE: ${cliente.getString('nome')}
 LOJA: ${cliente.getString('loja_origem')}
@@ -94,6 +141,9 @@ INTERESSE PRINCIPAL: ${cliente.getString('interesse_principal') || 'Não especif
 ARQUITETO/PARCEIRO: ${cliente.getString('arquiteto_parceiro') || 'Nenhum'}
 NOTAS INTERNAS: ${cliente.getString('notas_internas') || 'Nenhuma'}
 
+DESTAQUE - ÚLTIMO CONTATO REGISTRADO:
+${ultimoContatoTexto}
+
 OCORRÊNCIAS DE QUEBRAS / BOEM DO CLIENTE:
 ${histQuebras || 'Nenhuma quebra ou BOEM registrado.'}
 ${temQuebraEmAberto ? `ATENÇÃO PRIORITÁRIA: Este cliente possui ${quebrasEmAberto.length} ocorrência(s) de Quebra/BOEM EM ABERTO! Você DEVE citar o andamento da quebra/reposição na mensagem e atribuir urgência Alta.` : ''}
@@ -101,13 +151,16 @@ ${temQuebraEmAberto ? `ATENÇÃO PRIORITÁRIA: Este cliente possui ${quebrasEmAb
 HISTÓRICO RECENTE DE ATENDIMENTOS:
 ${histAtendimentos || 'Nenhum atendimento anterior registrado.'}
 
-HISTÓRICO DE RECLAMAÇÕES:
-${histReclamacoes || 'Nenhuma reclamação registrada.'}
+HISTÓRICO DE OCORRÊNCIAS REGISTRADAS:
+${histReclamacoes || 'Nenhuma ocorrência registrada.'}
 
 HISTÓRICO DE FOLLOW-UPS ANTERIORES:
 ${histFollowUps || 'Nenhum follow-up anterior registrado.'}
 
-Por favor, forneça o resumo do histórico e formule exatamente o próximo follow-up sugerido (Assunto, Mensagem WhatsApp, Urgência [Alta, Média ou Baixa], Data/Prazo sugerido e Justificativa). ${temQuebraEmAberto ? 'Lembre-se de mencionar a quebra/BOEM em aberto com cuidado e presteza na mensagem sugerida.' : ''}`
+CARTÕES NO QUADRO KANBAN:
+${histCartoes || 'Nenhum cartão cadastrado.'}
+
+Por favor, forneça o resumo do histórico, a situação atual do cliente e formule exatamente o próximo follow-up sugerido (Assunto, Próximos Passos, Mensagem WhatsApp contextualizada com o último contato e histórico, Urgência [Alta, Média ou Baixa], Data/Prazo sugerido e Justificativa). ${temQuebraEmAberto ? 'Lembre-se de mencionar a quebra/BOEM em aberto com presteza na mensagem sugerida.' : ''}`
 
       let respostaTexto = ''
       try {

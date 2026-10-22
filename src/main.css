@@ -20,27 +20,28 @@
     --popover: 0 0% 100%;
     --popover-foreground: 153 20% 14%;
 
-    /* Verde primário floresta #2F6B4F -> hsl(152, 39%, 30%) */
-    --primary: 152 39% 30%;
+    /* Verde primário dessaturado elegante e sóbrio #375344 -> hsl(146, 20%, 27%) */
+    --primary: 146 20% 27%;
     --primary-foreground: 0 0% 100%;
 
-    /* Verde menta suave #EAF2E8 -> hsl(109, 31%, 93%) */
-    --secondary: 109 31% 93%;
-    --secondary-foreground: 152 39% 25%;
+    /* Fundo suave frio e dessaturado #EEF2EE -> hsl(120, 10%, 94%) */
+    --secondary: 120 10% 94%;
+    --secondary-foreground: 146 20% 24%;
 
-    --muted: 105 20% 92%;
-    --muted-foreground: 150 8% 40%;
+    --muted: 120 8% 92%;
+    --muted-foreground: 140 6% 40%;
 
-    /* Acento dourado suave #C9A063 -> hsl(37, 49%, 59%) */
-    --accent: 37 49% 59%;
+    /* Acento suave discreto #B5A898 -> hsl(33, 16%, 65%) */
+    --accent: 33 16% 65%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 4 52% 53%;
+    /* Vermelho reservado para itens realmente preocupantes / críticos #C24136 */
+    --destructive: 5 56% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 110 18% 88%;
-    --input: 110 18% 88%;
-    --ring: 152 39% 30%;
+    --border: 140 10% 86%;
+    --input: 140 10% 86%;
+    --ring: 146 20% 27%;
 
     --radius: 1.5rem;
 

@@ -140,15 +140,15 @@ export default function ClientesPage() {
   const getStatusBadge = (status: StatusCliente) => {
     switch (status) {
       case 'Novo':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-slate-100 text-slate-700 border border-slate-200'
       case 'Em atendimento':
-        return 'bg-amber-100 text-amber-800'
+        return 'bg-blue-50 text-blue-700 border border-blue-200'
       case 'Aguardando cliente':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-stone-100 text-stone-700 border border-stone-200'
       case 'Atendimento concluído':
-        return 'bg-emerald-100 text-emerald-800'
+        return 'bg-slate-100 text-slate-600 border border-slate-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-700 border border-gray-200'
     }
   }
 
@@ -475,7 +475,7 @@ export default function ClientesPage() {
                       href={waLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                      className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
                       title="Abrir WhatsApp"
                     >
                       <MessageSquare className="w-3.5 h-3.5" />

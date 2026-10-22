@@ -95,6 +95,8 @@ export interface FollowUp extends RecordModel {
   gerado_por_ia?: boolean
   urgencia?: UrgenciaFollowUp
   justificativa_ia?: string
+  situacao_atual?: string
+  proximos_passos?: string
   created: string
   updated: string
 }
@@ -116,6 +118,8 @@ export interface FollowUpInput {
   gerado_por_ia?: boolean
   urgencia?: UrgenciaFollowUp
   justificativa_ia?: string
+  situacao_atual?: string
+  proximos_passos?: string
 }
 
 export type ColunaKanban = 'A fazer' | 'Fazendo hoje' | 'Aguardando cliente' | 'Resolvido'

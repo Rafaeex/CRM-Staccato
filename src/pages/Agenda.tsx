@@ -233,14 +233,14 @@ export default function AgendaPage() {
                         </p>
                       </div>
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
                           item.status === 'Concluído'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-slate-100 text-slate-700 border border-slate-200'
                             : item.status === 'Em atendimento'
-                              ? 'bg-blue-100 text-blue-800'
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
                               : item.status === 'Cancelado'
-                                ? 'bg-rose-100 text-rose-800'
-                                : 'bg-amber-100 text-amber-800'
+                                ? 'bg-stone-100 text-stone-600 border border-stone-200'
+                                : 'bg-stone-100 text-stone-700 border border-stone-200'
                         }`}
                       >
                         {item.status}
@@ -326,16 +326,15 @@ export default function AgendaPage() {
                             {fu.loja} • Previsto: {fu.data_prevista} {fu.horario_previsto || ''}
                           </p>
                         </div>
-
                         <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                            fu.status === 'Concluído'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-amber-100 text-amber-800'
+                          className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                            ag.status === 'Concluído'
+                              ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200'
                           }`}
                         >
-                          {fu.status}
-                        </span>
+                          {ag.status}
+                        </span>{' '}
                       </div>
 
                       <p className="text-xs text-[#1D2B25] font-medium leading-snug">
@@ -347,7 +346,7 @@ export default function AgendaPage() {
                           href={waLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-medium shadow-sm transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#3A6652] hover:bg-[#2F5342] text-white text-[11px] font-medium shadow-xs transition-colors"
                         >
                           <MessageSquare className="w-3 h-3" />
                           <span>WhatsApp</span>

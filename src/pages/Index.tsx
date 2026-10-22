@@ -461,7 +461,7 @@ export default function DashboardPage() {
                               href={waLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold flex items-center gap-1"
+                              className="px-2.5 py-1 rounded-full bg-[#3A6652] hover:bg-[#2F5342] text-white text-[11px] font-semibold flex items-center gap-1 shadow-xs"
                             >
                               <MessageSquare className="w-3 h-3" />
                               <span>WhatsApp</span>
@@ -530,7 +530,7 @@ export default function DashboardPage() {
 
             <div className="bg-white rounded-2xl p-5 border border-[#A8C3A0]/30 shadow-sm flex flex-col justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#5E6E64]">
-                Reclamações em Aberto
+                Ocorrências em Aberto
               </span>
               <div className="mt-3">
                 <div className="flex items-baseline gap-2">
@@ -538,7 +538,7 @@ export default function DashboardPage() {
                     {reclamacoesAbertas.length}
                   </p>
                   {reclamacoesVencidas.length > 0 && (
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-stone-100 text-stone-700">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
                       {reclamacoesVencidas.length} fora do prazo
                     </span>
                   )}
@@ -694,18 +694,18 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Reclamações que exigem atenção da Diretoria + Quadro Kanban */}
+          {/* Ocorrências que exigem atenção da Diretoria + Quadro Kanban */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-6 bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-[#EAF2E8]">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-700" />
+                  <AlertTriangle className="w-4 h-4 text-slate-500" />
                   <h2 className="font-semibold text-base sm:text-lg text-[#1D2B25]">
-                    Reclamações Críticas ({reclamacoesAbertas.length})
+                    Ocorrências em Aberto ({reclamacoesAbertas.length})
                   </h2>
                 </div>
                 <Link
-                  to="/reclamacoes"
+                  to="/ocorrencias"
                   className="text-xs font-semibold text-[#2F6B4F] hover:underline flex items-center gap-1"
                 >
                   <span>Ver todas</span>
@@ -715,40 +715,60 @@ export default function DashboardPage() {
 
               {reclamacoesAbertas.length === 0 ? (
                 <p className="text-xs text-[#5E6E64] py-8 text-center">
-                  Nenhuma reclamação em aberto para a seleção atual.
+                  Nenhuma ocorrência em aberto para a seleção atual.
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {reclamacoesAbertas.slice(0, 4).map((rec) => (
-                    <div
-                      key={rec.id}
-                      className="p-3.5 rounded-2xl bg-[#F7FAF5] border border-[#A8C3A0]/30 text-xs space-y-2"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <span className="font-semibold text-sm text-[#1D2B25]">
-                            {rec.cliente_nome}
-                          </span>
-                          <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">
-                            {rec.gravidade}
-                          </span>
-                          <p className="text-[11px] text-[#5E6E64] mt-0.5">
-                            {rec.loja} • Resp: {rec.responsavel} • Prazo: {rec.prazo_resolucao}
-                          </p>
+                  {reclamacoesAbertas.slice(0, 4).map((rec) => {
+                    const isAtrasada = rec.prazo_resolucao < hoje
+                    const isCritica = rec.gravidade === 'Alta' || isAtrasada
+
+                    return (
+                      <div
+                        key={rec.id}
+                        className={`p-3.5 rounded-2xl border text-xs space-y-2 ${
+                          isAtrasada
+                            ? 'bg-rose-50/30 border-rose-200'
+                            : 'bg-[#F7FAF5] border-[#A8C3A0]/30'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="font-semibold text-sm text-[#1D2B25]">
+                              {rec.cliente_nome}
+                            </span>
+                            <span
+                              className={`ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                isCritica
+                                  ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                  : 'bg-slate-100 text-slate-700 border border-slate-200'
+                              }`}
+                            >
+                              {rec.gravidade}
+                            </span>
+                            {isAtrasada && (
+                              <span className="ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-600 text-white animate-pulse">
+                                Atrasada
+                              </span>
+                            )}
+                            <p className="text-[11px] text-[#5E6E64] mt-0.5">
+                              {rec.loja} • Resp: {rec.responsavel} • Prazo: {rec.prazo_resolucao}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleAbrirResolucao(rec)}
+                            className="px-2.5 py-1 rounded-full bg-[#2F6B4F] text-white text-[11px] font-semibold hover:bg-[#25563F]"
+                          >
+                            Resolver
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleAbrirResolucao(rec)}
-                          className="px-2.5 py-1 rounded-full bg-[#2F6B4F] text-white text-[11px] font-semibold"
-                        >
-                          Resolver
-                        </button>
+                        <p className="text-[#1D2B25] bg-white p-2 rounded-xl border border-[#A8C3A0]/20 line-clamp-2">
+                          {rec.descricao}
+                        </p>
                       </div>
-                      <p className="text-[#1D2B25] bg-white p-2 rounded-xl border border-[#A8C3A0]/20 line-clamp-2">
-                        {rec.descricao}
-                      </p>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -801,13 +821,13 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Modal de Resolução de Reclamação */}
+      {/* Modal de Resolução de Ocorrência */}
       <Dialog open={modalResolverAberto} onOpenChange={setModalResolverAberto}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-semibold text-xl text-[#1D2B25] flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              <span>Resolver Reclamação</span>
+              <CheckCircle2 className="w-5 h-5 text-slate-700" />
+              <span>Resolver Ocorrência</span>
             </DialogTitle>
           </DialogHeader>
 

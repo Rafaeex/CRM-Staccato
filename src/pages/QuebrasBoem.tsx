@@ -1203,8 +1203,8 @@ export default function QuebrasBoemPage() {
               <div className="flex items-center justify-between pt-2 border-t border-[#EAF2E8]">
                 {userInfo.isGestor ? (
                   <button
-                    onClick={() => handleExcluir(quebraSelecionada.id)}
-                    className="p-2 rounded-xl text-red-600 hover:bg-red-50 text-xs font-semibold flex items-center gap-1"
+                    onClick={() => handleExcluir(quebraDetalhe.id)}
+                    className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs font-medium flex items-center gap-1 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Excluir</span>
