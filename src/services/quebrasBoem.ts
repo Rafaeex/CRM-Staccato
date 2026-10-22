@@ -35,6 +35,16 @@ export async function buscarQuebraPorId(id: string): Promise<QuebraBoem> {
   return record
 }
 
+export async function buscarQuebraPorTrelloId(trelloId: string): Promise<QuebraBoem | null> {
+  try {
+    return await pb
+      .collection('quebras_boem')
+      .getFirstListItem<QuebraBoem>(`origem_trello_id = "${trelloId}"`)
+  } catch (_) {
+    return null
+  }
+}
+
 export async function criarQuebraBoem(dados: QuebraBoemInput): Promise<QuebraBoem> {
   // Se houver arquivos de anexo, usa FormData para suporte a upload
   if (dados.anexos && dados.anexos.length > 0) {
@@ -45,11 +55,16 @@ export async function criarQuebraBoem(dados: QuebraBoemInput): Promise<QuebraBoe
     formData.append('cliente_nome', dados.cliente_nome)
     formData.append('loja', dados.loja)
     if (dados.produtos_envolvidos) formData.append('produtos_envolvidos', dados.produtos_envolvidos)
+    if (dados.produtos_itens_json) formData.append('produtos_itens_json', dados.produtos_itens_json)
+    if (dados.entrega_entregador) formData.append('entrega_entregador', dados.entrega_entregador)
+    if (dados.entrega_recebedor) formData.append('entrega_recebedor', dados.entrega_recebedor)
+    if (dados.local_ocorrencia) formData.append('local_ocorrencia', dados.local_ocorrencia)
     if (dados.responsabilidade_apurada)
       formData.append('responsabilidade_apurada', dados.responsabilidade_apurada)
     if (dados.acao_adotada) formData.append('acao_adotada', dados.acao_adotada)
     if (dados.resultado_boem) formData.append('resultado_boem', dados.resultado_boem)
     formData.append('status', dados.status)
+    if (dados.lista_quadro) formData.append('lista_quadro', dados.lista_quadro)
     if (dados.responsavel) formData.append('responsavel', dados.responsavel)
     if (dados.data_ocorrencia) formData.append('data_ocorrencia', dados.data_ocorrencia)
     if (dados.data_resolucao) formData.append('data_resolucao', dados.data_resolucao)

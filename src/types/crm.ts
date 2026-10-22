@@ -191,6 +191,25 @@ export type ResultadoBoem =
   | 'Improcedente'
   | 'Acordo Comercial'
 
+export interface ItemProdutoQuebra {
+  id?: string
+  codigo: string
+  descricao: string
+  lote?: string
+  qtd_total?: string
+  qtd_quebrada?: string
+}
+
+export interface TrelloLista extends RecordModel {
+  id: string
+  nome: string
+  tipo_quadro?: string
+  trello_id?: string
+  ordem?: number
+  created: string
+  updated: string
+}
+
 export interface QuebraBoem extends RecordModel {
   id: string
   numero_pedido: string
@@ -199,10 +218,15 @@ export interface QuebraBoem extends RecordModel {
   cliente_nome: string
   loja: string
   produtos_envolvidos?: string
+  produtos_itens_json?: string
+  entrega_entregador?: string
+  entrega_recebedor?: string
+  local_ocorrencia?: string
   responsabilidade_apurada?: ResponsabilidadeQuebra
   acao_adotada?: string
   resultado_boem?: ResultadoBoem
   status: StatusQuebra
+  lista_quadro?: string
   responsavel?: string
   data_ocorrencia?: string
   data_resolucao?: string
@@ -220,10 +244,15 @@ export interface QuebraBoemInput {
   cliente_nome: string
   loja: string
   produtos_envolvidos?: string
+  produtos_itens_json?: string
+  entrega_entregador?: string
+  entrega_recebedor?: string
+  local_ocorrencia?: string
   responsabilidade_apurada?: ResponsabilidadeQuebra
   acao_adotada?: string
   resultado_boem?: ResultadoBoem
   status: StatusQuebra
+  lista_quadro?: string
   responsavel?: string
   data_ocorrencia?: string
   data_resolucao?: string
@@ -232,7 +261,7 @@ export interface QuebraBoemInput {
   anexos?: File[]
 }
 
-// NOVO: Tipos para o pilar de Reclamações
+// Tipos para o pilar de Ocorrências (SAC)
 export type CanalReclamacao = 'Loja' | 'WhatsApp' | 'Telefone' | 'E-mail'
 export type CategoriaReclamacao =
   | 'Produto com defeito'
@@ -246,7 +275,7 @@ export type StatusReclamacao = 'Aberta' | 'Em tratamento' | 'Resolvida'
 
 export interface Reclamacao extends RecordModel {
   id: string
-  cliente: string
+  cliente?: string
   cliente_nome: string
   cliente_telefone?: string
   loja: string
@@ -259,12 +288,24 @@ export interface Reclamacao extends RecordModel {
   status: StatusReclamacao
   resolucao_desfecho?: string
   data_resolucao?: string
+  // Campos espelhados do modelo SAC do Trello:
+  numero_pedido?: string
+  contato_tratar_nome?: string
+  contato_tratar_telefone?: string
+  contato_tratar_email?: string
+  produtos_envolvidos?: string
+  status_produto?: string
+  produto_instalado?: string
+  solicitacao_desejo?: string
+  lista_quadro?: string
+  origem_trello_id?: string
+  anexos?: string[]
   created: string
   updated: string
 }
 
 export interface ReclamacaoInput {
-  cliente: string
+  cliente?: string
   cliente_nome: string
   cliente_telefone?: string
   loja: string
@@ -277,6 +318,17 @@ export interface ReclamacaoInput {
   status: StatusReclamacao
   resolucao_desfecho?: string
   data_resolucao?: string
+  numero_pedido?: string
+  contato_tratar_nome?: string
+  contato_tratar_telefone?: string
+  contato_tratar_email?: string
+  produtos_envolvidos?: string
+  status_produto?: string
+  produto_instalado?: string
+  solicitacao_desejo?: string
+  lista_quadro?: string
+  origem_trello_id?: string
+  anexos?: File[]
 }
 
 export interface LojaCRM extends RecordModel {

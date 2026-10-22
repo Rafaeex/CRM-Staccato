@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22T01:54:26.783Z",
+  "generatedAt": "2026-10-22T17:00:18.362Z",
   "collections": [
     {
       "name": "users",
@@ -668,6 +668,72 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "numero_pedido",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "contato_tratar_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "contato_tratar_telefone",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "contato_tratar_email",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "produtos_envolvidos",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status_produto",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "produto_instalado",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "solicitacao_desejo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "lista_quadro",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "origem_trello_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "anexos",
+          "type": "file",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -675,7 +741,9 @@
         "CREATE INDEX idx_reclamacoes_loja ON reclamacoes (loja)",
         "CREATE INDEX idx_reclamacoes_status ON reclamacoes (status)",
         "CREATE INDEX idx_reclamacoes_gravidade ON reclamacoes (gravidade)",
-        "CREATE INDEX idx_reclamacoes_prazo ON reclamacoes (prazo_resolucao)"
+        "CREATE INDEX idx_reclamacoes_prazo ON reclamacoes (prazo_resolucao)",
+        "CREATE INDEX `idx_reclamacoes_trello_id` ON `reclamacoes` (origem_trello_id)",
+        "CREATE INDEX `idx_reclamacoes_pedido` ON `reclamacoes` (numero_pedido)"
       ]
     },
     {
@@ -923,6 +991,36 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "lista_quadro",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "produtos_itens_json",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "entrega_entregador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "entrega_recebedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "local_ocorrencia",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -930,7 +1028,63 @@
         "CREATE INDEX idx_quebras_cliente ON quebras_boem (cliente)",
         "CREATE INDEX idx_quebras_loja ON quebras_boem (loja)",
         "CREATE INDEX idx_quebras_status ON quebras_boem (status)",
-        "CREATE INDEX idx_quebras_resp ON quebras_boem (responsabilidade_apurada)"
+        "CREATE INDEX idx_quebras_resp ON quebras_boem (responsabilidade_apurada)",
+        "CREATE INDEX `idx_quebras_trello_id` ON `quebras_boem` (origem_trello_id)"
+      ]
+    },
+    {
+      "name": "trello_listas",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "nome",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "tipo_quadro",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "trello_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ordem",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_trello_listas_nome ON trello_listas (nome)",
+        "CREATE INDEX idx_trello_listas_tipo ON trello_listas (tipo_quadro)"
       ]
     }
   ]

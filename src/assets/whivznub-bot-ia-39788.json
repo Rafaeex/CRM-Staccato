@@ -1,0 +1,1239 @@
+{
+  "id": "6acf7be6ec6ff24749eec9ec",
+  "nodeId": "ari:cloud:trello::board/workspace/6acf7ba615e8eba5c8c025d8/6acf7be6ec6ff24749eec9ec",
+  "name": "BOT IA",
+  "desc": "",
+  "descData": null,
+  "closed": false,
+  "creationMethod": null,
+  "creationMethodError": null,
+  "creationMethodLoadingStartedAt": null,
+  "creationMethodLoadingPhase": null,
+  "dateClosed": null,
+  "idOrganization": "6acf7ba615e8eba5c8c025d8",
+  "idEnterprise": null,
+  "limits": {
+    "attachments": {
+      "perBoard": { "status": "ok", "disableAt": 36000, "warnAt": 28800 },
+      "perCard": { "status": "ok", "disableAt": 1000, "warnAt": 800 }
+    },
+    "boards": {
+      "totalMembersPerBoard": { "status": "ok", "disableAt": 1600, "warnAt": 1280 },
+      "totalAccessRequestsPerBoard": { "status": "ok", "disableAt": 4000, "warnAt": 3200 }
+    },
+    "cards": {
+      "openPerBoard": { "status": "ok", "disableAt": 5000, "warnAt": 4000 },
+      "openPerList": { "status": "ok", "disableAt": 5000, "warnAt": 4000 },
+      "totalPerBoard": { "status": "ok", "disableAt": 2000000, "warnAt": 1600000 },
+      "totalPerList": { "status": "ok", "disableAt": 1000000, "warnAt": 800000 }
+    },
+    "checklists": {
+      "perBoard": { "status": "ok", "disableAt": 1800000, "warnAt": 1440000 },
+      "perCard": { "status": "ok", "disableAt": 500, "warnAt": 400 }
+    },
+    "checkItems": { "perChecklist": { "status": "ok", "disableAt": 200, "warnAt": 160 } },
+    "customFields": { "perBoard": { "status": "ok", "disableAt": 50, "warnAt": 40 } },
+    "customFieldOptions": { "perField": { "status": "ok", "disableAt": 50, "warnAt": 40 } },
+    "labels": { "perBoard": { "status": "ok", "disableAt": 1000, "warnAt": 800 } },
+    "lists": {
+      "openPerBoard": { "status": "ok", "disableAt": 500, "warnAt": 400 },
+      "totalPerBoard": { "status": "ok", "disableAt": 3000, "warnAt": 2400 }
+    },
+    "stickers": { "perCard": { "status": "ok", "disableAt": 70, "warnAt": 56 } },
+    "reactions": {
+      "perAction": { "status": "ok", "disableAt": 900, "warnAt": 720 },
+      "uniquePerAction": { "status": "ok", "disableAt": 17, "warnAt": 14 }
+    }
+  },
+  "pinned": false,
+  "starred": false,
+  "url": "https://trello.com/b/wHivZNuB/bot-ia",
+  "prefs": {
+    "permissionLevel": "org",
+    "hideVotes": false,
+    "voting": "disabled",
+    "comments": "members",
+    "invitations": "members",
+    "selfJoin": true,
+    "cardCovers": true,
+    "showCompleteStatus": true,
+    "cardCounts": false,
+    "isTemplate": false,
+    "cardAging": "regular",
+    "calendarFeedEnabled": false,
+    "hiddenPluginBoardButtons": [],
+    "switcherViews": [
+      { "viewType": "Board", "enabled": true },
+      { "viewType": "Table", "enabled": true },
+      { "viewType": "Calendar", "enabled": false },
+      { "viewType": "Dashboard", "enabled": false },
+      { "viewType": "Timeline", "enabled": false },
+      { "viewType": "Map", "enabled": false }
+    ],
+    "autoArchive": null,
+    "background": "6a1f2bc041517329020e0246",
+    "backgroundColor": null,
+    "backgroundDarkColor": null,
+    "backgroundImage": "https://trello-backgrounds.s3.amazonaws.com/SharedBackground/original/69bfcbac18af97d5550825ada7463d88/photo-1779464433199-ca57ba28339b",
+    "backgroundDarkImage": null,
+    "backgroundImageScaled": [
+      {
+        "width": 140,
+        "height": 88,
+        "url": "https://trello-backgrounds.s3.us-east-1.amazonaws.com/SharedBackground/140x88/42ab762274907d21dcab5d3537b295ce/photo-1779464433199-ca57ba28339b.webp"
+      },
+      {
+        "width": 256,
+        "height": 160,
+        "url": "https://trello-backgrounds.s3.us-east-1.amazonaws.com/SharedBackground/256x160/42ab762274907d21dcab5d3537b295ce/photo-1779464433199-ca57ba28339b.webp"
+      },
+      {
+        "width": 480,
+        "height": 300,
+        "url": "https://trello-backgrounds.s3.us-east-1.amazonaws.com/SharedBackground/480x300/42ab762274907d21dcab5d3537b295ce/photo-1779464433199-ca57ba28339b.webp"
+      },
+      {
+        "width": 960,
+        "height": 600,
+        "url": "https://trello-backgrounds.s3.us-east-1.amazonaws.com/SharedBackground/960x600/42ab762274907d21dcab5d3537b295ce/photo-1779464433199-ca57ba28339b.webp"
+      },
+      {
+        "width": 1024,
+        "height": 640,
+        "url": "https://trello-backgrounds.s3.us-east-1.amazonaws.com/SharedBackground/1024x640/42ab762274907d21dcab5d3537b295ce/photo-1779464433199-ca57ba28339b.webp"
+      },
+      {
+        "width": 1280,
+        "height": 800,
+        "url": "https://trello-backgrounds.s3.us-east-1.amazonaws.com/SharedBackground/1280x800/42ab762274907d21dcab5d3537b295ce/photo-1779464433199-ca57ba28339b.webp"
+      },
+      {
+        "width": 1920,
+        "height": 1200,
+        "url": "https://trello-backgrounds.s3.us-east-1.amazonaws.com/SharedBackground/1920x1200/42ab762274907d21dcab5d3537b295ce/photo-1779464433199-ca57ba28339b.webp"
+      },
+      {
+        "width": 2048,
+        "height": 1280,
+        "url": "https://trello-backgrounds.s3.us-east-1.amazonaws.com/SharedBackground/2048x1280/42ab762274907d21dcab5d3537b295ce/photo-1779464433199-ca57ba28339b.webp"
+      },
+      {
+        "width": 2560,
+        "height": 1600,
+        "url": "https://trello-backgrounds.s3.us-east-1.amazonaws.com/SharedBackground/2560x1600/42ab762274907d21dcab5d3537b295ce/photo-1779464433199-ca57ba28339b.webp"
+      }
+    ],
+    "backgroundTile": false,
+    "backgroundBrightness": "dark",
+    "sharedSourceUrl": "https://images.unsplash.com/photo-1779464433199-ca57ba28339b?h=2048&q=90&w=2560&ixid=M3w3MDY2fDB8MXxjb2xsZWN0aW9ufDF8MzE3MDk5fHx8fHwyfHwxNzgwNDE5MjczfA&ixlib=rb-4.1.0",
+    "backgroundBottomColor": "#122634",
+    "backgroundTopColor": "#043395",
+    "canBePublic": true,
+    "canBeEnterprise": true,
+    "canBeOrg": true,
+    "canBePrivate": true,
+    "canInvite": true
+  },
+  "shortLink": "wHivZNuB",
+  "subscribed": false,
+  "labelNames": {
+    "green": "",
+    "yellow": "",
+    "orange": "",
+    "red": "",
+    "purple": "",
+    "blue": "",
+    "sky": "",
+    "lime": "",
+    "pink": "",
+    "black": "",
+    "green_dark": "",
+    "yellow_dark": "",
+    "orange_dark": "",
+    "red_dark": "",
+    "purple_dark": "",
+    "blue_dark": "",
+    "sky_dark": "",
+    "lime_dark": "",
+    "pink_dark": "",
+    "black_dark": "",
+    "green_light": "",
+    "yellow_light": "",
+    "orange_light": "",
+    "red_light": "",
+    "purple_light": "",
+    "blue_light": "",
+    "sky_light": "",
+    "lime_light": "",
+    "pink_light": "",
+    "black_light": ""
+  },
+  "powerUps": [],
+  "dateLastActivity": "2026-10-16T06:50:50.519Z",
+  "dateLastView": "2026-10-21T22:04:32.790Z",
+  "shortUrl": "https://trello.com/b/wHivZNuB",
+  "idTags": [],
+  "datePluginDisable": null,
+  "ixUpdate": "27",
+  "templateGallery": null,
+  "enterpriseOwned": false,
+  "idBoardSource": null,
+  "premiumFeatures": [
+    "additionalBoardBackgrounds",
+    "additionalStickers",
+    "customBoardBackgrounds",
+    "customEmoji",
+    "customStickers",
+    "plugins"
+  ],
+  "idMemberCreator": "651480e5e34b0f036bee214b",
+  "type": null,
+  "actions": [
+    {
+      "id": "6ad1c94ab78616c1a5c28489",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "old": { "name": "EXEMPLO (LOJA-123456)" },
+        "card": {
+          "name": "EXEMPLO (LOJA-123456) - SAC",
+          "id": "6ad1c934a4aed0ca8b9cddf1",
+          "idShort": 3,
+          "shortLink": "3eDjt081"
+        },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" },
+        "list": { "id": "6ad1c86e89d5dfc9e6629175", "name": "EXEMPLOS" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "updateCard",
+      "date": "2026-10-16T06:50:50.532Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6ad1c93c3edcbab3a64b6c94",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "old": { "dueComplete": false },
+        "card": {
+          "dueComplete": true,
+          "dateCompleted": "2026-10-16T06:50:36.043Z",
+          "id": "6ad1c86f89d5dfc9e66291b1",
+          "name": "MODELO COMPLETO - QUEBRAS",
+          "idShort": 1,
+          "shortLink": "UJQt9FOF"
+        },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" },
+        "list": { "id": "6ad1c86e89d5dfc9e6629175", "name": "EXEMPLOS" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "updateCard",
+      "date": "2026-10-16T06:50:36.056Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6ad1c934a4aed0ca8b9cddf8",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "card": {
+          "id": "6ad1c934a4aed0ca8b9cddf1",
+          "name": "EXEMPLO (LOJA-123456)",
+          "idShort": 3,
+          "shortLink": "3eDjt081"
+        },
+        "list": { "id": "6ad1c86e89d5dfc9e6629175", "name": "EXEMPLOS" },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" },
+        "cardSource": {
+          "id": "6ad1c921f09ea938071b3226",
+          "name": "EXEMPLO (LOJA-123456)",
+          "idShort": 405,
+          "shortLink": "P6MNRMBe"
+        }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "copyCard",
+      "date": "2026-10-16T06:50:28.517Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6ad1c8f816e2311c5667a597",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "old": { "name": "MODELO COMPLETO" },
+        "card": {
+          "name": "MODELO COMPLETO - QUEBRAS",
+          "id": "6ad1c86f89d5dfc9e66291b1",
+          "idShort": 1,
+          "shortLink": "UJQt9FOF"
+        },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" },
+        "list": { "id": "6ad1c86e89d5dfc9e6629175", "name": "EXEMPLOS" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "updateCard",
+      "date": "2026-10-16T06:49:28.940Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6ad1c8f225b2e77619f9b565",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "old": { "name": "MODELO OPERACIONAL" },
+        "card": {
+          "name": "MODELO OPERACIONAL - QUEBRAS",
+          "id": "6ad1c86f89d5dfc9e66291af",
+          "idShort": 2,
+          "shortLink": "8d5MuHEp"
+        },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" },
+        "list": { "id": "6ad1c86e89d5dfc9e6629175", "name": "EXEMPLOS" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "updateCard",
+      "date": "2026-10-16T06:49:22.158Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6ad1c87a575f4dd3f97eeb06",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "list": { "id": "6ad1c86e89d5dfc9e6629175", "name": "EXEMPLOS" },
+        "boardSource": { "id": "6597cdf72d28edde23134540" },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" },
+        "member": { "id": "651480e5e34b0f036bee214b", "name": "SAC Staccato" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "moveListToBoard",
+      "date": "2026-10-16T06:47:22.789Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6acf7c1f321884801811d060",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "list": { "name": "ALEXANDRE - DIRETORIA", "id": "6acf7c0c38fbed86dd8ab2a8" },
+        "old": { "name": "ALEXANDRE" },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "updateList",
+      "date": "2026-10-14T12:57:03.229Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6acf7c1a8e3c53dd66c65313",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "list": { "name": "RAFAEL - SAC", "id": "6acf7c08b6e455c7bc50c9cc" },
+        "old": { "name": "RAFAEL" },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "updateList",
+      "date": "2026-10-14T12:56:58.393Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6acf7c0c38fbed86dd8ab2ae",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "list": { "id": "6acf7c0c38fbed86dd8ab2a8", "name": "ALEXANDRE" },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "createList",
+      "date": "2026-10-14T12:56:44.080Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6acf7c08b6e455c7bc50c9d5",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "list": { "id": "6acf7c08b6e455c7bc50c9cc", "name": "RAFAEL" },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "createList",
+      "date": "2026-10-14T12:56:40.863Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6acf7be6ec6ff24749eeca00",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" },
+        "organization": { "id": "6acf7ba615e8eba5c8c025d8", "name": "BOT IA" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "addToOrganizationBoard",
+      "date": "2026-10-14T12:56:06.798Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6acf7be6ec6ff24749eec9fe",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "creationMethod": null,
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "createBoard",
+      "date": "2026-10-14T12:56:06.791Z",
+      "limits": null,
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6ad1c86f89d5dfc9e66291e2",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "cardSource": {
+          "id": "69b75e5b4882b0c02c83f5a9",
+          "idShort": 35,
+          "name": "MODELO COMPLETO"
+        },
+        "idOriginalCommenter": "651480e5e34b0f036bee214b",
+        "text": "ESTE É A VERSÃO COMPLETA, COM EXPLICAÇÃO, A VERSÃO PARA USO É NO OUTRO CARD “MODELO OPERACIONAL”",
+        "card": {
+          "id": "6ad1c86f89d5dfc9e66291b1",
+          "name": "MODELO COMPLETO",
+          "idShort": 235,
+          "shortLink": "UJQt9FOF"
+        },
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" }
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "copyCommentCard",
+      "date": "2026-03-17T04:08:50.138Z",
+      "limits": null,
+      "member": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      },
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6ad1c934a4aed0ca8b9cde1b",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" },
+        "card": {
+          "id": "6ad1c934a4aed0ca8b9cddf1",
+          "idShort": 3,
+          "name": "EXEMPLO (LOJA-123456)",
+          "shortLink": "3eDjt081"
+        },
+        "cardSource": {
+          "id": "6ad1c921f09ea938071b3226",
+          "idShort": 405,
+          "name": "EXEMPLO (LOJA-123456)"
+        },
+        "idOriginalCommenter": "651480e5e34b0f036bee214b",
+        "text": "Perfeito Rafael estou repassando para toda a equipe"
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "copyCommentCard",
+      "date": "2026-03-10T14:00:40.267Z",
+      "limits": null,
+      "member": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      },
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    },
+    {
+      "id": "6ad1c934a4aed0ca8b9cde1d",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "data": {
+        "board": { "id": "6acf7be6ec6ff24749eec9ec", "name": "BOT IA", "shortLink": "wHivZNuB" },
+        "card": {
+          "id": "6ad1c934a4aed0ca8b9cddf1",
+          "idShort": 3,
+          "name": "EXEMPLO (LOJA-123456)",
+          "shortLink": "3eDjt081"
+        },
+        "cardSource": {
+          "id": "6ad1c921f09ea938071b3226",
+          "idShort": 405,
+          "name": "EXEMPLO (LOJA-123456)"
+        },
+        "idOriginalCommenter": "651480e5e34b0f036bee214b",
+        "text": "FAVOR SEGUIR ESTE EXEMPLO PARA INSERÇÃO DE NOVOS TRELLOS, GRATO!"
+      },
+      "agenticIdentity": null,
+      "appCreator": null,
+      "type": "copyCommentCard",
+      "date": "2026-03-09T17:59:44.148Z",
+      "limits": null,
+      "member": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      },
+      "memberCreator": {
+        "id": "651480e5e34b0f036bee214b",
+        "activityBlocked": false,
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "fullName": "SAC Staccato",
+        "idMemberReferrer": null,
+        "initials": "SS",
+        "nonPublic": {
+          "fullName": "SAC Staccato",
+          "initials": "SS",
+          "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+          "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+        },
+        "nonPublicAvailable": true,
+        "username": "sacstaccato"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "6ad1c86f89d5dfc9e66291b1",
+      "address": null,
+      "agent": null,
+      "aiMetadata": null,
+      "badges": {
+        "attachments": 0,
+        "fogbugz": "",
+        "checkItems": 0,
+        "checkItemsChecked": 0,
+        "checkItemsEarliestDue": null,
+        "comments": 1,
+        "description": true,
+        "due": null,
+        "dueComplete": true,
+        "lastUpdatedByAi": false,
+        "start": null,
+        "externalSource": null,
+        "attachmentsByType": { "trello": { "board": 0, "card": 0 } },
+        "location": false,
+        "votes": 0,
+        "maliciousAttachments": 0,
+        "viewingMemberVoted": false,
+        "subscribed": false
+      },
+      "checkItemStates": [],
+      "closed": false,
+      "coordinates": null,
+      "creationMethod": null,
+      "creationMethodError": null,
+      "creationMethodLoadingStartedAt": null,
+      "dueComplete": true,
+      "dateClosed": null,
+      "dateLastActivity": "2026-10-16T06:50:36.045Z",
+      "dateCompleted": "2026-10-16T06:50:36.043Z",
+      "dateViewedByCreator": null,
+      "desc": "_**FORMULÁRIO PADRÃO PARA ABERTURA DE TRELLO / QUEBRAS**_\n\n_1 – TÍTULO DO CARD:_\n\n- Utilizar somente o número do pedido como título do card, no formato:\n\nLOJA-123456\n\n---\n\n_2 – DESCRIÇÃO DO CARD:_\n\n- Utilizar o modelo abaixo, preenchendo com os dados reais do pedido.\n\nMODELO:\n\n**PEDIDO:** LOJA-0123456\n\n**CLIENTE:** Nome exatamente igual ao que consta no sistema\n\n**NF DE SAÍDA:** Número da NF que geramos para o cliente\n\n**DATA DA OCORREÊNCIA:** Data da identificação da ocorrência\n\n**PRODUTOS ENVOLVIDOS**\n\nCódigo: CÓDIGO DO PRODUTO IGUAL AO SISTEMA\n\nDescrição: DESCRIÇÃO DO PRODUTO IGUAL AO SISTEMA\n\nLote: CASO HAJA E SE FAZ NECESSÁRIO REPOSIÇÃO NO MESMO LOTE\n\nQuantidade total do item no pedido: TUDO QUE HÁ DESSE PRODUTO NO PEDIDO\n\nQuantidade quebrada: APENAS O QUE FOI QUEBRADO NESTA OCORRÊNCIA\n\n‌\n\n**INFORMAÇÕES DA ENTREGA**\n\nQuem entregou: NOME E/OU CPF/RG\nQuem recebeu: NOME E/OU CPF/RG\n\n‌\n\n**LOCAL DA OCORRÊNCIA**\n\nMarcar apenas uma opção:\n\n( ) Produto já chegou avariado do fornecedor\n\n( ) Movimentação no CD\n\n( ) Identificado na entrega\n\n( ) Identificado posterior a entrega\n\n**(preencher após análise)**\n\n‌\n\n**RESPONSABILIDADE APURADA**\n\nMarcar apenas uma opção:\n\n( ) Quebra no CD Staccato\n\n( ) Quebra no transporte Staccato\n\n( ) Quebra no transporte terceirizado\n\n( ) Defeito de fabricação / fornecedor\n\n‌\n\n( ) Cliente / obra\n\n( ) Não foi possível determinar\n\n‌\n\n**AÇÃO ADOTADA**\n\n( ) Reposição de material\n\n( ) Crédito cliente gerado\n\n( ) Outro:\n\n**RESULTADO DO BOEM:**\n\n( ) Aprovado\n\n( ) Reprovado\n\n( ) Não enviado\n\n**ANEXOS**\n\nÉ obrigatório anexar evidências da ocorrência para análise do chamado.\n\n- Foto da etiqueta de identificação da caixa\n- Foto do lote do produto (quando houver)\n\nMínimo de 2 fotos da avaria:\n\n- 1 foto aproximada\n- 1 foto mais distante mostrando o contexto da caixa ou palete\n\n‌\n\nTambém é necessário anexar a NOTA FISCAL emita ao consumidor.\n\n‌\n\nSem fotos da identificação da caixa e da avaria a ocorrência não será analisada.\n\n‌\n\n**OBSERVAÇÕES:**\n\nO controle financeiro das quebras, valores de ressarcimento e resultado financeiro dos BOEM, é realizado separadamente em planilha de controle no Excel (BOEMS), mantida pelo setor administrativo no seguinte endereço de rede:\nY:\\GERAL - COMPRAS",
+      "descData": { "emoji": {} },
+      "due": null,
+      "dueReminder": null,
+      "email": "sacstaccato+316nohe6ilqfmvzsa4r+37dublr3iq13fh5b0s1+1aqflts7pm@boards.trello.com",
+      "externalSource": null,
+      "faviconUrl": null,
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "idChecklists": [],
+      "idLabels": [],
+      "idList": "6ad1c86e89d5dfc9e6629175",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "idMembers": [],
+      "idMembersVoted": [],
+      "idOrganization": "6acf7ba615e8eba5c8c025d8",
+      "idShort": 1,
+      "idAttachmentCover": null,
+      "labels": [],
+      "limits": {
+        "attachments": { "perCard": { "status": "ok", "disableAt": 1000, "warnAt": 800 } },
+        "checklists": { "perCard": { "status": "ok", "disableAt": 500, "warnAt": 400 } },
+        "stickers": { "perCard": { "status": "ok", "disableAt": 70, "warnAt": 56 } }
+      },
+      "lastSummaryChangeEventAt": null,
+      "locationName": null,
+      "manifest": null,
+      "manualCoverAttachment": true,
+      "name": "MODELO COMPLETO - QUEBRAS",
+      "nodeId": "ari:cloud:trello::card/workspace/6acf7ba615e8eba5c8c025d8/6ad1c86f89d5dfc9e66291b1",
+      "originalDesc": "",
+      "originalName": "",
+      "pinned": false,
+      "pos": 140737488355328,
+      "recurrenceRule": null,
+      "shortLink": "UJQt9FOF",
+      "shortUrl": "https://trello.com/c/UJQt9FOF",
+      "singleInstrumentationId": null,
+      "sourceEmail": null,
+      "staticMapUrl": null,
+      "start": null,
+      "subscribed": false,
+      "url": "https://trello.com/c/UJQt9FOF/1-modelo-completo-quebras",
+      "urlSource": null,
+      "urlSourceText": null,
+      "cover": {
+        "idAttachment": null,
+        "color": "green",
+        "idUploadedBackground": null,
+        "size": "normal",
+        "brightness": "light",
+        "yPosition": 0.5,
+        "idPlugin": null
+      },
+      "isTemplate": false,
+      "cardRole": null,
+      "mirrorSourceId": null,
+      "mirrorSourceNodeId": null,
+      "attachments": [],
+      "pluginData": [],
+      "customFieldItems": []
+    },
+    {
+      "id": "6ad1c86f89d5dfc9e66291af",
+      "address": null,
+      "agent": null,
+      "aiMetadata": null,
+      "badges": {
+        "attachments": 0,
+        "fogbugz": "",
+        "checkItems": 0,
+        "checkItemsChecked": 0,
+        "checkItemsEarliestDue": null,
+        "comments": 0,
+        "description": true,
+        "due": null,
+        "dueComplete": true,
+        "lastUpdatedByAi": false,
+        "start": null,
+        "externalSource": null,
+        "attachmentsByType": { "trello": { "board": 0, "card": 0 } },
+        "location": false,
+        "votes": 0,
+        "maliciousAttachments": 0,
+        "viewingMemberVoted": false,
+        "subscribed": false
+      },
+      "checkItemStates": [],
+      "closed": false,
+      "coordinates": null,
+      "creationMethod": null,
+      "creationMethodError": null,
+      "creationMethodLoadingStartedAt": null,
+      "dueComplete": true,
+      "dateClosed": null,
+      "dateLastActivity": "2026-10-16T06:49:22.148Z",
+      "dateCompleted": null,
+      "dateViewedByCreator": null,
+      "desc": "**PEDIDO:** XXX\n\n**CLIENTE:** XXX\n\n**NF DE SAÍDA:** XXX\n\n**DATA DA OCORREÊNCIA:** XXX\n\n‌\n\n**PRODUTOS ENVOLVIDOS**\n\nCódigo: XXX\n\nDescrição: XXX\n\nLote: XXX\n\nQuantidade total do item no pedido: XXX\n\nQuantidade quebrada: XXX\n\n‌\n\n**INFORMAÇÕES DA ENTREGA**\n\nQuem entregou: XXX\nQuem recebeu: XXX\n\n‌\n\n**LOCAL DA OCORRÊNCIA**\n\nMarcar apenas uma opção:\n\n( ) Produto já chegou avariado do fornecedor\n\n( ) Movimentação no CD\n\n( ) Identificado na entrega\n\n( ) Identificado posterior a entrega\n\n‌\n\n**(preencher após análise)**\n\n‌\n\n**RESPONSABILIDADE APURADA**\n\nMarcar apenas uma opção:\n\n( ) Quebra no CD Staccato\n\n( ) Quebra no transporte Staccato\n\n( ) Quebra no transporte terceirizado\n\n( ) Defeito de fabricação / fornecedor\n\n( ) Cliente / obra\n\n( ) Não foi possível determinar\n\n‌\n\n**AÇÃO ADOTADA**\n\n( ) Reposição de material\n\n( ) Crédito cliente gerado\n\n( ) Outro:\n\n‌\n\n**RESULTADO DO BOEM:**\n\n( ) Aprovado\n\n( ) Reprovado\n\n( ) Não enviado\n\n‌\n\n**ANEXOS**\n\nÉ obrigatório anexar evidências da ocorrência para análise do chamado.\n\n- Foto da etiqueta de identificação da caixa\n- Foto do lote do produto (quando houver)\n\nMínimo de 2 fotos da avaria:\n\n- 1 foto aproximada\n- 1 foto mais distante mostrando o contexto da caixa ou palete\n\n‌\n\nTambém é necessário anexar a NOTA FISCAL emita ao consumidor.",
+      "descData": { "emoji": {} },
+      "due": null,
+      "dueReminder": null,
+      "email": "sacstaccato+316nohe6ilqfmvzsa4r+37dublr3iq13fh5b0rz+0kzgvvlgyz@boards.trello.com",
+      "externalSource": null,
+      "faviconUrl": null,
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "idChecklists": [],
+      "idLabels": [],
+      "idList": "6ad1c86e89d5dfc9e6629175",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "idMembers": [],
+      "idMembersVoted": [],
+      "idOrganization": "6acf7ba615e8eba5c8c025d8",
+      "idShort": 2,
+      "idAttachmentCover": null,
+      "labels": [],
+      "limits": {
+        "attachments": { "perCard": { "status": "ok", "disableAt": 1000, "warnAt": 800 } },
+        "checklists": { "perCard": { "status": "ok", "disableAt": 500, "warnAt": 400 } },
+        "stickers": { "perCard": { "status": "ok", "disableAt": 70, "warnAt": 56 } }
+      },
+      "lastSummaryChangeEventAt": null,
+      "locationName": null,
+      "manifest": null,
+      "manualCoverAttachment": true,
+      "name": "MODELO OPERACIONAL - QUEBRAS",
+      "nodeId": "ari:cloud:trello::card/workspace/6acf7ba615e8eba5c8c025d8/6ad1c86f89d5dfc9e66291af",
+      "originalDesc": "",
+      "originalName": "",
+      "pinned": false,
+      "pos": 140737488371712,
+      "recurrenceRule": null,
+      "shortLink": "8d5MuHEp",
+      "shortUrl": "https://trello.com/c/8d5MuHEp",
+      "singleInstrumentationId": null,
+      "sourceEmail": null,
+      "staticMapUrl": null,
+      "start": null,
+      "subscribed": false,
+      "url": "https://trello.com/c/8d5MuHEp/2-modelo-operacional-quebras",
+      "urlSource": null,
+      "urlSourceText": null,
+      "cover": {
+        "idAttachment": null,
+        "color": "blue",
+        "idUploadedBackground": null,
+        "size": "normal",
+        "brightness": "light",
+        "yPosition": 0.5,
+        "idPlugin": null
+      },
+      "isTemplate": false,
+      "cardRole": null,
+      "mirrorSourceId": null,
+      "mirrorSourceNodeId": null,
+      "attachments": [],
+      "pluginData": [],
+      "customFieldItems": []
+    },
+    {
+      "id": "6ad1c934a4aed0ca8b9cddf1",
+      "address": null,
+      "agent": null,
+      "aiMetadata": null,
+      "badges": {
+        "attachments": 1,
+        "fogbugz": "",
+        "checkItems": 0,
+        "checkItemsChecked": 0,
+        "checkItemsEarliestDue": null,
+        "comments": 2,
+        "description": true,
+        "due": null,
+        "dueComplete": true,
+        "lastUpdatedByAi": false,
+        "start": null,
+        "externalSource": null,
+        "attachmentsByType": { "trello": { "board": 0, "card": 0 } },
+        "location": false,
+        "votes": 0,
+        "maliciousAttachments": 0,
+        "viewingMemberVoted": false,
+        "subscribed": false
+      },
+      "checkItemStates": [],
+      "closed": false,
+      "coordinates": null,
+      "creationMethod": null,
+      "creationMethodError": null,
+      "creationMethodLoadingStartedAt": null,
+      "dueComplete": true,
+      "dateClosed": null,
+      "dateLastActivity": "2026-10-16T06:50:50.519Z",
+      "dateCompleted": null,
+      "dateViewedByCreator": null,
+      "desc": "_FORMULÁRIO PADRÃO PARA ABERTURA DE TRELLO/SAC_\n\n_**1 – TÍTULO DO CARD**_\n\n_**Utilizar somente o número do pedido como título do card, no formato:**_\n\n_**LOJA-123456**_\n\n---\n\n_**2 – DESCRIÇÃO DO CARD**_\n\n_**Utilizar o modelo abaixo, preenchendo com os dados reais do pedido. Modelo:**_\n\n_**PEDIDO: LOJA-0123456**_\n_**CLIENTE: (NOME EXATAMENTE IGUAL AO QUE CONSTA NO SISTEMA)**_\n\n_**COM QUEM TRATAR O SAC**_\n\n_**Nome: (ARQUITETO / CLIENTE / RESPONSÁVEL)**_\n_**Telefone: (XX) XXXXX-XXXX**_\n_E-mail: _[_**staccato@staccato.com.br**_](mailto:staccato@staccato.com.br \"‌\")\n\n_**DESCRIÇÃO DA OCORRÊNCIA**_\n\n_**Descrever de forma objetiva o ocorrido, incluindo:**_\n\n- _**Contexto da venda**_\n- _**O que aconteceu na entrega ou instalação**_\n- _**Manifestação do cliente/arquiteto**_\n- _**Qualquer ação que já tenha sido tomada**_\n- _**Todas as informações necessárias para compreensão da situação**_\n\n_**PRODUTOS ENVOLVIDOS**_\n\n_**Código: CÓDIGO DO PRODUTO IGUAL AO SISTEMA**_\n_**Descrição: DESCRIÇÃO DO PRODUTO IGUAL AO SISTEMA**_\n\n_**STATUS DO PRODUTO**_\n\n_**( ) Material ainda na obra / em posse do cliente**_\n_**( ) Material com a transportadora / em transporte**_\n_**( ) Material no CD Staccato**_\n_**( ) Material na loja**_\n_**( ) Outro:**_\n\n_**PRODUTO JÁ INSTALADO**_\n\n_**( ) SIM**_\n_**( ) NÃO**_\n\n_**SOLICITAÇÃO / DESEJO**_\n\n_**Indicar a solução desejada pelo cliente, por exemplo:**_\n\n- _**Substituição do produto**_\n- _**Crédito para realização de novo pedido**_\n- _**Reembolso financeiro**_\n- _**Assistência técnica**_\n- _**Personalizar**_\n\n_**ANEXOS**_\n\n_**É obrigatório anexar fotos e/ou vídeos comprobatórios da ocorrência para análise do chamado.**_",
+      "descData": { "emoji": {} },
+      "due": null,
+      "dueReminder": null,
+      "email": "sacstaccato+316nohe6ilqfmvzsa4r+37duc72fpm4joy2g9gx+11uus80bzp@boards.trello.com",
+      "externalSource": null,
+      "faviconUrl": null,
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "idChecklists": [],
+      "idLabels": [],
+      "idList": "6ad1c86e89d5dfc9e6629175",
+      "idMemberCreator": "651480e5e34b0f036bee214b",
+      "idMembers": [],
+      "idMembersVoted": [],
+      "idOrganization": "6acf7ba615e8eba5c8c025d8",
+      "idShort": 3,
+      "idAttachmentCover": null,
+      "labels": [],
+      "limits": {
+        "attachments": { "perCard": { "status": "ok", "disableAt": 1000, "warnAt": 800 } },
+        "checklists": { "perCard": { "status": "ok", "disableAt": 500, "warnAt": 400 } },
+        "stickers": { "perCard": { "status": "ok", "disableAt": 70, "warnAt": 56 } }
+      },
+      "lastSummaryChangeEventAt": null,
+      "locationName": null,
+      "manifest": null,
+      "manualCoverAttachment": true,
+      "name": "EXEMPLO (LOJA-123456) - SAC",
+      "nodeId": "ari:cloud:trello::card/workspace/6acf7ba615e8eba5c8c025d8/6ad1c934a4aed0ca8b9cddf1",
+      "originalDesc": "",
+      "originalName": "",
+      "pinned": false,
+      "pos": 140737488388096,
+      "recurrenceRule": null,
+      "shortLink": "3eDjt081",
+      "shortUrl": "https://trello.com/c/3eDjt081",
+      "singleInstrumentationId": null,
+      "sourceEmail": null,
+      "staticMapUrl": null,
+      "start": null,
+      "subscribed": false,
+      "url": "https://trello.com/c/3eDjt081/3-exemplo-loja-123456-sac",
+      "urlSource": null,
+      "urlSourceText": null,
+      "cover": {
+        "idAttachment": null,
+        "color": "blue",
+        "idUploadedBackground": null,
+        "size": "normal",
+        "brightness": "light",
+        "yPosition": 0.5,
+        "idPlugin": null
+      },
+      "isTemplate": false,
+      "cardRole": null,
+      "mirrorSourceId": null,
+      "mirrorSourceNodeId": null,
+      "attachments": [
+        {
+          "id": "6ad1c934a4aed0ca8b9cddfe",
+          "aiSummary": null,
+          "bytes": 24025,
+          "date": "2026-03-10T02:08:14.060Z",
+          "edgeColor": null,
+          "idMember": "651480e5e34b0f036bee214b",
+          "isMalicious": false,
+          "isUpload": true,
+          "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "name": "EXEMPLO TRELLO.docx",
+          "previews": [],
+          "sourceView": {},
+          "url": "https://trello.com/1/cards/6ad1c934a4aed0ca8b9cddf1/attachments/6ad1c934a4aed0ca8b9cddfe/download/EXEMPLO_TRELLO.docx",
+          "pos": 140737488355328,
+          "fileName": "EXEMPLO_TRELLO.docx"
+        }
+      ],
+      "pluginData": [],
+      "customFieldItems": []
+    }
+  ],
+  "checklists": [],
+  "customFields": [],
+  "labels": [
+    {
+      "id": "6acf7be6ec6ff24749eec9f7",
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "name": "",
+      "color": "blue",
+      "uses": 0
+    },
+    {
+      "id": "6acf7be6ec6ff24749eec9f2",
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "name": "",
+      "color": "green",
+      "uses": 0
+    },
+    {
+      "id": "6acf7be6ec6ff24749eec9f4",
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "name": "",
+      "color": "orange",
+      "uses": 0
+    },
+    {
+      "id": "6acf7be6ec6ff24749eec9f6",
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "name": "",
+      "color": "purple",
+      "uses": 0
+    },
+    {
+      "id": "6acf7be6ec6ff24749eec9f5",
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "name": "",
+      "color": "red",
+      "uses": 0
+    },
+    {
+      "id": "6acf7be6ec6ff24749eec9f3",
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "name": "",
+      "color": "yellow",
+      "uses": 0
+    }
+  ],
+  "lists": [
+    {
+      "id": "6ad1c86e89d5dfc9e6629175",
+      "name": "EXEMPLOS",
+      "closed": false,
+      "color": null,
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "pos": 384,
+      "subscribed": false,
+      "softLimit": null,
+      "type": null,
+      "datasource": { "filter": false },
+      "creationMethod": null,
+      "idOrganization": "6acf7ba615e8eba5c8c025d8",
+      "limits": {
+        "cards": {
+          "openPerList": { "status": "ok", "disableAt": 5000, "warnAt": 4000 },
+          "totalPerList": { "status": "ok", "disableAt": 1000000, "warnAt": 800000 }
+        }
+      },
+      "nodeId": "ari:cloud:trello::list/workspace/6acf7ba615e8eba5c8c025d8/6ad1c86e89d5dfc9e6629175"
+    },
+    {
+      "id": "6acf7c08b6e455c7bc50c9cc",
+      "name": "RAFAEL - SAC",
+      "closed": false,
+      "color": null,
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "pos": 16384,
+      "subscribed": false,
+      "softLimit": null,
+      "type": null,
+      "datasource": { "filter": false },
+      "creationMethod": null,
+      "idOrganization": "6acf7ba615e8eba5c8c025d8",
+      "limits": {
+        "cards": {
+          "openPerList": { "status": "ok", "disableAt": 5000, "warnAt": 4000 },
+          "totalPerList": { "status": "ok", "disableAt": 1000000, "warnAt": 800000 }
+        }
+      },
+      "nodeId": "ari:cloud:trello::list/workspace/6acf7ba615e8eba5c8c025d8/6acf7c08b6e455c7bc50c9cc"
+    },
+    {
+      "id": "6acf7c0c38fbed86dd8ab2a8",
+      "name": "ALEXANDRE - DIRETORIA",
+      "closed": false,
+      "color": null,
+      "idBoard": "6acf7be6ec6ff24749eec9ec",
+      "pos": 32768,
+      "subscribed": false,
+      "softLimit": null,
+      "type": null,
+      "datasource": { "filter": false },
+      "creationMethod": null,
+      "idOrganization": "6acf7ba615e8eba5c8c025d8",
+      "limits": {
+        "cards": {
+          "openPerList": { "status": "ok", "disableAt": 5000, "warnAt": 4000 },
+          "totalPerList": { "status": "ok", "disableAt": 1000000, "warnAt": 800000 }
+        }
+      },
+      "nodeId": "ari:cloud:trello::list/workspace/6acf7ba615e8eba5c8c025d8/6acf7c0c38fbed86dd8ab2a8"
+    }
+  ],
+  "members": [
+    {
+      "id": "651480e5e34b0f036bee214b",
+      "aaId": "712020:d8aa5ca6-a5a9-4300-b67f-c9782648ea6e",
+      "activityBlocked": false,
+      "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba",
+      "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+      "bio": "",
+      "bioData": { "emoji": {} },
+      "confirmed": true,
+      "fullName": "SAC Staccato",
+      "idEnterprise": null,
+      "idEnterprisesDeactivated": [],
+      "idMemberReferrer": null,
+      "idPremOrgsAdmin": [],
+      "initials": "SS",
+      "memberType": "normal",
+      "nonPublic": {
+        "fullName": "SAC Staccato",
+        "initials": "SS",
+        "avatarUrl": "https://trello-members.s3.amazonaws.com/651480e5e34b0f036bee214b/11f35f5e28448eba187bbd0e8f7cd3ba",
+        "avatarHash": "11f35f5e28448eba187bbd0e8f7cd3ba"
+      },
+      "nonPublicAvailable": true,
+      "products": [],
+      "url": "https://trello.com/u/sacstaccato",
+      "username": "sacstaccato",
+      "dateLastImpression": "2026-10-21T22:03:04.827Z",
+      "status": "disconnected"
+    }
+  ],
+  "memberships": [
+    {
+      "id": "6acf7be6ec6ff24749eec9f0",
+      "idMember": "651480e5e34b0f036bee214b",
+      "memberType": "admin",
+      "unconfirmed": false,
+      "deactivated": false
+    }
+  ],
+  "pluginData": []
+}
