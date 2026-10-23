@@ -15,7 +15,6 @@ import {
   Kanban,
   CheckSquare,
   ArrowRight,
-  UserCheck,
   SlidersHorizontal,
   FileSpreadsheet,
 } from 'lucide-react'
@@ -41,8 +40,15 @@ export default function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const lojaParam = searchParams.get('loja')
 
+  // Determina se o usuário pode escolher qualquer loja ou se fica restrito à sua própria loja
+  const podeEscolherTodasLojas =
+    userInfo.isGestor ||
+    userInfo.isSac ||
+    userInfo.isDiretoria ||
+    (!userInfo.isAtendente && !userInfo.loja)
+
   const [lojaFiltro, setLojaFiltro] = useState<string>(() => {
-    if (userInfo.isAtendente && userInfo.loja) {
+    if (!podeEscolherTodasLojas && userInfo.loja) {
       return userInfo.loja
     }
     if (lojaParam) {
@@ -51,9 +57,9 @@ export default function DashboardPage() {
     return 'Todas as Lojas'
   })
 
-  // Sincroniza se a query param mudar na URL (ex: clique na sidebar)
+  // Sincroniza se a query param mudar na URL (ex: clique na barra superior / navegação)
   useEffect(() => {
-    if (userInfo.isAtendente && userInfo.loja) {
+    if (!podeEscolherTodasLojas && userInfo.loja) {
       setLojaFiltro(userInfo.loja)
       return
     }
@@ -62,7 +68,7 @@ export default function DashboardPage() {
     } else {
       setLojaFiltro('Todas as Lojas')
     }
-  }, [lojaParam, userInfo.isAtendente, userInfo.loja])
+  }, [lojaParam, podeEscolherTodasLojas, userInfo.loja])
 
   const [atendimentos, setAtendimentos] = useState<Atendimento[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -111,9 +117,6 @@ export default function DashboardPage() {
 
   // Filtragem unificada por loja e por papel
   const filtraPorLoja = (itemLoja: string) => {
-    if (userInfo.isAtendente && userInfo.loja) {
-      return mesmaLoja(itemLoja, userInfo.loja)
-    }
     if (lojaFiltro === 'Todas as Lojas') return true
     return mesmaLoja(itemLoja, lojaFiltro)
   }
@@ -234,55 +237,69 @@ export default function DashboardPage() {
           </h1>
         </div>
 
-        {/* Seletor de Loja (exibido apenas para o Gestor) */}
-        {userInfo.isGestor ? (
-          <div className="flex items-center gap-2 bg-[#F7FAF5] border border-[#A8C3A0]/50 rounded-2xl p-1.5 self-stretch md:self-auto">
-            <Building2 className="w-4 h-4 text-[#2F6B4F] ml-2 shrink-0" />
-            <select
-              value={lojaFiltro}
-              onChange={(e) => {
-                const val = e.target.value
-                setLojaFiltro(val)
-                if (val === 'Todas as Lojas') {
-                  const next = new URLSearchParams(searchParams)
-                  next.delete('loja')
-                  setSearchParams(next)
-                } else {
-                  setSearchParams({ loja: val })
-                }
-              }}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-[#1D2B25] focus:outline-none cursor-pointer pr-3 py-1"
-            >
-              <option value="Todas as Lojas">Todas as 7 Lojas</option>
-              {LOJAS.map((l) => (
-                <option key={l.id} value={l.nome}>
-                  {l.nome}
-                </option>
-              ))}
-            </select>
+        {/* Seletor de Loja no cabeçalho do Dashboard */}
+        <div className="flex items-center gap-2 bg-[#F7FAF5] border border-[#A8C3A0]/50 rounded-2xl p-1.5 self-stretch md:self-auto">
+          <Building2 className="w-4 h-4 text-[#2F6B4F] ml-2 shrink-0" />
+          <select
+            value={lojaFiltro}
+            onChange={(e) => {
+              const val = e.target.value
+              setLojaFiltro(val)
+              if (val === 'Todas as Lojas') {
+                const next = new URLSearchParams(searchParams)
+                next.delete('loja')
+                setSearchParams(next)
+              } else {
+                setSearchParams({ loja: val })
+              }
+            }}
+            disabled={!podeEscolherTodasLojas && Boolean(userInfo.loja)}
+            className="bg-transparent text-xs sm:text-sm font-semibold text-[#1D2B25] focus:outline-none cursor-pointer pr-3 py-1 disabled:cursor-default"
+          >
+            {podeEscolherTodasLojas ? (
+              <>
+                <option value="Todas as Lojas">Todas as lojas</option>
+                {LOJAS.map((l) => (
+                  <option key={l.id} value={l.nome}>
+                    {l.nome}
+                  </option>
+                ))}
+              </>
+            ) : userInfo.loja ? (
+              <option value={userInfo.loja}>{userInfo.loja}</option>
+            ) : (
+              <>
+                <option value="Todas as Lojas">Todas as lojas</option>
+                {LOJAS.map((l) => (
+                  <option key={l.id} value={l.nome}>
+                    {l.nome}
+                  </option>
+                ))}
+              </>
+            )}
+          </select>
 
-            <button
-              onClick={() => setModalSlaAberto(true)}
-              title="Configurar SLAs por Gravidade"
-              className="p-1.5 rounded-xl hover:bg-[#EAF2E8] text-[#2F6B4F] transition-colors"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-            </button>
+          {/* Atalhos para configuração de SLA e relatório mensal (gestor) */}
+          {userInfo.isGestor && (
+            <>
+              <button
+                onClick={() => setModalSlaAberto(true)}
+                title="Configurar SLAs por Gravidade"
+                className="p-1.5 rounded-xl hover:bg-[#EAF2E8] text-[#2F6B4F] transition-colors"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+              </button>
 
-            <Link
-              to="/relatorios"
-              title="Abrir Relatório de Desempenho Mensal"
-              className="p-1.5 rounded-xl hover:bg-[#EAF2E8] text-[#2F6B4F] transition-colors flex items-center"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-            </Link>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/40 text-xs text-[#2F6B4F] font-semibold">
-            <UserCheck className="w-4 h-4" />
-            <span>Unidade Fixa: {userInfo.loja || 'Vila Olímpia'}</span>
-          </div>
-        )}
+              <Link
+                to="/relatorios"
+                title="Abrir Relatório de Desempenho Mensal"
+                className="p-1.5 rounded-xl hover:bg-[#EAF2E8] text-[#2F6B4F] transition-colors flex items-center"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {/* ========================================================
