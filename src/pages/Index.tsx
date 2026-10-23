@@ -17,8 +17,10 @@ import {
   ArrowRight,
   UserCheck,
   SlidersHorizontal,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { ModalConfiguracaoSla } from '@/components/ModalConfiguracaoSla'
+import { calcularMetricasDesempenho, mesmaLoja } from '@/services/indices'
 import { listarAtendimentos, atualizarAtendimento } from '@/services/atendimentos'
 import { listarClientes } from '@/services/clientes'
 import { listarFollowUps, marcarFollowUpConcluido, gerarLinkWhatsApp } from '@/services/followUps'
@@ -109,14 +111,10 @@ export default function DashboardPage() {
   // Filtragem unificada por loja e por papel
   const filtraPorLoja = (itemLoja: string) => {
     if (userInfo.isAtendente && userInfo.loja) {
-      const uLoja = userInfo.loja.toLowerCase().trim()
-      const iLoja = (itemLoja || '').toLowerCase().trim()
-      return iLoja.includes(uLoja) || uLoja.includes(iLoja)
+      return mesmaLoja(itemLoja, userInfo.loja)
     }
     if (lojaFiltro === 'Todas as Lojas') return true
-    const fLoja = lojaFiltro.toLowerCase().trim()
-    const iLoja = (itemLoja || '').toLowerCase().trim()
-    return iLoja.includes(fLoja) || fLoja.includes(iLoja)
+    return mesmaLoja(itemLoja, lojaFiltro)
   }
 
   const atendimentosFiltrados = atendimentos.filter((a) => filtraPorLoja(a.loja))
@@ -145,32 +143,26 @@ export default function DashboardPage() {
       userInfo.isAtendente,
   )
 
-  // Índices consolidados do Gestor
-  const totalReclamacoes = reclamacoesFiltradas.length
-  const totalResolvidas = reclamacoesFiltradas.filter((r) => r.status === 'Resolvida').length
-  const taxaResolucaoReclamacoes =
-    totalReclamacoes > 0 ? Math.round((totalResolvidas / totalReclamacoes) * 100) : 100
-
-  // Cumprimento de SLA das ocorrências resolvidas
-  const ocorrenciasResolvidas = reclamacoesFiltradas.filter((r) => r.status === 'Resolvida')
-  const ocorrenciasResolvidasNoSla = ocorrenciasResolvidas.filter((r) => {
-    if (!r.prazo_resolucao) return true
-    const dataFim = r.data_resolucao || r.updated?.split('T')[0] || r.created?.split('T')[0] || hoje
-    return dataFim <= r.prazo_resolucao
+  // Índices consolidados do Gestor (centralizados via serviço compartilhado)
+  const metricasGestor = calcularMetricasDesempenho({
+    atendimentos: atendimentosFiltrados,
+    followUps: followUpsFiltrados,
+    reclamacoes: reclamacoesFiltradas,
+    quebras: [],
+    hojeRef: hoje,
   })
-  const taxaCumprimentoSla =
-    ocorrenciasResolvidas.length > 0
-      ? Math.round((ocorrenciasResolvidasNoSla.length / ocorrenciasResolvidas.length) * 100)
-      : 100
 
-  const followUpsConcluidos = followUpsFiltrados.filter((f) => f.status === 'Concluído')
-  const followUpsNoPrazo = followUpsConcluidos.filter(
-    (f) => !f.data_conclusao || f.data_conclusao <= f.data_prevista,
-  )
-  const taxaFollowUpsNoPrazo =
-    followUpsConcluidos.length > 0
-      ? Math.round((followUpsNoPrazo.length / followUpsConcluidos.length) * 100)
-      : 100
+  const totalReclamacoes = metricasGestor.totalOcorrencias
+  const totalResolvidas = metricasGestor.ocorrenciasResolvidas
+  const taxaResolucaoReclamacoes = metricasGestor.taxaResolucaoOcorrencias
+
+  const ocorrenciasResolvidasNoSla = metricasGestor.ocorrenciasResolvidasNoSla
+  const taxaCumprimentoSla = metricasGestor.taxaCumprimentoSla
+
+  const followUpsConcluidos = metricasGestor.followUpsConcluidos
+  const followUpsNoPrazo = metricasGestor.followUpsNoPrazo
+  const taxaFollowUpsNoPrazo = metricasGestor.taxaFollowUpsNoPrazo
+  const tempoMedioResolucaoDias = metricasGestor.tempoMedioResolucaoDias
 
   // Concluir Follow-up
   const handleConcluirFollowUp = async (id: string) => {
@@ -275,6 +267,14 @@ export default function DashboardPage() {
             >
               <SlidersHorizontal className="w-4 h-4" />
             </button>
+
+            <Link
+              to="/relatorios"
+              title="Abrir Relatório de Desempenho Mensal"
+              className="p-1.5 rounded-xl hover:bg-[#EAF2E8] text-[#2F6B4F] transition-colors flex items-center"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+            </Link>
           </div>
         ) : (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/40 text-xs text-[#2F6B4F] font-semibold">
@@ -581,14 +581,23 @@ export default function DashboardPage() {
                   Índices de Qualidade do Atendimento
                 </h3>
               </div>
-              <span className="text-xs text-[#5E6E64] font-medium px-2.5 py-1 rounded-full bg-[#F7FAF5] border border-[#A8C3A0]/30">
-                {lojaFiltro === 'Todas as Lojas'
-                  ? 'Consolidado Rede'
-                  : lojaFiltro.replace(' (SP)', '')}
-              </span>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/relatorios"
+                  className="hidden sm:inline-flex items-center gap-1 text-xs text-[#2F6B4F] font-semibold hover:underline mr-1"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Relatório Mensal</span>
+                </Link>
+                <span className="text-xs text-[#5E6E64] font-medium px-2.5 py-1 rounded-full bg-[#F7FAF5] border border-[#A8C3A0]/30">
+                  {lojaFiltro === 'Todas as Lojas'
+                    ? 'Consolidado Rede'
+                    : lojaFiltro.replace(' (SP)', '')}
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4">
               {/* Indicador 1: Resolução de Reclamações */}
               <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/25">
                 <div className="px-2.5 py-1.5 rounded-lg bg-[#EAF2E8] border border-[#A8C3A0]/40 text-[#2F6B4F] text-xs font-bold font-mono shrink-0">
@@ -615,7 +624,7 @@ export default function DashboardPage() {
                     Follow-ups no Prazo
                   </span>
                   <p className="text-xs font-semibold text-[#1D2B25] mt-0.5">
-                    {followUpsNoPrazo.length} de {followUpsConcluidos.length || 1} pontuais
+                    {followUpsNoPrazo} de {followUpsConcluidos || 1} pontuais
                   </p>
                   <p className="text-[11px] text-[#5E6E64] truncate">cronograma cumprido</p>
                 </div>
@@ -639,10 +648,27 @@ export default function DashboardPage() {
                     Cumprimento de SLA
                   </span>
                   <p className="text-xs font-semibold text-[#1D2B25] mt-0.5">
-                    {ocorrenciasResolvidasNoSla.length} de {ocorrenciasResolvidas.length || 1} no
-                    prazo
+                    {ocorrenciasResolvidasNoSla} de {totalResolvidas || 1} no prazo
                   </p>
                   <p className="text-[11px] text-[#5E6E64] truncate">dentro do SLA da gravidade</p>
+                </div>
+              </div>
+
+              {/* Indicador 4: Tempo Médio de Resolução */}
+              <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/25">
+                <div className="px-2.5 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold font-mono shrink-0">
+                  {tempoMedioResolucaoDias !== null ? `${tempoMedioResolucaoDias}d` : '—'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] block truncate">
+                    Tempo Médio Resolução
+                  </span>
+                  <p className="text-xs font-semibold text-[#1D2B25] mt-0.5">
+                    {tempoMedioResolucaoDias !== null
+                      ? `${tempoMedioResolucaoDias} dias médios`
+                      : 'Sem ocorrências'}
+                  </p>
+                  <p className="text-[11px] text-[#5E6E64] truncate">abertura ao encerramento</p>
                 </div>
               </div>
             </div>

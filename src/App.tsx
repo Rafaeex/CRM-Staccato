@@ -11,6 +11,7 @@ import Reclamacoes from './pages/Reclamacoes'
 import QuebrasBoem from './pages/QuebrasBoem'
 import FollowUps from './pages/FollowUps'
 import Quadro from './pages/Quadro'
+import RelatorioMensal from './pages/RelatorioMensal'
 import Login from './pages/Login'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/reclamacoes" element={<Navigate to="/ocorrencias" replace />} />
             <Route path="/quebras" element={<QuebrasBoem />} />
             <Route path="/follow-ups" element={<FollowUps />} />
+            <Route path="/relatorios" element={<RelatorioMensal />} />
           </Route>
 
           {/* Redirecionamentos de rotas legadas do site antigo para o CRM */}

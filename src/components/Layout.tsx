@@ -17,6 +17,7 @@ import {
   UserCheck,
   Sparkles,
   FileWarning,
+  FileSpreadsheet,
 } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { LOJAS } from '@/data/boutiqueData'
@@ -140,6 +141,16 @@ export default function Layout({ children }: LayoutProps) {
           icon: AlertTriangle,
           description: userInfo.isAtendente ? 'Minhas ocorrências' : 'Ocorrências da rede',
         },
+        ...(userInfo.isGestor
+          ? [
+              {
+                label: 'Relatório Mensal',
+                href: '/relatorios',
+                icon: FileSpreadsheet,
+                description: 'Desempenho mensal das 7 lojas',
+              },
+            ]
+          : []),
       ]
 
   const isActive = (path: string) => {
