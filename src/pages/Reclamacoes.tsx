@@ -18,6 +18,7 @@ import {
   MessageSquare,
   FileText,
   Paperclip,
+  SlidersHorizontal,
 } from 'lucide-react'
 import {
   listarReclamacoes,
@@ -41,6 +42,13 @@ import type {
   TrelloLista,
 } from '@/types/crm'
 import { useToast } from '@/hooks/use-toast'
+import { IndicadorSla } from '@/components/IndicadorSla'
+import { ModalConfiguracaoSla } from '@/components/ModalConfiguracaoSla'
+import {
+  calcularPrazoPorGravidade,
+  listarConfiguracoesSla,
+  SLA_PADRAO_DIAS_UTEIS,
+} from '@/services/sla'
 import {
   Dialog,
   DialogContent,
@@ -59,7 +67,7 @@ const CATEGORIAS: CategoriaReclamacao[] = [
   'Cobrança',
   'Outro',
 ]
-const GRAVIDADES: GravidadeReclamacao[] = ['Baixa', 'Média', 'Alta']
+const GRAVIDADES: GravidadeReclamacao[] = ['Baixa', 'Média', 'Alta', 'Urgente']
 
 const STATUS_PRODUTO_OPCOES = [
   'Material ainda na obra / em posse do cliente',
@@ -96,11 +104,14 @@ export default function ReclamacoesPage() {
   const [filtroGravidade, setFiltroGravidade] = useState<string>('todas')
   const [filtroLista, setFiltroLista] = useState<string>('todas')
 
-  // Modais
+  // Modais e SLA
   const [modalNovoAberto, setModalNovoAberto] = useState(false)
+  const [modalSlaAberto, setModalSlaAberto] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [reclamacaoSelecionada, setReclamacaoSelecionada] = useState<Reclamacao | null>(null)
   const [modalDetalheAberto, setModalDetalheAberto] = useState(false)
+  const [mapaSlaDias, setMapaSlaDias] =
+    useState<Record<GravidadeReclamacao, number>>(SLA_PADRAO_DIAS_UTEIS)
 
   // Formulário Nova Ocorrência (SAC) com campos exatos do Trello
   const [form, setForm] = useState<{
@@ -143,7 +154,7 @@ export default function ReclamacoesPage() {
     solicitacao_desejo: 'Substituição do produto',
     gravidade: 'Média',
     responsavel: userInfo.name,
-    prazo_resolucao: new Date(Date.now() + 48 * 3600 * 1000).toISOString().split('T')[0],
+    prazo_resolucao: calcularPrazoPorGravidade('Média', SLA_PADRAO_DIAS_UTEIS),
     status: 'Aberta',
     lista_quadro: 'RAFAEL - SAC',
     anexos: [],
@@ -152,14 +163,23 @@ export default function ReclamacoesPage() {
   const carregarDados = async () => {
     setLoading(true)
     try {
-      const [rList, cList, tList] = await Promise.all([
+      const [rList, cList, tList, configsSla] = await Promise.all([
         listarReclamacoes(),
         listarClientes(),
         listarTrelloListas(),
+        listarConfiguracoesSla(),
       ])
       setReclamacoes(rList)
       setClientes(cList)
       setListasTrello(tList)
+
+      const mapa: Record<GravidadeReclamacao, number> = { ...SLA_PADRAO_DIAS_UTEIS }
+      configsSla.forEach((c) => {
+        if (c.gravidade) {
+          mapa[c.gravidade] = c.dias_uteis
+        }
+      })
+      setMapaSlaDias(mapa)
     } catch (err) {
       console.error('Falha ao carregar dados:', err)
       toast({
@@ -257,7 +277,7 @@ export default function ReclamacoesPage() {
         solicitacao_desejo: 'Substituição do produto',
         gravidade: 'Média',
         responsavel: userInfo.name,
-        prazo_resolucao: new Date(Date.now() + 48 * 3600 * 1000).toISOString().split('T')[0],
+        prazo_resolucao: calcularPrazoPorGravidade('Média', mapaSlaDias),
         status: 'Aberta',
         lista_quadro: 'RAFAEL - SAC',
         anexos: [],
@@ -396,306 +416,337 @@ export default function ReclamacoesPage() {
           </p>
         </div>
 
-        <Dialog open={modalNovoAberto} onOpenChange={setModalNovoAberto}>
-          <DialogTrigger asChild>
-            <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors">
-              <Plus className="w-4 h-4 text-[#A8C3A0]" />
-              <span>Nova Ocorrência SAC</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          {userInfo.isGestor && (
+            <button
+              onClick={() => setModalSlaAberto(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#F7FAF5] hover:bg-[#EAF2E8] text-[#2F6B4F] text-xs sm:text-sm font-semibold border border-[#A8C3A0]/40 transition-colors"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-[#2F6B4F]" />
+              <span>Configurar SLAs</span>
             </button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="font-semibold text-xl text-[#1D2B25]">
-                Abertura de Ocorrência (SAC - Modelo Trello)
-              </DialogTitle>
-            </DialogHeader>
+          )}
 
-            <form onSubmit={handleCriarReclamacao} className="space-y-4 pt-1">
-              {/* Título do Card: Pedido LOJA-123456 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Número do Pedido (LOJA-123456) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: LOJA-0123456"
-                    value={form.numero_pedido}
-                    onChange={(e) => setForm({ ...form, numero_pedido: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                  />
-                </div>
+          <Dialog open={modalNovoAberto} onOpenChange={setModalNovoAberto}>
+            <DialogTrigger asChild>
+              <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors">
+                <Plus className="w-4 h-4 text-[#A8C3A0]" />
+                <span>Nova Ocorrência SAC</span>
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="font-semibold text-xl text-[#1D2B25]">
+                  Abertura de Ocorrência (SAC - Modelo Trello)
+                </DialogTitle>
+              </DialogHeader>
 
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Coluna / Responsável Trello
-                  </label>
-                  <select
-                    value={form.lista_quadro}
-                    onChange={(e) => setForm({ ...form, lista_quadro: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm font-semibold text-[#2F6B4F] focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                  >
-                    {listasTrello.map((l) => (
-                      <option key={l.id} value={l.nome}>
-                        {l.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Dados do Cliente */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Vincular Cliente
-                  </label>
-                  <select
-                    value={form.cliente}
-                    onChange={(e) => handleClienteChange(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                  >
-                    <option value="">Selecione ou digite abaixo...</option>
-                    {clientes.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nome} ({c.loja_origem})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Nome do Cliente *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nome exatamente igual ao sistema"
-                    value={form.cliente_nome}
-                    onChange={(e) => setForm({ ...form, cliente_nome: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                  />
-                </div>
-              </div>
-
-              {/* COM QUEM TRATAR O SAC */}
-              <div className="p-3.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#1D2B25] block">
-                  Com quem tratar o SAC (Arquiteto / Cliente / Responsável)
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <input
-                    type="text"
-                    placeholder="Nome do responsável"
-                    value={form.contato_tratar_nome}
-                    onChange={(e) => setForm({ ...form, contato_tratar_nome: e.target.value })}
-                    className="px-3 py-1.5 rounded-lg bg-white border border-[#A8C3A0]/40 text-xs"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Telefone (XX) XXXXX-XXXX"
-                    value={form.contato_tratar_telefone}
-                    onChange={(e) => setForm({ ...form, contato_tratar_telefone: e.target.value })}
-                    className="px-3 py-1.5 rounded-lg bg-white border border-[#A8C3A0]/40 text-xs"
-                  />
-                  <input
-                    type="email"
-                    placeholder="E-mail de contato"
-                    value={form.contato_tratar_email}
-                    onChange={(e) => setForm({ ...form, contato_tratar_email: e.target.value })}
-                    className="px-3 py-1.5 rounded-lg bg-white border border-[#A8C3A0]/40 text-xs"
-                  />
-                </div>
-              </div>
-
-              {/* DESCRIÇÃO DA OCORRÊNCIA */}
-              <div>
-                <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                  Descrição da Ocorrência *
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  placeholder="Descrever de forma objetiva: contexto da venda, entrega/instalação, manifestação do cliente e ações já tomadas."
-                  value={form.descricao}
-                  onChange={(e) => setForm({ ...form, descricao: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                />
-              </div>
-
-              {/* PRODUTOS ENVOLVIDOS */}
-              <div>
-                <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                  Produtos Envolvidos (Código e Descrição igual ao sistema)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ex: CÓDIGO - DESCRIÇÃO DO PRODUTO"
-                  value={form.produtos_envolvidos}
-                  onChange={(e) => setForm({ ...form, produtos_envolvidos: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                />
-              </div>
-
-              {/* STATUS DO PRODUTO & PRODUTO JÁ INSTALADO */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Status do Produto (Marcar uma)
-                  </label>
-                  <select
-                    value={form.status_produto}
-                    onChange={(e) => setForm({ ...form, status_produto: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                  >
-                    {STATUS_PRODUTO_OPCOES.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Produto já instalado?
-                  </label>
-                  <div className="flex gap-4 pt-2">
-                    <label className="inline-flex items-center gap-1.5 text-xs text-[#1D2B25] cursor-pointer">
-                      <input
-                        type="radio"
-                        name="produto_instalado"
-                        value="SIM"
-                        checked={form.produto_instalado === 'SIM'}
-                        onChange={(e) => setForm({ ...form, produto_instalado: e.target.value })}
-                        className="text-[#2F6B4F] focus:ring-[#2F6B4F]"
-                      />
-                      <span>SIM</span>
+              <form onSubmit={handleCriarReclamacao} className="space-y-4 pt-1">
+                {/* Título do Card: Pedido LOJA-123456 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Número do Pedido (LOJA-123456) *
                     </label>
-                    <label className="inline-flex items-center gap-1.5 text-xs text-[#1D2B25] cursor-pointer">
-                      <input
-                        type="radio"
-                        name="produto_instalado"
-                        value="NÃO"
-                        checked={form.produto_instalado === 'NÃO'}
-                        onChange={(e) => setForm({ ...form, produto_instalado: e.target.value })}
-                        className="text-[#2F6B4F] focus:ring-[#2F6B4F]"
-                      />
-                      <span>NÃO</span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: LOJA-0123456"
+                      value={form.numero_pedido}
+                      onChange={(e) => setForm({ ...form, numero_pedido: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Coluna / Responsável Trello
                     </label>
+                    <select
+                      value={form.lista_quadro}
+                      onChange={(e) => setForm({ ...form, lista_quadro: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm font-semibold text-[#2F6B4F] focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                    >
+                      {listasTrello.map((l) => (
+                        <option key={l.id} value={l.nome}>
+                          {l.nome}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-              </div>
 
-              {/* SOLICITAÇÃO / DESEJO */}
-              <div>
-                <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                  Solicitação / Desejo do Cliente
-                </label>
-                <select
-                  value={form.solicitacao_desejo}
-                  onChange={(e) => setForm({ ...form, solicitacao_desejo: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                >
-                  {SOLICITACOES_DESEJO_OPCOES.map((sol) => (
-                    <option key={sol} value={sol}>
-                      {sol}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                {/* Dados do Cliente */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Vincular Cliente
+                    </label>
+                    <select
+                      value={form.cliente}
+                      onChange={(e) => handleClienteChange(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                    >
+                      <option value="">Selecione ou digite abaixo...</option>
+                      {clientes.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.nome} ({c.loja_origem})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Metadados Operacionais (Loja, Gravidade, Prazo) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Loja
-                  </label>
-                  <select
-                    value={form.loja}
-                    onChange={(e) => setForm({ ...form, loja: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                  >
-                    {LOJAS.map((l) => (
-                      <option key={l.id} value={l.nome}>
-                        {l.nome}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Nome do Cliente *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nome exatamente igual ao sistema"
+                      value={form.cliente_nome}
+                      onChange={(e) => setForm({ ...form, cliente_nome: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Gravidade
-                  </label>
-                  <select
-                    value={form.gravidade}
-                    onChange={(e) =>
-                      setForm({ ...form, gravidade: e.target.value as GravidadeReclamacao })
-                    }
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                  >
-                    {GRAVIDADES.map((g) => (
-                      <option key={g} value={g}>
-                        {g}
-                      </option>
-                    ))}
-                  </select>
+                {/* COM QUEM TRATAR O SAC */}
+                <div className="p-3.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#1D2B25] block">
+                    Com quem tratar o SAC (Arquiteto / Cliente / Responsável)
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <input
+                      type="text"
+                      placeholder="Nome do responsável"
+                      value={form.contato_tratar_nome}
+                      onChange={(e) => setForm({ ...form, contato_tratar_nome: e.target.value })}
+                      className="px-3 py-1.5 rounded-lg bg-white border border-[#A8C3A0]/40 text-xs"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Telefone (XX) XXXXX-XXXX"
+                      value={form.contato_tratar_telefone}
+                      onChange={(e) =>
+                        setForm({ ...form, contato_tratar_telefone: e.target.value })
+                      }
+                      className="px-3 py-1.5 rounded-lg bg-white border border-[#A8C3A0]/40 text-xs"
+                    />
+                    <input
+                      type="email"
+                      placeholder="E-mail de contato"
+                      value={form.contato_tratar_email}
+                      onChange={(e) => setForm({ ...form, contato_tratar_email: e.target.value })}
+                      className="px-3 py-1.5 rounded-lg bg-white border border-[#A8C3A0]/40 text-xs"
+                    />
+                  </div>
                 </div>
 
+                {/* DESCRIÇÃO DA OCORRÊNCIA */}
                 <div>
                   <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Prazo de Resolução
+                    Descrição da Ocorrência *
                   </label>
-                  <input
-                    type="date"
-                    value={form.prazo_resolucao}
-                    onChange={(e) => setForm({ ...form, prazo_resolucao: e.target.value })}
+                  <textarea
+                    required
+                    rows={3}
+                    placeholder="Descrever de forma objetiva: contexto da venda, entrega/instalação, manifestação do cliente e ações já tomadas."
+                    value={form.descricao}
+                    onChange={(e) => setForm({ ...form, descricao: e.target.value })}
                     className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
                   />
                 </div>
-              </div>
 
-              {/* Anexos */}
-              <div className="p-3.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-1 text-xs">
-                <span className="font-semibold text-[#1D2B25] block">
-                  Anexos (Obrigatório fotos e/ou vídeos comprobatórios)
-                </span>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,video/*,application/pdf"
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      setForm({ ...form, anexos: Array.from(e.target.files) })
-                    }
-                  }}
-                  className="w-full text-xs text-[#5E6E64] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#EAF2E8] file:text-[#2F6B4F]"
-                />
-              </div>
+                {/* PRODUTOS ENVOLVIDOS */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                    Produtos Envolvidos (Código e Descrição igual ao sistema)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: CÓDIGO - DESCRIÇÃO DO PRODUTO"
+                    value={form.produtos_envolvidos}
+                    onChange={(e) => setForm({ ...form, produtos_envolvidos: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                  />
+                </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-[#EAF2E8]">
-                <button
-                  type="button"
-                  onClick={() => setModalNovoAberto(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5E6E64] hover:bg-[#F7FAF5]"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={salvando}
-                  className="px-5 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold shadow-xs disabled:opacity-50 flex items-center gap-2"
-                >
-                  {salvando && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Abrir Ocorrência</span>
-                </button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+                {/* STATUS DO PRODUTO & PRODUTO JÁ INSTALADO */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Status do Produto (Marcar uma)
+                    </label>
+                    <select
+                      value={form.status_produto}
+                      onChange={(e) => setForm({ ...form, status_produto: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                    >
+                      {STATUS_PRODUTO_OPCOES.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Produto já instalado?
+                    </label>
+                    <div className="flex gap-4 pt-2">
+                      <label className="inline-flex items-center gap-1.5 text-xs text-[#1D2B25] cursor-pointer">
+                        <input
+                          type="radio"
+                          name="produto_instalado"
+                          value="SIM"
+                          checked={form.produto_instalado === 'SIM'}
+                          onChange={(e) => setForm({ ...form, produto_instalado: e.target.value })}
+                          className="text-[#2F6B4F] focus:ring-[#2F6B4F]"
+                        />
+                        <span>SIM</span>
+                      </label>
+                      <label className="inline-flex items-center gap-1.5 text-xs text-[#1D2B25] cursor-pointer">
+                        <input
+                          type="radio"
+                          name="produto_instalado"
+                          value="NÃO"
+                          checked={form.produto_instalado === 'NÃO'}
+                          onChange={(e) => setForm({ ...form, produto_instalado: e.target.value })}
+                          className="text-[#2F6B4F] focus:ring-[#2F6B4F]"
+                        />
+                        <span>NÃO</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SOLICITAÇÃO / DESEJO */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                    Solicitação / Desejo do Cliente
+                  </label>
+                  <select
+                    value={form.solicitacao_desejo}
+                    onChange={(e) => setForm({ ...form, solicitacao_desejo: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                  >
+                    {SOLICITACOES_DESEJO_OPCOES.map((sol) => (
+                      <option key={sol} value={sol}>
+                        {sol}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Metadados Operacionais (Loja, Gravidade, Prazo) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                      Loja
+                    </label>
+                    <select
+                      value={form.loja}
+                      onChange={(e) => setForm({ ...form, loja: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                    >
+                      {LOJAS.map((l) => (
+                        <option key={l.id} value={l.nome}>
+                          {l.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider">
+                        Gravidade
+                      </label>
+                      <span className="text-[10px] text-[#5E6E64]">
+                        SLA: {mapaSlaDias[form.gravidade] ?? SLA_PADRAO_DIAS_UTEIS[form.gravidade]}d
+                        úteis
+                      </span>
+                    </div>
+                    <select
+                      value={form.gravidade}
+                      onChange={(e) => {
+                        const novaGravidade = e.target.value as GravidadeReclamacao
+                        const novoPrazo = calcularPrazoPorGravidade(novaGravidade, mapaSlaDias)
+                        setForm({
+                          ...form,
+                          gravidade: novaGravidade,
+                          prazo_resolucao: novoPrazo,
+                        })
+                      }}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                    >
+                      {GRAVIDADES.map((g) => (
+                        <option key={g} value={g}>
+                          {g} ({mapaSlaDias[g] ?? SLA_PADRAO_DIAS_UTEIS[g]}d úteis)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider">
+                        Prazo Calculado
+                      </label>
+                      <span className="text-[10px] text-[#2F6B4F] font-medium">
+                        Dias úteis seg-sex
+                      </span>
+                    </div>
+                    <input
+                      type="date"
+                      value={form.prazo_resolucao}
+                      onChange={(e) => setForm({ ...form, prazo_resolucao: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                    />
+                  </div>
+                </div>
+
+                {/* Anexos */}
+                <div className="p-3.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-1 text-xs">
+                  <span className="font-semibold text-[#1D2B25] block">
+                    Anexos (Obrigatório fotos e/ou vídeos comprobatórios)
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,video/*,application/pdf"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        setForm({ ...form, anexos: Array.from(e.target.files) })
+                      }
+                    }}
+                    className="w-full text-xs text-[#5E6E64] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#EAF2E8] file:text-[#2F6B4F]"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-[#EAF2E8]">
+                  <button
+                    type="button"
+                    onClick={() => setModalNovoAberto(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5E6E64] hover:bg-[#F7FAF5]"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={salvando}
+                    className="px-5 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold shadow-xs disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {salvando && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    <span>Abrir Ocorrência</span>
+                  </button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Cards de Métricas */}
@@ -846,15 +897,27 @@ export default function ReclamacoesPage() {
 
                     <span
                       className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        r.gravidade === 'Alta'
-                          ? 'bg-rose-100 text-rose-800'
-                          : r.gravidade === 'Média'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-slate-100 text-slate-700'
+                        r.gravidade === 'Urgente'
+                          ? 'bg-rose-50 text-rose-800 border border-rose-200 font-bold'
+                          : r.gravidade === 'Alta'
+                            ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                            : r.gravidade === 'Média'
+                              ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                              : 'bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/40'
                       }`}
                     >
                       Gravidade: {r.gravidade}
                     </span>
+
+                    {/* Indicador discreto de SLA */}
+                    {r.prazo_resolucao && (
+                      <IndicadorSla
+                        prazoResolucao={r.prazo_resolucao}
+                        dataResolucao={r.data_resolucao}
+                        status={r.status}
+                        compacto={true}
+                      />
+                    )}
                   </div>
 
                   <p className="text-xs text-[#5E6E64] line-clamp-2">{r.descricao}</p>
@@ -963,10 +1026,19 @@ export default function ReclamacoesPage() {
                     </p>
                   </div>
                   <div>
-                    <span className="text-[#5E6E64]">Prazo Resolução:</span>
-                    <p className="font-semibold text-[#1D2B25]">
-                      {reclamacaoSelecionada.prazo_resolucao}
-                    </p>
+                    <span className="text-[#5E6E64]">Prazo Resolução (SLA):</span>
+                    <div className="mt-0.5">
+                      {reclamacaoSelecionada.prazo_resolucao ? (
+                        <IndicadorSla
+                          prazoResolucao={reclamacaoSelecionada.prazo_resolucao}
+                          dataResolucao={reclamacaoSelecionada.data_resolucao}
+                          status={reclamacaoSelecionada.status}
+                          compacto={false}
+                        />
+                      ) : (
+                        <p className="font-semibold text-[#1D2B25]">Não definido</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1082,6 +1154,13 @@ export default function ReclamacoesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Configuração de SLA por Gravidade */}
+      <ModalConfiguracaoSla
+        open={modalSlaAberto}
+        onOpenChange={setModalSlaAberto}
+        onSalvo={carregarDados}
+      />
     </div>
   )
 }

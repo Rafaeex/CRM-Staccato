@@ -27,6 +27,12 @@ import { listarReclamacoesPorCliente, criarReclamacao } from '@/services/reclama
 import { listarQuebrasPorCliente } from '@/services/quebrasBoem'
 import { gerarFollowUpComIA } from '@/services/iaFollowUp'
 import { Bot, RefreshCw, FileWarning } from 'lucide-react'
+import { IndicadorSla } from '@/components/IndicadorSla'
+import {
+  calcularPrazoPorGravidade,
+  listarConfiguracoesSla,
+  SLA_PADRAO_DIAS_UTEIS,
+} from '@/services/sla'
 import type {
   Cliente,
   Atendimento,
@@ -108,6 +114,10 @@ export default function FichaClientePage() {
   })
 
   // Modal Nova Reclamação
+  const [mapaSlaDias, setMapaSlaDias] =
+    useState<Record<GravidadeReclamacao, number>>(SLA_PADRAO_DIAS_UTEIS)
+
+  // Modal Nova Reclamação
   const [modalReclamacao, setModalReclamacao] = useState(false)
   const [salvandoReclamacao, setSalvandoReclamacao] = useState(false)
   const [novaReclamacao, setNovaReclamacao] = useState({
@@ -116,7 +126,7 @@ export default function FichaClientePage() {
     gravidade: 'Média' as GravidadeReclamacao,
     descricao: '',
     responsavel: 'Consultor Boutique',
-    prazo_resolucao: new Date().toISOString().split('T')[0],
+    prazo_resolucao: calcularPrazoPorGravidade('Média', SLA_PADRAO_DIAS_UTEIS),
   })
 
   // Edição rápida de notas
@@ -156,8 +166,18 @@ export default function FichaClientePage() {
 
   useEffect(() => {
     carregarFicha()
+    listarConfiguracoesSla()
+      .then((configs) => {
+        const mapa: Record<GravidadeReclamacao, number> = { ...SLA_PADRAO_DIAS_UTEIS }
+        configs.forEach((c) => {
+          if (c.gravidade) {
+            mapa[c.gravidade] = c.dias_uteis
+          }
+        })
+        setMapaSlaDias(mapa)
+      })
+      .catch(console.error)
   }, [id])
-
   // Troca de status de atendimento simples
   const handleMudarStatus = async (novoStatus: StatusCliente) => {
     if (!cliente) return
@@ -370,7 +390,7 @@ export default function FichaClientePage() {
         gravidade: 'Média',
         descricao: '',
         responsavel: 'Consultor Boutique',
-        prazo_resolucao: new Date().toISOString().split('T')[0],
+        prazo_resolucao: calcularPrazoPorGravidade('Média', mapaSlaDias),
       })
 
       toast({
@@ -844,30 +864,47 @@ export default function FichaClientePage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                        Gravidade
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider">
+                          Gravidade
+                        </label>
+                        <span className="text-[10px] text-[#5E6E64]">
+                          SLA:{' '}
+                          {mapaSlaDias[novaReclamacao.gravidade] ??
+                            SLA_PADRAO_DIAS_UTEIS[novaReclamacao.gravidade]}
+                          d úteis
+                        </span>
+                      </div>
                       <select
                         value={novaReclamacao.gravidade}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const novaGravidade = e.target.value as GravidadeReclamacao
+                          const novoPrazo = calcularPrazoPorGravidade(novaGravidade, mapaSlaDias)
                           setNovaReclamacao({
                             ...novaReclamacao,
-                            gravidade: e.target.value as GravidadeReclamacao,
+                            gravidade: novaGravidade,
+                            prazo_resolucao: novoPrazo,
                           })
-                        }
+                        }}
                         className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
                       >
-                        <option value="Baixa">Baixa</option>
-                        <option value="Média">Média</option>
-                        <option value="Alta">Alta</option>
+                        <option value="Urgente">Urgente ({mapaSlaDias.Urgente ?? 1}d útil)</option>
+                        <option value="Alta">Alta ({mapaSlaDias.Alta ?? 3}d úteis)</option>
+                        <option value="Média">Média ({mapaSlaDias.Média ?? 5}d úteis)</option>
+                        <option value="Baixa">Baixa ({mapaSlaDias.Baixa ?? 10}d úteis)</option>
                       </select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                      Prazo para Resolução *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider">
+                        Prazo para Resolução *
+                      </label>
+                      <span className="text-[10px] text-[#2F6B4F] font-medium">
+                        Dias úteis seg-sex
+                      </span>
+                    </div>
                     <input
                       type="date"
                       required
@@ -1139,15 +1176,27 @@ export default function FichaClientePage() {
                             {rec.categoria}
                           </span>
                           <span
-                            className={`text-[9px] font-semibold uppercase px-1.5 py-0.5 rounded-full ${
-                              rec.gravidade === 'Alta'
-                                ? 'bg-rose-100 text-rose-800 border border-rose-200'
-                                : 'bg-slate-100 text-slate-700 border border-slate-200'
+                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                              rec.gravidade === 'Urgente'
+                                ? 'bg-rose-50 text-rose-800 border border-rose-200 font-bold'
+                                : rec.gravidade === 'Alta'
+                                  ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                                  : rec.gravidade === 'Média'
+                                    ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                                    : 'bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/40'
                             }`}
                           >
                             {rec.gravidade}
                           </span>
-                        </div>
+                          {rec.prazo_resolucao && (
+                            <IndicadorSla
+                              prazoResolucao={rec.prazo_resolucao}
+                              dataResolucao={rec.data_resolucao}
+                              status={rec.status}
+                              compacto={true}
+                            />
+                          )}
+                        </div>{' '}
                         <p className="text-[11px] text-[#5E6E64]">
                           Prazo:{' '}
                           <span

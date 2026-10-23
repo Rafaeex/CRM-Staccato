@@ -303,8 +303,23 @@ export type CategoriaReclamacao =
   | 'Troca/devolução'
   | 'Cobrança'
   | 'Outro'
-export type GravidadeReclamacao = 'Baixa' | 'Média' | 'Alta'
+export type GravidadeReclamacao = 'Baixa' | 'Média' | 'Alta' | 'Urgente'
 export type StatusReclamacao = 'Aberta' | 'Em tratamento' | 'Resolvida'
+
+export interface ConfiguracaoSla extends RecordModel {
+  id: string
+  gravidade: GravidadeReclamacao
+  dias_uteis: number
+  descricao?: string
+  created: string
+  updated: string
+}
+
+export interface ConfiguracaoSlaInput {
+  gravidade: GravidadeReclamacao
+  dias_uteis: number
+  descricao?: string
+}
 
 export interface Reclamacao extends RecordModel {
   id: string

@@ -16,7 +16,9 @@ import {
   CheckSquare,
   ArrowRight,
   UserCheck,
+  SlidersHorizontal,
 } from 'lucide-react'
+import { ModalConfiguracaoSla } from '@/components/ModalConfiguracaoSla'
 import { listarAtendimentos, atualizarAtendimento } from '@/services/atendimentos'
 import { listarClientes } from '@/services/clientes'
 import { listarFollowUps, marcarFollowUpConcluido, gerarLinkWhatsApp } from '@/services/followUps'
@@ -149,6 +151,18 @@ export default function DashboardPage() {
   const taxaResolucaoReclamacoes =
     totalReclamacoes > 0 ? Math.round((totalResolvidas / totalReclamacoes) * 100) : 100
 
+  // Cumprimento de SLA das ocorrências resolvidas
+  const ocorrenciasResolvidas = reclamacoesFiltradas.filter((r) => r.status === 'Resolvida')
+  const ocorrenciasResolvidasNoSla = ocorrenciasResolvidas.filter((r) => {
+    if (!r.prazo_resolucao) return true
+    const dataFim = r.data_resolucao || r.updated?.split('T')[0] || r.created?.split('T')[0] || hoje
+    return dataFim <= r.prazo_resolucao
+  })
+  const taxaCumprimentoSla =
+    ocorrenciasResolvidas.length > 0
+      ? Math.round((ocorrenciasResolvidasNoSla.length / ocorrenciasResolvidas.length) * 100)
+      : 100
+
   const followUpsConcluidos = followUpsFiltrados.filter((f) => f.status === 'Concluído')
   const followUpsNoPrazo = followUpsConcluidos.filter(
     (f) => !f.data_conclusao || f.data_conclusao <= f.data_prevista,
@@ -173,6 +187,8 @@ export default function DashboardPage() {
       console.error(err)
     }
   }
+
+  const [modalSlaAberto, setModalSlaAberto] = useState(false)
 
   // Concluir Atendimento
   const handleConcluirAtendimento = async (id: string) => {
@@ -273,6 +289,14 @@ export default function DashboardPage() {
                 </option>
               ))}
             </select>
+
+            <button
+              onClick={() => setModalSlaAberto(true)}
+              title="Configurar SLAs por Gravidade"
+              className="p-1.5 rounded-xl hover:bg-[#EAF2E8] text-[#2F6B4F] transition-colors"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
           </div>
         ) : (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/40 text-xs text-[#2F6B4F] font-semibold">
@@ -323,7 +347,7 @@ export default function DashboardPage() {
                     {followUpsPendentes.length}
                   </p>
                   {followUpsVencidos.length > 0 && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
                       {followUpsVencidos.length} vencido{followUpsVencidos.length > 1 ? 's' : ''}
                     </span>
                   )}
@@ -350,8 +374,8 @@ export default function DashboardPage() {
                     {minhasReclamacoes.length}
                   </p>
                   {minhasReclamacoes.filter((r) => r.prazo_resolucao < hoje).length > 0 && (
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-stone-100 text-stone-700">
-                      {minhasReclamacoes.filter((r) => r.prazo_resolucao < hoje).length} expira(m)
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
+                      {minhasReclamacoes.filter((r) => r.prazo_resolucao < hoje).length} vencida(s)
                     </span>
                   )}
                 </div>
@@ -538,7 +562,7 @@ export default function DashboardPage() {
                     {reclamacoesAbertas.length}
                   </p>
                   {reclamacoesVencidas.length > 0 && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
                       {reclamacoesVencidas.length} fora do prazo
                     </span>
                   )}
@@ -619,17 +643,28 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Indicador 3: SLA da Rede */}
+              {/* Indicador 3: Cumprimento de SLA */}
               <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/25">
-                <div className="px-2.5 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold font-mono shrink-0">
-                  85%
+                <div
+                  className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold font-mono shrink-0 ${
+                    taxaCumprimentoSla >= 85
+                      ? 'bg-[#EAF2E8] border-[#A8C3A0]/40 text-[#2F6B4F]'
+                      : taxaCumprimentoSla >= 70
+                        ? 'bg-amber-50 border-amber-200 text-amber-800'
+                        : 'bg-rose-50 border-rose-200 text-rose-800'
+                  }`}
+                >
+                  {taxaCumprimentoSla}%
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] block truncate">
-                    Padrão de Resolução
+                    Cumprimento de SLA
                   </span>
-                  <p className="text-xs font-semibold text-[#1D2B25] mt-0.5">Até 3 dias úteis</p>
-                  <p className="text-[11px] text-[#5E6E64] truncate">meta mantida na rede</p>
+                  <p className="text-xs font-semibold text-[#1D2B25] mt-0.5">
+                    {ocorrenciasResolvidasNoSla.length} de {ocorrenciasResolvidas.length || 1} no
+                    prazo
+                  </p>
+                  <p className="text-[11px] text-[#5E6E64] truncate">dentro do SLA da gravidade</p>
                 </div>
               </div>
             </div>
@@ -662,36 +697,41 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                   {reclamacoesAbertas.slice(0, 4).map((rec) => {
                     const isAtrasada = rec.prazo_resolucao < hoje
-                    const isCritica = rec.gravidade === 'Alta' || isAtrasada
+                    const isCritica =
+                      rec.gravidade === 'Alta' || rec.gravidade === 'Urgente' || isAtrasada
 
                     return (
                       <div
                         key={rec.id}
                         className={`p-3.5 rounded-2xl border text-xs space-y-2 ${
                           isAtrasada
-                            ? 'bg-rose-50/30 border-rose-200'
+                            ? 'bg-rose-50/40 border-rose-200'
                             : 'bg-[#F7FAF5] border-[#A8C3A0]/30'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <span className="font-semibold text-sm text-[#1D2B25]">
-                              {rec.cliente_nome}
-                            </span>
-                            <span
-                              className={`ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                                isCritica
-                                  ? 'bg-rose-100 text-rose-800 border border-rose-200'
-                                  : 'bg-slate-100 text-slate-700 border border-slate-200'
-                              }`}
-                            >
-                              {rec.gravidade}
-                            </span>
-                            {isAtrasada && (
-                              <span className="ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-600 text-white">
-                                Atrasada
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-sm text-[#1D2B25]">
+                                {rec.cliente_nome}
                               </span>
-                            )}
+                              <span
+                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                  rec.gravidade === 'Urgente'
+                                    ? 'bg-rose-50 text-rose-800 border border-rose-200 font-bold'
+                                    : rec.gravidade === 'Alta'
+                                      ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                                      : 'bg-slate-100 text-slate-700 border border-slate-200'
+                                }`}
+                              >
+                                {rec.gravidade}
+                              </span>
+                              {isAtrasada && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
+                                  Vencida
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[11px] text-[#5E6E64] mt-0.5">
                               {rec.loja} • Resp: {rec.responsavel} • Prazo: {rec.prazo_resolucao}
                             </p>
@@ -761,6 +801,13 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de Configuração de SLA por Gravidade */}
+      <ModalConfiguracaoSla
+        open={modalSlaAberto}
+        onOpenChange={setModalSlaAberto}
+        onSalvo={carregarDados}
+      />
 
       {/* Modal de Resolução de Ocorrência */}
       <Dialog open={modalResolverAberto} onOpenChange={setModalResolverAberto}>
