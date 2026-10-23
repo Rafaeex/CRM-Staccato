@@ -323,12 +323,29 @@ export function parseTrelloJSON(jsonData: any): ResultadoParseTrello {
       // Resultado BOEM
       let resBoem: ResultadoBoem = 'Pendente'
       if (descUpper.includes('RESULTADO DO BOEM:') || descUpper.includes('RESULTADO BOEM:')) {
-        if (/\(x\)\s*APROVADO/i.test(desc) || descUpper.includes('APROVADO')) {
+        if (
+          /\(x\)\s*APROVADO/i.test(desc) ||
+          (descUpper.includes('APROVADO') && !descUpper.includes('( ) APROVADO'))
+        ) {
           resBoem = 'Procedente (Reposição Autorizada)'
-        } else if (/\(x\)\s*REPROVADO/i.test(desc) || descUpper.includes('REPROVADO')) {
+        } else if (
+          /\(x\)\s*REPROVADO/i.test(desc) ||
+          (descUpper.includes('REPROVADO') && !descUpper.includes('( ) REPROVADO'))
+        ) {
           resBoem = 'Improcedente'
-        } else if (/\(x\)\s*NÃO ENVIADO/i.test(desc)) {
+        } else if (
+          /\(x\)\s*NÃO ENVIADO/i.test(desc) ||
+          (descUpper.includes('NÃO ENVIADO') && !descUpper.includes('( ) NÃO ENVIADO'))
+        ) {
           resBoem = 'Pendente'
+        } else if (descUpper.includes('ACORDO COMERCIAL')) {
+          resBoem = 'Acordo Comercial'
+        } else if (
+          descUpper.includes('REEMBOLSO') ||
+          descUpper.includes('CRÉDITO') ||
+          descUpper.includes('CREDITO')
+        ) {
+          resBoem = 'Procedente (Reembolso / Crédito)'
         }
       }
 
