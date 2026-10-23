@@ -43,6 +43,7 @@ import type {
 } from '@/types/crm'
 import { useToast } from '@/hooks/use-toast'
 import { IndicadorSla } from '@/components/IndicadorSla'
+import { BadgeEstadoOcorrencia, obterEstadoOperacional } from '@/components/BadgeEstadoOcorrencia'
 import { ModalConfiguracaoSla } from '@/components/ModalConfiguracaoSla'
 import {
   calcularPrazoPorGravidade,
@@ -101,7 +102,7 @@ export default function ReclamacoesPage() {
   const [filtroLoja, setFiltroLoja] = useState<string>(
     userInfo.isAtendente && userInfo.loja ? userInfo.loja : 'todas',
   )
-  const [filtroGravidade, setFiltroGravidade] = useState<string>('todas')
+  const [filtroEstado, setFiltroEstado] = useState<string>('todas')
   const [filtroLista, setFiltroLista] = useState<string>('todas')
 
   // Modais e SLA
@@ -377,7 +378,10 @@ export default function ReclamacoesPage() {
       }
 
       if (filtroStatus !== 'todas' && r.status !== filtroStatus) return false
-      if (filtroGravidade !== 'todas' && r.gravidade !== filtroGravidade) return false
+      if (filtroEstado !== 'todas') {
+        const info = obterEstadoOperacional(r)
+        if (info.estado !== filtroEstado) return false
+      }
       if (filtroLista !== 'todas' && (r.lista_quadro || 'RAFAEL - SAC') !== filtroLista)
         return false
 
@@ -392,7 +396,7 @@ export default function ReclamacoesPage() {
 
       return true
     })
-  }, [reclamacoes, userInfo, filtroLoja, filtroStatus, filtroGravidade, filtroLista, busca])
+  }, [reclamacoes, userInfo, filtroLoja, filtroStatus, filtroEstado, filtroLista, busca])
 
   // Contadores
   const totalAbertas = reclamacoes.filter((r) => r.status === 'Aberta').length
@@ -832,16 +836,16 @@ export default function ReclamacoesPage() {
             </select>
 
             <select
-              value={filtroGravidade}
-              onChange={(e) => setFiltroGravidade(e.target.value)}
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
               className="px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs text-[#1D2B25] focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
             >
-              <option value="todas">Todas as gravidades</option>
-              {GRAVIDADES.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
+              <option value="todas">Todos os estados</option>
+              <option value="Atrasada">Atrasada</option>
+              <option value="Urgente">Urgente</option>
+              <option value="Aguardando">Aguardando</option>
+              <option value="Nova">Nova</option>
+              <option value="Em andamento">Em andamento</option>
             </select>
           </div>
         </div>
@@ -883,30 +887,18 @@ export default function ReclamacoesPage() {
                       Coluna: {r.lista_quadro || 'RAFAEL - SAC'}
                     </span>
 
+                    <BadgeEstadoOcorrencia ocorrencia={r} />
+
                     <span
                       className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                         r.status === 'Resolvida'
                           ? 'bg-[#EAF2E8] text-[#2F6B4F]'
                           : r.status === 'Em tratamento'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-slate-100 text-slate-700'
+                            ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
                       }`}
                     >
                       {r.status}
-                    </span>
-
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        r.gravidade === 'Urgente'
-                          ? 'bg-rose-50 text-rose-800 border border-rose-200 font-bold'
-                          : r.gravidade === 'Alta'
-                            ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                            : r.gravidade === 'Média'
-                              ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                              : 'bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/40'
-                      }`}
-                    >
-                      Gravidade: {r.gravidade}
                     </span>
 
                     {/* Indicador discreto de SLA */}
@@ -983,17 +975,20 @@ export default function ReclamacoesPage() {
                       Cliente: <strong>{reclamacaoSelecionada.cliente_nome}</strong>
                     </span>
                   </div>
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-                      reclamacaoSelecionada.status === 'Resolvida'
-                        ? 'bg-[#EAF2E8] text-[#2F6B4F]'
-                        : reclamacaoSelecionada.status === 'Em tratamento'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-slate-100 text-slate-700'
-                    }`}
-                  >
-                    {reclamacaoSelecionada.status}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <BadgeEstadoOcorrencia ocorrencia={reclamacaoSelecionada} />
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                        reclamacaoSelecionada.status === 'Resolvida'
+                          ? 'bg-[#EAF2E8] text-[#2F6B4F]'
+                          : reclamacaoSelecionada.status === 'Em tratamento'
+                            ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {reclamacaoSelecionada.status}
+                    </span>
+                  </div>
                 </div>
               </DialogHeader>
 

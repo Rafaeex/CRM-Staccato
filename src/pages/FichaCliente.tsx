@@ -28,6 +28,7 @@ import { listarQuebrasPorCliente } from '@/services/quebrasBoem'
 import { gerarFollowUpComIA } from '@/services/iaFollowUp'
 import { Bot, RefreshCw, FileWarning } from 'lucide-react'
 import { IndicadorSla } from '@/components/IndicadorSla'
+import { BadgeEstadoOcorrencia } from '@/components/BadgeEstadoOcorrencia'
 import {
   calcularPrazoPorGravidade,
   listarConfiguracoesSla,
@@ -1171,23 +1172,11 @@ export default function FichaClientePage() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-semibold text-xs text-[#1D2B25]">
                             {rec.categoria}
                           </span>
-                          <span
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                              rec.gravidade === 'Urgente'
-                                ? 'bg-rose-50 text-rose-800 border border-rose-200 font-bold'
-                                : rec.gravidade === 'Alta'
-                                  ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                                  : rec.gravidade === 'Média'
-                                    ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                                    : 'bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/40'
-                            }`}
-                          >
-                            {rec.gravidade}
-                          </span>
+                          <BadgeEstadoOcorrencia ocorrencia={rec} />
                           {rec.prazo_resolucao && (
                             <IndicadorSla
                               prazoResolucao={rec.prazo_resolucao}
@@ -1197,13 +1186,13 @@ export default function FichaClientePage() {
                             />
                           )}
                         </div>{' '}
-                        <p className="text-[11px] text-[#5E6E64]">
+                        <p className="text-[11px] text-[#5E6E64] mt-0.5">
                           Prazo:{' '}
                           <span
                             className={
                               rec.status !== 'Resolvida' &&
                               rec.prazo_resolucao < new Date().toISOString().split('T')[0]
-                                ? 'text-rose-700 font-bold'
+                                ? 'text-rose-700 font-semibold'
                                 : ''
                             }
                           >
@@ -1217,7 +1206,7 @@ export default function FichaClientePage() {
                         className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
                           rec.status === 'Resolvida'
                             ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                            : 'bg-blue-50 text-blue-700 border border-blue-200'
+                            : 'bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/30'
                         }`}
                       >
                         {rec.status}

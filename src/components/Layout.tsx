@@ -38,16 +38,6 @@ export default function Layout({ children }: LayoutProps) {
   const isAuth = pb.authStore.isValid
   const isLoginPage = location.pathname === '/login'
 
-  // Lista de lojas a exibir na sidebar (atendente ou comercial vê sua unidade; gestor vê todas as 7)
-  const lojasExibidas =
-    (userInfo.isAtendente || userInfo.isComercial) && userInfo.loja
-      ? LOJAS.filter(
-          (l) =>
-            l.nome.toLowerCase().includes(userInfo.loja.toLowerCase()) ||
-            userInfo.loja.toLowerCase().includes(l.nome.toLowerCase()),
-        )
-      : LOJAS
-
   // Obter parâmetro loja atual da URL (caso esteja no dashboard ou navegado com filtro)
   const params = new URLSearchParams(location.search)
   const lojaParamAtual = params.get('loja')
@@ -322,31 +312,8 @@ export default function Layout({ children }: LayoutProps) {
                 </nav>
               </div>
 
-              {/* Bloco de Unidades da Rede */}
-              <div className="pt-4 border-t border-[#EAF2E8]">
-                <div className="px-3 mb-2">
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] flex items-center gap-1.5">
-                    <Building2 className="w-3 h-3 text-[#2F6B4F]" />
-                    <span>
-                      {userInfo.isAtendente
-                        ? 'Sua Unidade de Atendimento'
-                        : `Unidades da Rede (${lojasExibidas.length})`}
-                    </span>
-                  </p>
-                </div>
-
-                <ul className="space-y-1 text-xs text-[#5E6E64]">
-                  {lojasExibidas.map((l) => (
-                    <li
-                      key={l.id}
-                      className="flex items-center justify-between px-3 py-1.5 rounded-lg text-[#1D2B25] hover:bg-[#F7FAF5] transition-colors"
-                    >
-                      <span className="truncate font-medium">{l.nome}</span>
-                      <span className="text-[10px] text-[#5E6E64]/70 shrink-0 ml-2">SP</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {/* Espaço reservado para expansões futuras na barra lateral */}
+              <div className="py-2" aria-hidden="true" />
             </div>
 
             {/* Suporte Interno do CRM */}
@@ -412,31 +379,6 @@ export default function Layout({ children }: LayoutProps) {
                     )
                   })}
                 </nav>
-
-                {/* Bloco de Unidades da Rede no Mobile */}
-                <div className="pt-4 border-t border-[#EAF2E8]">
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-[#5E6E64] px-1 mb-2 flex items-center gap-1.5">
-                    <Building2 className="w-3 h-3 text-[#2F6B4F]" />
-                    <span>
-                      {userInfo.isAtendente
-                        ? 'Sua Unidade'
-                        : `Unidades da Rede (${lojasExibidas.length})`}
-                    </span>
-                  </p>
-                  <div className="space-y-1 text-xs">
-                    {lojasExibidas.map((l) => (
-                      <div
-                        key={l.id}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-[#1D2B25] hover:bg-[#F7FAF5] transition-colors"
-                      >
-                        <span className="font-medium text-xs text-[#1D2B25] truncate">
-                          {l.nome}
-                        </span>
-                        <span className="text-[10px] text-[#5E6E64] shrink-0">SP</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
 
               <div className="pt-4 border-t border-[#EAF2E8]">

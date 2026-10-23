@@ -20,6 +20,7 @@ import {
   FileSpreadsheet,
 } from 'lucide-react'
 import { ModalConfiguracaoSla } from '@/components/ModalConfiguracaoSla'
+import { BadgeEstadoOcorrencia } from '@/components/BadgeEstadoOcorrencia'
 import { calcularMetricasDesempenho, mesmaLoja } from '@/services/indices'
 import { listarAtendimentos, atualizarAtendimento } from '@/services/atendimentos'
 import { listarClientes } from '@/services/clientes'
@@ -213,7 +214,7 @@ export default function DashboardPage() {
       setReclamacoes((prev) => prev.map((r) => (r.id === recSelecionada.id ? atualizada : r)))
       setModalResolverAberto(false)
       toast({
-        title: 'Reclamação resolvida!',
+        title: 'Ocorrência resolvida!',
         description: 'Desfecho gravado com sucesso.',
       })
     } catch (err) {
@@ -336,7 +337,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Minhas Reclamações */}
+            {/* Minhas Ocorrências */}
             <div className="bg-white rounded-2xl p-5 border border-[#A8C3A0]/30 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[#5E6E64]">
@@ -598,7 +599,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4">
-              {/* Indicador 1: Resolução de Reclamações */}
+              {/* Indicador 1: Resolução de Ocorrências */}
               <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/25">
                 <div className="px-2.5 py-1.5 rounded-lg bg-[#EAF2E8] border border-[#A8C3A0]/40 text-[#2F6B4F] text-xs font-bold font-mono shrink-0">
                   {taxaResolucaoReclamacoes}%
@@ -700,16 +701,14 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {reclamacoesAbertas.slice(0, 4).map((rec) => {
-                    const isAtrasada = rec.prazo_resolucao < hoje
-                    const isCritica =
-                      rec.gravidade === 'Alta' || rec.gravidade === 'Urgente' || isAtrasada
+                    const isAtrasada = Boolean(rec.prazo_resolucao && rec.prazo_resolucao < hoje)
 
                     return (
                       <div
                         key={rec.id}
                         className={`p-3.5 rounded-2xl border text-xs space-y-2 ${
                           isAtrasada
-                            ? 'bg-rose-50/40 border-rose-200'
+                            ? 'bg-rose-50/30 border-rose-200'
                             : 'bg-[#F7FAF5] border-[#A8C3A0]/30'
                         }`}
                       >
@@ -719,25 +718,13 @@ export default function DashboardPage() {
                               <span className="font-semibold text-sm text-[#1D2B25]">
                                 {rec.cliente_nome}
                               </span>
-                              <span
-                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                                  rec.gravidade === 'Urgente'
-                                    ? 'bg-rose-50 text-rose-800 border border-rose-200 font-bold'
-                                    : rec.gravidade === 'Alta'
-                                      ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                                      : 'bg-slate-100 text-slate-700 border border-slate-200'
-                                }`}
-                              >
-                                {rec.gravidade}
-                              </span>
-                              {isAtrasada && (
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
-                                  Vencida
-                                </span>
-                              )}
+                              <BadgeEstadoOcorrencia ocorrencia={rec} />
                             </div>
                             <p className="text-[11px] text-[#5E6E64] mt-0.5">
-                              {rec.loja} • Resp: {rec.responsavel} • Prazo: {rec.prazo_resolucao}
+                              {rec.loja} • Resp: {rec.responsavel} • Prazo:{' '}
+                              <span className={isAtrasada ? 'text-rose-800 font-semibold' : ''}>
+                                {rec.prazo_resolucao}
+                              </span>
                             </p>
                           </div>
                           <button
