@@ -161,15 +161,8 @@ export type ColunaKanban =
 
 export type PrioridadeKanban = 'Baixa' | 'Média' | 'Alta' | 'Urgente'
 
-export type GravidadeOcorrencia =
-  | 'baixa'
-  | 'media'
-  | 'alta'
-  | 'urgente'
-  | 'Baixa'
-  | 'Média'
-  | 'Alta'
-  | 'Urgente'
+export type GravidadeReclamacao = 'Baixa' | 'Média' | 'Alta' | 'Urgente'
+export type GravidadeOcorrencia = GravidadeReclamacao
 
 export interface ItemChecklist {
   id: string
@@ -309,7 +302,6 @@ export type CategoriaReclamacao =
   | 'Troca/devolução'
   | 'Cobrança'
   | 'Outro'
-export type GravidadeReclamacao = 'Baixa' | 'Média' | 'Alta' | 'Urgente'
 export type StatusReclamacao = 'Aberta' | 'Em tratamento' | 'Resolvida'
 
 export interface ConfiguracaoSla extends RecordModel {
