@@ -236,31 +236,9 @@ export default function DashboardPage() {
       {/* Topo Limpo e Arejado */}
       <div className="bg-white rounded-[24px] p-6 border border-[#A8C3A0]/30 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`text-[11px] font-medium px-2.5 py-0.5 rounded-md ${
-                userInfo.isAtendente
-                  ? 'bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/40'
-                  : 'bg-[#2F6B4F] text-white'
-              }`}
-            >
-              {userInfo.isAtendente ? 'Painel do Atendente' : 'Painel de Gestão'}
-            </span>
-            <span className="text-xs text-[#5E6E64] font-medium">
-              {userInfo.isAtendente ? userInfo.loja : 'Visão Geral das 7 Lojas'}
-            </span>
-          </div>
-
-          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight mt-1">
-            {userInfo.isAtendente
-              ? `Olá, ${userInfo.name.split(' ')[0]} — O que temos para hoje`
-              : 'Painel Consolidado de Atendimento'}
+          <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight">
+            {userInfo.isAtendente ? 'Painel de Atendimento - CRM' : 'Painel de Gestão - CRM'}
           </h1>
-          <p className="text-xs sm:text-sm text-[#5E6E64] mt-0.5">
-            {userInfo.isAtendente
-              ? `Foco exclusivo na sua rotina em ${userInfo.loja || 'sua unidade'}: follow-ups do dia, tarefas e clientes.`
-              : 'Indicadores de satisfação, volume da rede, metas de resolução e ocorrências das 7 lojas.'}
-          </p>
         </div>
 
         {/* Seletor de Loja (exibido apenas para o Gestor) */}
