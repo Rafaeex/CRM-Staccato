@@ -111,6 +111,8 @@ export default function ReclamacoesPage() {
   const [salvando, setSalvando] = useState(false)
   const [reclamacaoSelecionada, setReclamacaoSelecionada] = useState<Reclamacao | null>(null)
   const [modalDetalheAberto, setModalDetalheAberto] = useState(false)
+  const [casoParaResolver, setCasoParaResolver] = useState<Reclamacao | null>(null)
+  const [modalResolverAberto, setModalResolverAberto] = useState(false)
   const [mapaSlaDias, setMapaSlaDias] =
     useState<Record<GravidadeReclamacao, number>>(SLA_PADRAO_DIAS_UTEIS)
 
@@ -300,26 +302,34 @@ export default function ReclamacoesPage() {
     }
   }
 
-  const handleResolverReclamacao = async (reclamacao: Reclamacao) => {
+  const handleAbrirModalResolver = (reclamacao: Reclamacao) => {
+    setCasoParaResolver(reclamacao)
+    setModalResolverAberto(true)
+  }
+
+  const handleConfirmarResolucao = async (desfecho: string) => {
+    if (!casoParaResolver) return
+    const id = casoParaResolver.id
     try {
-      const atualizada = await resolverReclamacao(
-        reclamacao.id,
-        reclamacao.resolucao_desfecho || 'Ocorrência atendida e finalizada com sucesso.',
-      )
-      setReclamacoes((prev) => prev.map((r) => (r.id === reclamacao.id ? atualizada : r)))
-      if (reclamacaoSelecionada?.id === reclamacao.id) {
+      const atualizada = await resolverReclamacao(id, desfecho)
+      setReclamacoes((prev) => prev.map((r) => (r.id === id ? atualizada : r)))
+      if (reclamacaoSelecionada?.id === id) {
         setReclamacaoSelecionada(atualizada)
       }
       toast({
         title: 'Ocorrência resolvida!',
-        description: `Ocorrência de ${reclamacao.cliente_nome} marcada como resolvida.`,
+        description: `Desfecho registrado e caso movido para RESOLVIDO.`,
       })
     } catch (err) {
       console.error('Erro ao resolver:', err)
       toast({
         title: 'Erro ao resolver ocorrência',
+        description: err instanceof Error ? err.message : 'Tente novamente.',
         variant: 'destructive',
       })
+      throw err
+    } finally {
+      setCasoParaResolver(null)
     }
   }
 
@@ -946,7 +956,7 @@ export default function ReclamacoesPage() {
                   </button>
                   {isAberta && (
                     <button
-                      onClick={() => handleResolverReclamacao(r)}
+                      onClick={() => handleAbrirModalResolver(r)}
                       className="px-3 py-1.5 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-xs font-semibold text-white shadow-xs flex items-center gap-1"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#A8C3A0]" />
@@ -1129,14 +1139,15 @@ export default function ReclamacoesPage() {
                 )}
 
                 <div className="flex items-center gap-2">
-                  {reclamacaoSelecionada.status !== 'Resolvida' && (
-                    <button
-                      onClick={() => handleResolverReclamacao(reclamacaoSelecionada)}
-                      className="px-4 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold"
-                    >
-                      Marcar como Resolvida
-                    </button>
-                  )}
+                  {reclamacaoSelecionada.status !== 'Resolvida' &&
+                    reclamacaoSelecionada.status !== 'resolvida' && (
+                      <button
+                        onClick={() => handleAbrirModalResolver(reclamacaoSelecionada)}
+                        className="px-4 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold"
+                      >
+                        Resolver Ocorrência
+                      </button>
+                    )}
                   <button
                     onClick={() => setModalDetalheAberto(false)}
                     className="px-4 py-2 rounded-xl bg-[#F7FAF5] text-xs font-semibold text-[#5E6E64]"
@@ -1155,6 +1166,15 @@ export default function ReclamacoesPage() {
         open={modalSlaAberto}
         onOpenChange={setModalSlaAberto}
         onSalvo={carregarDados}
+      />
+
+      {/* Modal Resolver Caso com Desfecho Obrigatório */}
+      <ModalResolverCaso
+        open={modalResolverAberto}
+        onOpenChange={setModalResolverAberto}
+        codigoCaso={casoParaResolver?.codigo}
+        tituloCaso={casoParaResolver?.cliente_nome || casoParaResolver?.descricao}
+        onConfirmar={handleConfirmarResolucao}
       />
     </div>
   )

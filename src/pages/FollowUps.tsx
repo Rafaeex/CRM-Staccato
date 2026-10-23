@@ -23,10 +23,19 @@ import {
   gerarLinkWhatsApp,
 } from '@/services/followUps'
 import { listarClientes } from '@/services/clientes'
+import { listarReclamacoes } from '@/services/reclamacoes'
 import { gerarFollowUpComIA } from '@/services/iaFollowUp'
 import { contarQuebrasEmAbertoPorCliente, listarQuebrasBoem } from '@/services/quebrasBoem'
 import { getUsuarioAtualInfo } from '@/services/permissoes'
-import type { FollowUp, FollowUpInput, Cliente, CanalFollowUp, UrgenciaFollowUp } from '@/types/crm'
+import type {
+  FollowUp,
+  FollowUpInput,
+  Cliente,
+  CanalFollowUp,
+  UrgenciaFollowUp,
+  Reclamacao,
+  SetorDestino,
+} from '@/types/crm'
 import { FileWarning } from 'lucide-react'
 import { LOJAS } from '@/data/boutiqueData'
 import { useToast } from '@/hooks/use-toast'
@@ -64,10 +73,13 @@ export default function FollowUpsPage() {
   const [resumoIACompleto, setResumoIACompleto] = useState<string | null>(null)
   const [quebrasClienteModal, setQuebrasClienteModal] = useState<number>(0)
   const [clientesComQuebrasAbertas, setClientesComQuebrasAbertas] = useState<Set<string>>(new Set())
+  const [ocorrencias, setOcorrencias] = useState<Reclamacao[]>([])
 
   const hoje = new Date().toISOString().split('T')[0]
 
   const [form, setForm] = useState<FollowUpInput>({
+    caso: '',
+    setor_destino: 'sac',
     cliente: '',
     cliente_nome: '',
     cliente_telefone: '',
@@ -87,13 +99,15 @@ export default function FollowUpsPage() {
   const carregarDados = async () => {
     setLoading(true)
     try {
-      const [fList, cList, qList] = await Promise.all([
+      const [fList, cList, qList, rList] = await Promise.all([
         listarFollowUps(),
         listarClientes(),
         listarQuebrasBoem('status != "Resolvida"'),
+        listarReclamacoes('status != "resolvida" && status != "cancelada"'),
       ])
       setFollowUps(fList)
       setClientes(cList)
+      setOcorrencias(rList)
 
       // Clientes que possuem quebras em aberto
       const setIds = new Set<string>()
@@ -307,6 +321,58 @@ export default function FollowUpsPage() {
             </DialogHeader>
 
             <form onSubmit={handleCriar} className="space-y-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                    Vincular a Caso (Ocorrência)
+                  </label>
+                  <select
+                    value={form.caso}
+                    onChange={(e) => {
+                      const casoId = e.target.value
+                      setForm((prev) => ({ ...prev, caso: casoId }))
+                      if (casoId) {
+                        const rec = ocorrencias.find((r) => r.id === casoId)
+                        if (rec && rec.cliente) {
+                          handleClienteChange(rec.cliente)
+                        }
+                      }
+                    }}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                  >
+                    <option value="">Sem caso específico (geral)</option>
+                    {ocorrencias.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.codigo ? `${r.codigo} — ` : ''}
+                        {r.cliente_nome || 'Cliente'} ({r.lista_quadro || r.status})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                    Setor Destino *
+                  </label>
+                  <select
+                    value={form.setor_destino}
+                    onChange={(e) =>
+                      setForm({ ...form, setor_destino: e.target.value as SetorDestino })
+                    }
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs font-semibold text-[#2F6B4F] focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                  >
+                    <option value="sac">SAC</option>
+                    <option value="loja">Loja</option>
+                    <option value="logistica">Logística</option>
+                    <option value="financeiro">Financeiro</option>
+                    <option value="compras">Compras</option>
+                    <option value="diretoria">Diretoria</option>
+                    <option value="fornecedor">Fornecedor</option>
+                    <option value="cliente">Cliente</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
                   Cliente Vinculado *

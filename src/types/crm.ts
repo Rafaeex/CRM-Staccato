@@ -77,8 +77,20 @@ export type StatusFollowUp = 'Pendente' | 'Concluído' | 'Cancelado'
 
 export type UrgenciaFollowUp = 'Baixa' | 'Média' | 'Alta'
 
+export type SetorDestino =
+  | 'sac'
+  | 'loja'
+  | 'logistica'
+  | 'financeiro'
+  | 'compras'
+  | 'diretoria'
+  | 'fornecedor'
+  | 'cliente'
+
 export interface FollowUp extends RecordModel {
   id: string
+  caso?: string
+  setor_destino?: SetorDestino | string
   cliente: string
   cliente_nome: string
   cliente_telefone: string
@@ -99,12 +111,17 @@ export interface FollowUp extends RecordModel {
   proximos_passos?: string
   created: string
   updated: string
+  expand?: {
+    caso?: Reclamacao
+  }
 }
 
 export interface FollowUpInput {
+  caso?: string
+  setor_destino?: SetorDestino | string
   cliente: string
-  cliente_nome: string
-  cliente_telefone: string
+  cliente_nome?: string
+  cliente_telefone?: string
   loja: string
   responsavel: string
   canal: CanalFollowUp
@@ -123,7 +140,7 @@ export interface FollowUpInput {
 }
 
 // 9 colunas padrão do esteira SAC espelhadas do Trello real
-export type ColunaKanban =
+export type ColunaSac =
   | 'NOVOS'
   | 'EM TRATAMENTO'
   | 'RETORNO DA LOJA'
@@ -133,13 +150,26 @@ export type ColunaKanban =
   | 'AT'
   | 'COLETA/ENTREGA'
   | 'RESOLVIDO'
-  // Suporte a compatibilidade temporária de tipos
+
+export type ColunaKanban =
+  | ColunaSac
   | 'A fazer'
   | 'Fazendo hoje'
   | 'Aguardando cliente'
   | 'Resolvido'
+  | string
 
 export type PrioridadeKanban = 'Baixa' | 'Média' | 'Alta' | 'Urgente'
+
+export type GravidadeOcorrencia =
+  | 'baixa'
+  | 'media'
+  | 'alta'
+  | 'urgente'
+  | 'Baixa'
+  | 'Média'
+  | 'Alta'
+  | 'Urgente'
 
 export interface ItemChecklist {
   id: string
@@ -160,42 +190,9 @@ export interface EtiquetaCartao {
   cor?: string
 }
 
-export interface CartaoKanban extends RecordModel {
-  id: string
-  titulo: string
-  cliente?: string
-  cliente_nome?: string
-  loja: string
-  responsavel: string
-  coluna: ColunaKanban
-  prioridade?: PrioridadeKanban
-  descricao?: string
-  data_limite?: string
-  ordem?: number
-  checklist_json?: string
-  comentarios_json?: string
-  etiquetas_json?: string
-  anexos?: string[]
-  created: string
-  updated: string
-}
-
-export interface CartaoKanbanInput {
-  titulo: string
-  cliente?: string
-  cliente_nome?: string
-  loja: string
-  responsavel: string
-  coluna: ColunaKanban
-  prioridade?: PrioridadeKanban
-  descricao?: string
-  data_limite?: string
-  ordem?: number
-  checklist_json?: string
-  comentarios_json?: string
-  etiquetas_json?: string
-  anexos?: File[]
-}
+// Na Fase 1 Seção B, a ocorrência (Reclamacao) é a entidade única do Kanban
+export type CartaoKanban = Reclamacao
+export type CartaoKanbanInput = ReclamacaoInput
 
 export type RoleUsuario =
   | 'gestor'
@@ -330,61 +327,171 @@ export interface ConfiguracaoSlaInput {
   descricao?: string
 }
 
+export type TipoOcorrencia =
+  | 'devolucao'
+  | 'troca'
+  | 'quebra_entrega'
+  | 'quebra_posterior'
+  | 'falta_item'
+  | 'atraso'
+  | 'AT_fornecedor'
+  | 'tonalidade_lote'
+  | 'erro_especificacao'
+  | 'reembolso'
+  | 'documentacao'
+  | 'outro'
+
+export type AprovacaoNecessaria = 'nenhuma' | 'rafael' | 'diretoria' | 'alexandre'
+
+export interface ProdutoCaso {
+  codigo?: string
+  descricao: string
+  qtd?: number | string
+  unidade?: string
+}
+
+export interface AprovacaoRegistro {
+  decisao: 'aprovado' | 'rejeitado' | 'pendente' | string
+  por: string
+  em: string
+  observacao?: string
+}
+
+export type TipoCasoEvento =
+  | 'comentario'
+  | 'mudanca_lista'
+  | 'mudanca_status'
+  | 'cobranca'
+  | 'aprovacao'
+  | 'anexo'
+  | 'importacao'
+
+export interface CasoEvento extends RecordModel {
+  id: string
+  caso: string
+  tipo: TipoCasoEvento
+  autor?: string
+  autor_nome?: string
+  texto?: string
+  dados?: Record<string, unknown> | null
+  loja_evento?: string
+  created: string
+  updated: string
+  expand?: {
+    autor?: UsuarioCRM
+    caso?: Reclamacao
+  }
+}
+
+export interface CasoEventoInput {
+  caso: string
+  tipo: TipoCasoEvento
+  autor?: string
+  autor_nome?: string
+  texto?: string
+  dados?: Record<string, unknown> | null
+  loja_evento?: string
+}
+
 export interface Reclamacao extends RecordModel {
   id: string
+  codigo?: string
   cliente?: string
   cliente_nome: string
   cliente_telefone?: string
   loja: string
+  pedido_erp?: string
+  tipo?: TipoOcorrencia | string
   canal_origem: CanalReclamacao
   categoria: CategoriaReclamacao
   descricao: string
   gravidade: GravidadeReclamacao
+  vip?: boolean
   responsavel: string
+  responsavel_user?: string
+  prazo_interno?: string
   prazo_resolucao: string
-  status: StatusReclamacao
+  status: StatusReclamacao | string
+  lista_quadro?: ColunaKanban | string
+  pendencia_atual?: string
+  pendencia_setor?: SetorDestino | string
+  pendencia_desde?: string
+  proxima_cobranca?: string
+  aprovacao_necessaria?: AprovacaoNecessaria | string
+  aprovacao_registro?: AprovacaoRegistro | null
+  produto_instalado?: string | boolean
+  produtos?: ProdutoCaso[] | null
+  produtos_envolvidos?: string
+  desfecho?: string
   resolucao_desfecho?: string
+  cliente_comunicado?: boolean
+  cliente_comunicado_em?: string
+  checklist?: ItemChecklist[] | null
+  origem_trello_id?: string
+  origem_trello_url?: string
+  resolvida_por?: string
+  resolvida_em?: string
   data_resolucao?: string
-  // Campos espelhados do modelo SAC do Trello:
   numero_pedido?: string
   contato_tratar_nome?: string
   contato_tratar_telefone?: string
   contato_tratar_email?: string
-  produtos_envolvidos?: string
   status_produto?: string
-  produto_instalado?: string
   solicitacao_desejo?: string
-  lista_quadro?: string
-  origem_trello_id?: string
   anexos?: string[]
   created: string
   updated: string
+  expand?: {
+    cliente?: Cliente
+    responsavel_user?: UsuarioCRM
+    resolvida_por?: UsuarioCRM
+  }
 }
 
 export interface ReclamacaoInput {
+  codigo?: string
   cliente?: string
-  cliente_nome: string
+  cliente_nome?: string
   cliente_telefone?: string
   loja: string
-  canal_origem: CanalReclamacao
-  categoria: CategoriaReclamacao
+  pedido_erp?: string
+  tipo?: TipoOcorrencia | string
+  canal_origem?: CanalReclamacao
+  categoria?: CategoriaReclamacao
   descricao: string
-  gravidade: GravidadeReclamacao
-  responsavel: string
-  prazo_resolucao: string
-  status: StatusReclamacao
+  gravidade?: GravidadeReclamacao
+  vip?: boolean
+  responsavel?: string
+  responsavel_user?: string
+  prazo_interno?: string
+  prazo_resolucao?: string
+  status?: StatusReclamacao | string
+  lista_quadro?: ColunaKanban | string
+  pendencia_atual?: string
+  pendencia_setor?: SetorDestino | string
+  pendencia_desde?: string
+  proxima_cobranca?: string
+  aprovacao_necessaria?: AprovacaoNecessaria | string
+  aprovacao_registro?: AprovacaoRegistro | null
+  produto_instalado?: string | boolean
+  produtos?: ProdutoCaso[] | null
+  produtos_envolvidos?: string
+  desfecho?: string
   resolucao_desfecho?: string
+  cliente_comunicado?: boolean
+  cliente_comunicado_em?: string
+  checklist?: ItemChecklist[] | null
+  origem_trello_id?: string
+  origem_trello_url?: string
+  resolvida_por?: string
+  resolvida_em?: string
   data_resolucao?: string
   numero_pedido?: string
   contato_tratar_nome?: string
   contato_tratar_telefone?: string
   contato_tratar_email?: string
-  produtos_envolvidos?: string
-  status_produto?: string
-  produto_instalado?: string
   solicitacao_desejo?: string
-  lista_quadro?: string
-  origem_trello_id?: string
+  status_produto?: string
   anexos?: File[]
 }
 

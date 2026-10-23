@@ -46,6 +46,7 @@ import type {
   CanalFollowUp,
   CategoriaReclamacao,
   GravidadeReclamacao,
+  SetorDestino,
 } from '@/types/crm'
 import { useToast } from '@/hooks/use-toast'
 import {
@@ -93,6 +94,8 @@ export default function FichaClientePage() {
   const [salvandoFollowUp, setSalvandoFollowUp] = useState(false)
   const [gerandoFollowUpIA, setGerandoFollowUpIA] = useState(false)
   const [novoFollowUp, setNovoFollowUp] = useState<{
+    caso?: string
+    setor_destino?: SetorDestino | string
     responsavel: string
     canal: CanalFollowUp
     data_prevista: string
@@ -103,6 +106,8 @@ export default function FichaClientePage() {
     urgencia: import('@/types/crm').UrgenciaFollowUp
     justificativa_ia: string
   }>({
+    caso: '',
+    setor_destino: 'sac',
     responsavel: 'Consultor Boutique',
     canal: 'WhatsApp',
     data_prevista: new Date().toISOString().split('T')[0],
@@ -179,27 +184,6 @@ export default function FichaClientePage() {
       })
       .catch(console.error)
   }, [id])
-  // Troca de status de atendimento simples
-  const handleMudarStatus = async (novoStatus: StatusCliente) => {
-    if (!cliente) return
-    try {
-      const atualizado = await atualizarCliente(cliente.id, {
-        status_atendimento: novoStatus,
-      })
-      setCliente(atualizado)
-      toast({
-        title: 'Status atualizado',
-        description: `Cliente alterado para "${novoStatus}".`,
-      })
-    } catch (err) {
-      console.error('Falha ao atualizar status:', err)
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível alterar o status de atendimento.',
-        variant: 'destructive',
-      })
-    }
-  }
 
   // Salvar notas
   const handleSalvarNotas = async () => {
@@ -316,6 +300,8 @@ export default function FichaClientePage() {
     setSalvandoFollowUp(true)
     try {
       const fu = await criarFollowUp({
+        caso: novoFollowUp.caso || undefined,
+        setor_destino: novoFollowUp.setor_destino || 'sac',
         cliente: cliente.id,
         cliente_nome: cliente.nome,
         cliente_telefone: cliente.telefone,
@@ -335,6 +321,8 @@ export default function FichaClientePage() {
       setFollowUps((prev) => [fu, ...prev])
       setModalFollowUp(false)
       setNovoFollowUp({
+        caso: '',
+        setor_destino: 'sac',
         responsavel: 'Consultor Boutique',
         canal: 'WhatsApp',
         data_prevista: new Date().toISOString().split('T')[0],
@@ -438,7 +426,29 @@ export default function FichaClientePage() {
     )
   }
 
-  const statusAtual = cliente.status_atendimento || cliente.etapa_funil || 'Novo'
+  // B7: Resumo calculado de casos (nº abertos, nº aguardando terceiro, nº vencidos)
+  const hojeIso = new Date().toISOString().split('T')[0]
+  const casosAbertos = reclamacoes.filter((r) => {
+    const st = (r.status || '').toLowerCase()
+    return st !== 'resolvida' && st !== 'cancelada'
+  })
+  const totalCasosAbertos = casosAbertos.length
+  const totalAguardandoTerceiro = casosAbertos.filter((r) => {
+    const st = (r.status || '').toLowerCase()
+    const lq = (r.lista_quadro || '').toUpperCase()
+    return (
+      st === 'aguardando_terceiro' ||
+      lq === 'RETORNO DA LOJA' ||
+      lq === 'ANALISE DIRETORIA' ||
+      lq === 'AT' ||
+      lq === 'COMPRAS' ||
+      lq === 'A PAGAR'
+    )
+  }).length
+  const totalCasosVencidos = casosAbertos.filter((r) => {
+    const prazo = r.prazo_interno || r.prazo_resolucao
+    return Boolean(prazo && prazo < hojeIso)
+  }).length
 
   const waLink = gerarLinkWhatsApp(
     cliente.telefone,
@@ -498,19 +508,6 @@ export default function FichaClientePage() {
               <h1 className="font-semibold text-2xl sm:text-3xl text-[#1D2B25] tracking-tight">
                 {cliente.nome}
               </h1>
-              <span
-                className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                  statusAtual === 'Atendimento concluído'
-                    ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                    : statusAtual === 'Aguardando cliente'
-                      ? 'bg-stone-100 text-stone-700 border border-stone-200'
-                      : statusAtual === 'Em atendimento'
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                        : 'bg-slate-100 text-slate-700 border border-slate-200'
-                }`}
-              >
-                {statusAtual}
-              </span>
             </div>
 
             <p className="text-xs sm:text-sm text-[#5E6E64] flex items-center gap-2 mt-1">
@@ -738,6 +735,52 @@ export default function FichaClientePage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                        Vincular ao Caso (Ocorrência)
+                      </label>
+                      <select
+                        value={novoFollowUp.caso}
+                        onChange={(e) => setNovoFollowUp({ ...novoFollowUp, caso: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
+                      >
+                        <option value="">Sem vínculo com caso (geral)</option>
+                        {reclamacoes.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.codigo ? `${r.codigo} — ` : ''}
+                            {r.categoria} ({r.lista_quadro || r.status})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                        Setor Destino *
+                      </label>
+                      <select
+                        value={novoFollowUp.setor_destino}
+                        onChange={(e) =>
+                          setNovoFollowUp({
+                            ...novoFollowUp,
+                            setor_destino: e.target.value as SetorDestino,
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs font-semibold text-[#2F6B4F]"
+                      >
+                        <option value="sac">SAC</option>
+                        <option value="loja">Loja</option>
+                        <option value="logistica">Logística</option>
+                        <option value="financeiro">Financeiro</option>
+                        <option value="compras">Compras</option>
+                        <option value="diretoria">Diretoria</option>
+                        <option value="fornecedor">Fornecedor</option>
+                        <option value="cliente">Cliente</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
                         Canal
                       </label>
                       <select
@@ -958,29 +1001,63 @@ export default function FichaClientePage() {
           </div>
         </div>
 
-        {/* Status de Atendimento (sem conotação de venda) */}
+        {/* B7: Resumo calculado de casos (substituindo o status operacional único) */}
         <div className="space-y-2">
           <p className="text-[11px] uppercase font-bold tracking-wider text-[#5E6E64]">
-            Status Atual do Atendimento:
+            Situação Operacional das Ocorrências (Calculado):
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {STATUS_CLIENTE_LIST.map((st) => {
-              const ativo = statusAtual === st
-              return (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => handleMudarStatus(st)}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all text-center border ${
-                    ativo
-                      ? 'bg-[#2F6B4F] text-white border-[#2F6B4F] shadow-sm'
-                      : 'bg-[#F7FAF5] text-[#5E6E64] border-[#A8C3A0]/30 hover:bg-[#EAF2E8] hover:text-[#1D2B25]'
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3.5 rounded-2xl bg-[#F7FAF5] border border-[#A8C3A0]/30 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-[#5E6E64] block">
+                  Casos em Aberto
+                </span>
+                <span className="text-xl font-bold text-[#1D2B25] font-mono">
+                  {totalCasosAbertos}
+                </span>
+              </div>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold">
+                {totalCasosAbertos === 0 ? 'Regular' : 'Ativo'}
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#F7FAF5] border border-[#A8C3A0]/30 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-[#5E6E64] block">
+                  Aguardando Terceiro
+                </span>
+                <span className="text-xl font-bold text-amber-700 font-mono">
+                  {totalAguardandoTerceiro}
+                </span>
+              </div>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
+                Loja / Fornecedor
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#F7FAF5] border border-[#A8C3A0]/30 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-[#5E6E64] block">
+                  Casos Vencidos
+                </span>
+                <span
+                  className={`text-xl font-bold font-mono ${
+                    totalCasosVencidos > 0 ? 'text-rose-700' : 'text-[#2F6B4F]'
                   }`}
                 >
-                  {st}
-                </button>
-              )
-            })}
+                  {totalCasosVencidos}
+                </span>
+              </div>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${
+                  totalCasosVencidos > 0
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : 'bg-emerald-50 text-[#2F6B4F] border-emerald-200'
+                }`}
+              >
+                {totalCasosVencidos > 0 ? 'Atenção' : 'No prazo'}
+              </span>
+            </div>
           </div>
         </div>
 

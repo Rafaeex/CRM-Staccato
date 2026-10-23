@@ -1,135 +1,145 @@
 import pb from '@/lib/pocketbase/client'
-import type { CartaoKanban, CartaoKanbanInput, ColunaKanban } from '@/types/crm'
+import type { CartaoKanban, CartaoKanbanInput, ColunaSac } from '@/types/crm'
+import {
+  listarReclamacoes,
+  criarReclamacao,
+  atualizarReclamacao,
+  resolverReclamacao,
+  excluirReclamacao,
+} from './reclamacoes'
+import { criarCasoEvento } from './casoEventos'
 
-/**
- * Lista todos os cartões do Kanban com ordenação por ordem e criação
- */
-export async function listarCartoesKanban(filtro?: string): Promise<CartaoKanban[]> {
+// As 9 colunas oficiais do SAC (nomes exatos, sem acento em ANALISE)
+export const COLUNAS_KANBAN: ColunaSac[] = [
+  'NOVOS',
+  'EM TRATAMENTO',
+  'RETORNO DA LOJA',
+  'ANALISE DIRETORIA',
+  'A PAGAR',
+  'COMPRAS',
+  'AT',
+  'COLETA/ENTREGA',
+  'RESOLVIDO',
+]
+
+export const CORES_COLUNAS: Record<ColunaSac, string> = {
+  NOVOS: 'bg-slate-500/10 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200',
+  'EM TRATAMENTO':
+    'bg-blue-500/10 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
+  'RETORNO DA LOJA':
+    'bg-amber-500/10 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
+  'ANALISE DIRETORIA':
+    'bg-purple-500/10 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300',
+  'A PAGAR':
+    'bg-orange-500/10 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300',
+  COMPRAS:
+    'bg-indigo-500/10 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300',
+  AT: 'bg-rose-500/10 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
+  'COLETA/ENTREGA':
+    'bg-cyan-500/10 text-cyan-700 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300',
+  RESOLVIDO:
+    'bg-emerald-500/10 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
+}
+
+// B1: O Kanban passa a renderizar exclusivamente 'reclamacoes' agrupadas por 'lista_quadro'
+export async function listarCartoesKanban(lojaFiltro?: string): Promise<CartaoKanban[]> {
+  return await getCartoesKanban(lojaFiltro)
+}
+
+export async function getCartoesKanban(lojaFiltro?: string): Promise<CartaoKanban[]> {
   try {
-    const records = await pb.collection('kanban_cartoes').getFullList<CartaoKanban>({
-      filter: filtro || '',
-      sort: 'ordem,created',
+    let filtro = ''
+    if (lojaFiltro && lojaFiltro !== 'todas') {
+      filtro = `loja = "${lojaFiltro}"`
+    }
+    const ocorrencias = await listarReclamacoes(filtro, 'created')
+
+    // Atribuir valores padrão se necessário
+    return ocorrencias.map((rec) => {
+      // Normalizar lista_quadro
+      let coluna = rec.lista_quadro as ColunaSac
+      if (!coluna || !COLUNAS_KANBAN.includes(coluna)) {
+        if (rec.status === 'resolvida' || rec.status === 'Resolvida') {
+          coluna = 'RESOLVIDO'
+        } else if (rec.status === 'em_tratamento' || rec.status === 'Em tratamento') {
+          coluna = 'EM TRATAMENTO'
+        } else {
+          coluna = 'NOVOS'
+        }
+      }
+      return {
+        ...rec,
+        lista_quadro: coluna,
+      }
     })
-    return records
-  } catch (err) {
-    console.error('Erro ao listar cartões Kanban:', err)
+  } catch (error) {
+    console.error('Erro ao buscar ocorrências no kanban:', error)
     return []
   }
 }
 
-/**
- * Cria um novo cartão no Kanban, opcionalmente com anexos (FormData)
- */
 export async function criarCartaoKanban(dados: CartaoKanbanInput): Promise<CartaoKanban> {
-  if (dados.anexos && dados.anexos.length > 0) {
-    const formData = new FormData()
-    formData.append('titulo', dados.titulo)
-    if (dados.cliente) formData.append('cliente', dados.cliente)
-    if (dados.cliente_nome) formData.append('cliente_nome', dados.cliente_nome)
-    formData.append('loja', dados.loja)
-    formData.append('responsavel', dados.responsavel)
-    formData.append('coluna', dados.coluna)
-    if (dados.prioridade) formData.append('prioridade', dados.prioridade)
-    if (dados.descricao) formData.append('descricao', dados.descricao)
-    if (dados.data_limite) formData.append('data_limite', dados.data_limite)
-    if (dados.ordem !== undefined) formData.append('ordem', String(dados.ordem))
-    if (dados.checklist_json) formData.append('checklist_json', dados.checklist_json)
-
-    for (const file of dados.anexos) {
-      formData.append('anexos', file)
-    }
-
-    const record = await pb.collection('kanban_cartoes').create<CartaoKanban>(formData)
-    return record
-  }
-
-  const payload: Record<string, unknown> = {
-    titulo: dados.titulo,
-    cliente: dados.cliente || '',
-    cliente_nome: dados.cliente_nome || '',
-    loja: dados.loja,
-    responsavel: dados.responsavel,
-    coluna: dados.coluna,
-    prioridade: dados.prioridade || 'Média',
-    descricao: dados.descricao || '',
-    data_limite: dados.data_limite || '',
-    ordem: dados.ordem ?? 0,
-    checklist_json: dados.checklist_json || '[]',
-    comentarios_json: dados.comentarios_json || '[]',
-    etiquetas_json: dados.etiquetas_json || '[]',
-  }
-  const record = await pb.collection('kanban_cartoes').create<CartaoKanban>(payload)
-  return record
+  return await criarReclamacao({
+    ...dados,
+    descricao: dados.descricao || 'Ocorrência registrada no Kanban',
+    lista_quadro: dados.lista_quadro || 'NOVOS',
+    status: dados.status || 'aberta',
+  })
 }
 
-/**
- * Atualiza um cartão existente (inclusive coluna ao arrastar)
- */
+export async function moverCartaoKanban(
+  cartaoId: string,
+  novaColuna: ColunaSac,
+  desfechoSeResolvido?: string,
+): Promise<CartaoKanban> {
+  // Se for mover para RESOLVIDO, exige desfecho
+  if (novaColuna === 'RESOLVIDO') {
+    if (!desfechoSeResolvido || !desfechoSeResolvido.trim()) {
+      throw new Error('O preenchimento do desfecho é obrigatório para mover para RESOLVIDO.')
+    }
+    return await resolverReclamacao(cartaoId, desfechoSeResolvido.trim())
+  }
+
+  // Se estiver saindo de RESOLVIDO para outra coluna, volta para status em_tratamento
+  const statusDestino = novaColuna === 'NOVOS' ? 'aberta' : 'em_tratamento'
+
+  return await atualizarReclamacao(
+    cartaoId,
+    {
+      lista_quadro: novaColuna,
+      status: statusDestino,
+    },
+    {
+      tipo: 'mudanca_lista',
+      texto: `Cartão movido para a coluna "${novaColuna}".`,
+    },
+  )
+}
+
 export async function atualizarCartaoKanban(
-  id: string,
-  dados: Partial<CartaoKanbanInput> & { anexosNovos?: File[] },
+  cartaoId: string,
+  dados: Partial<CartaoKanbanInput>,
 ): Promise<CartaoKanban> {
-  if (dados.anexosNovos && dados.anexosNovos.length > 0) {
-    const formData = new FormData()
-    if (dados.titulo !== undefined) formData.append('titulo', dados.titulo)
-    if (dados.coluna !== undefined) formData.append('coluna', dados.coluna)
-    if (dados.prioridade !== undefined) formData.append('prioridade', dados.prioridade)
-    if (dados.descricao !== undefined) formData.append('descricao', dados.descricao)
-    if (dados.data_limite !== undefined) formData.append('data_limite', dados.data_limite)
-    if (dados.ordem !== undefined) formData.append('ordem', String(dados.ordem))
-    if (dados.checklist_json !== undefined) formData.append('checklist_json', dados.checklist_json)
-    if (dados.comentarios_json !== undefined)
-      formData.append('comentarios_json', dados.comentarios_json)
-    if (dados.etiquetas_json !== undefined) formData.append('etiquetas_json', dados.etiquetas_json)
-    if (dados.responsavel !== undefined) formData.append('responsavel', dados.responsavel)
-    if (dados.loja !== undefined) formData.append('loja', dados.loja)
-    if (dados.cliente !== undefined) formData.append('cliente', dados.cliente)
-    if (dados.cliente_nome !== undefined) formData.append('cliente_nome', dados.cliente_nome)
-
-    for (const file of dados.anexosNovos) {
-      formData.append('anexos', file)
-    }
-
-    const record = await pb.collection('kanban_cartoes').update<CartaoKanban>(id, formData)
-    return record
-  }
-
-  const record = await pb.collection('kanban_cartoes').update<CartaoKanban>(id, dados)
-  return record
+  return await atualizarReclamacao(cartaoId, dados)
 }
 
-/**
- * Atualiza a coluna de um cartão (ação de drag and drop)
- */
-export async function moverCartaoColuna(
-  id: string,
-  novaColuna: ColunaKanban,
-  novaOrdem?: number,
-): Promise<CartaoKanban> {
-  const payload: { coluna: ColunaKanban; ordem?: number } = { coluna: novaColuna }
-  if (novaOrdem !== undefined) {
-    payload.ordem = novaOrdem
-  }
-  const record = await pb.collection('kanban_cartoes').update<CartaoKanban>(id, payload)
-  return record
+export async function excluirCartaoKanban(cartaoId: string): Promise<boolean> {
+  return await excluirReclamacao(cartaoId)
 }
 
-/**
- * Exclui um cartão do Kanban
- */
-export async function excluirCartaoKanban(id: string): Promise<boolean> {
-  try {
-    await pb.collection('kanban_cartoes').delete(id)
-    return true
-  } catch (err) {
-    console.error('Erro ao excluir cartão Kanban:', err)
-    return false
-  }
+export async function adicionarComentario(
+  cartaoId: string,
+  autor: string,
+  texto: string,
+): Promise<void> {
+  await criarCasoEvento({
+    caso: cartaoId,
+    tipo: 'comentario',
+    autor_nome: autor,
+    texto,
+  })
 }
 
-/**
- * Helper para obter URL completa de download de um anexo do cartão
- */
 export function getUrlAnexo(cartao: CartaoKanban, fileName: string): string {
   return pb.files.getURL(cartao, fileName)
 }

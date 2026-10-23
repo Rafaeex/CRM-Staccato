@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-23T10:34:20.258Z",
+  "generatedAt": "2026-10-23T12:07:34.248Z",
   "collections": [
     {
       "name": "users",
@@ -560,6 +560,29 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "caso",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "reclamacoes"
+        },
+        {
+          "name": "setor_destino",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "sac",
+            "loja",
+            "logistica",
+            "financeiro",
+            "compras",
+            "diretoria",
+            "fornecedor",
+            "cliente"
+          ]
         }
       ],
       "indexes": [
@@ -637,7 +660,7 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["Baixa", "Média", "Alta", "Urgente"]
+          "selectValues": ["baixa", "media", "alta", "urgente", "Baixa", "Média", "Alta", "Urgente"]
         },
         {
           "name": "responsavel",
@@ -656,7 +679,17 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["Aberta", "Em tratamento", "Resolvida"]
+          "selectValues": [
+            "aberta",
+            "em_tratamento",
+            "aguardando_terceiro",
+            "aguardando_aprovacao",
+            "resolvida",
+            "cancelada",
+            "Aberta",
+            "Em tratamento",
+            "Resolvida"
+          ]
         },
         {
           "name": "resolucao_desfecho",
@@ -749,6 +782,153 @@
           "type": "file",
           "required": false,
           "system": false
+        },
+        {
+          "name": "codigo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "pedido_erp",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tipo",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "devolucao",
+            "troca",
+            "quebra_entrega",
+            "quebra_posterior",
+            "falta_item",
+            "atraso",
+            "AT_fornecedor",
+            "tonalidade_lote",
+            "erro_especificacao",
+            "reembolso",
+            "documentacao",
+            "outro"
+          ]
+        },
+        {
+          "name": "vip",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "responsavel_user",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "pendencia_atual",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "pendencia_setor",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "sac",
+            "loja",
+            "logistica",
+            "financeiro",
+            "compras",
+            "diretoria",
+            "fornecedor",
+            "cliente"
+          ]
+        },
+        {
+          "name": "pendencia_desde",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "proxima_cobranca",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "aprovacao_necessaria",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["nenhuma", "rafael", "diretoria", "alexandre"]
+        },
+        {
+          "name": "aprovacao_registro",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prazo_interno",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "produtos",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "desfecho",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cliente_comunicado",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cliente_comunicado_em",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "checklist",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "origem_trello_url",
+          "type": "url",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "resolvida_por",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "resolvida_em",
+          "type": "date",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -762,14 +942,14 @@
       ]
     },
     {
-      "name": "kanban_cartoes",
+      "name": "_kanban_cartoes_legado",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
-        "view": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
-        "create": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = @request.body.loja)",
-        "update": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = loja)",
-        "delete": "@request.auth.role = \"gestor\""
+        "list": null,
+        "view": null,
+        "create": null,
+        "update": null,
+        "delete": null
       },
       "fields": [
         {
@@ -889,10 +1069,10 @@
         }
       ],
       "indexes": [
-        "CREATE INDEX idx_kanban_coluna ON kanban_cartoes (coluna)",
-        "CREATE INDEX idx_kanban_loja ON kanban_cartoes (loja)",
-        "CREATE INDEX idx_kanban_responsavel ON kanban_cartoes (responsavel)",
-        "CREATE INDEX idx_kanban_cliente ON kanban_cartoes (cliente)"
+        "CREATE INDEX `idx_kanban_coluna` ON `_kanban_cartoes_legado` (`coluna`)",
+        "CREATE INDEX `idx_kanban_loja` ON `_kanban_cartoes_legado` (`loja`)",
+        "CREATE INDEX `idx_kanban_responsavel` ON `_kanban_cartoes_legado` (`responsavel`)",
+        "CREATE INDEX `idx_kanban_cliente` ON `_kanban_cartoes_legado` (`cliente`)"
       ]
     },
     {
@@ -1174,6 +1354,91 @@
         }
       ],
       "indexes": ["CREATE UNIQUE INDEX idx_config_sla_gravidade ON configuracoes_sla (gravidade)"]
+    },
+    {
+      "name": "caso_eventos",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = caso.loja)",
+        "view": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = caso.loja)",
+        "create": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = @request.body.loja_evento || @request.auth.loja = caso.loja)",
+        "update": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\")",
+        "delete": "@request.auth.role = \"gestor\""
+      },
+      "fields": [
+        {
+          "name": "caso",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "reclamacoes"
+        },
+        {
+          "name": "tipo",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "comentario",
+            "mudanca_lista",
+            "mudanca_status",
+            "cobranca",
+            "aprovacao",
+            "anexo",
+            "importacao"
+          ]
+        },
+        {
+          "name": "autor",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "autor_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "texto",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dados",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "loja_evento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_caso_eventos_caso ON caso_eventos (caso)",
+        "CREATE INDEX idx_caso_eventos_tipo ON caso_eventos (tipo)",
+        "CREATE INDEX idx_caso_eventos_created ON caso_eventos (created)"
+      ]
     }
   ]
 }

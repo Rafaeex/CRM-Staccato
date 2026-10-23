@@ -17,31 +17,35 @@ import {
   FileText,
   Download,
   Send,
-  Clock,
-  Layers,
+  AlertCircle,
+  RotateCcw,
+  CheckCircle2,
 } from 'lucide-react'
 import {
-  listarCartoesKanban,
-  criarCartaoKanban,
+  getCartoesKanban,
+  moverCartaoKanban,
   atualizarCartaoKanban,
-  moverCartaoColuna,
   excluirCartaoKanban,
+  adicionarComentario,
   getUrlAnexo,
+  COLUNAS_KANBAN,
 } from '@/services/kanban'
+import { criarReclamacao, reabrirReclamacao, cancelarReclamacao } from '@/services/reclamacoes'
+import { listarEventosPorCaso } from '@/services/casoEventos'
 import { listarClientes } from '@/services/clientes'
 import { getUsuarioAtualInfo } from '@/services/permissoes'
-import { COLUNAS_PADRAO_SAC } from '@/services/trelloListas'
 import type {
   CartaoKanban,
-  CartaoKanbanInput,
-  ColunaKanban,
-  PrioridadeKanban,
+  ColunaSac,
   Cliente,
   ItemChecklist,
-  ComentarioCartao,
+  CasoEvento,
+  TipoOcorrencia,
+  GravidadeOcorrencia,
 } from '@/types/crm'
 import { LOJAS } from '@/data/boutiqueData'
 import { useToast } from '@/hooks/use-toast'
+import { ModalResolverCaso } from '@/components/ModalResolverCaso'
 import {
   Dialog,
   DialogContent,
@@ -50,9 +54,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-// 9 Colunas Padrão da esteira SAC do Trello real "SAC GABR (ALINE)"
 export const COLUNAS_SAC_CONFIG: {
-  id: ColunaKanban
+  id: ColunaSac
   label: string
   descricao: string
 }[] = [
@@ -84,54 +87,54 @@ export default function QuadroPage() {
   const [filtroLoja, setFiltroLoja] = useState<string>(
     userInfo.isAtendente && userInfo.loja ? userInfo.loja : 'todas',
   )
-  const [filtroPrioridade, setFiltroPrioridade] = useState<string>('todas')
+  const [filtroGravidade, setFiltroGravidade] = useState<string>('todas')
 
   // Drag state
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null)
-  const [dragOverCol, setDragOverCol] = useState<ColunaKanban | null>(null)
+  const [dragOverCol, setDragOverCol] = useState<ColunaSac | null>(null)
 
-  // Modal Novo Cartão
+  // Modal Resolver Caso (exigência B4)
+  const [casoParaResolver, setCasoParaResolver] = useState<CartaoKanban | null>(null)
+  const [modalResolverAberto, setModalResolverAberto] = useState(false)
+
+  // Modal Novo Caso / Ocorrência
   const [modalNovoAberto, setModalNovoAberto] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [formNovo, setFormNovo] = useState<{
-    titulo: string
+    codigo: string
     cliente: string
     loja: string
-    responsavel: string
-    coluna: ColunaKanban
-    prioridade: PrioridadeKanban
+    tipo: TipoOcorrencia
+    gravidade: GravidadeOcorrencia
     descricao: string
-    data_limite: string
+    coluna: ColunaSac
+    prazo_interno: string
     checklistTexto: string
-    anexos: File[]
   }>({
-    titulo: '',
+    codigo: '',
     cliente: '',
     loja: userInfo.loja || LOJAS[0].nome,
-    responsavel: userInfo.name,
-    coluna: 'NOVOS',
-    prioridade: 'Média',
+    tipo: 'outro',
+    gravidade: 'media',
     descricao: '',
-    data_limite: new Date().toISOString().split('T')[0],
+    coluna: 'NOVOS',
+    prazo_interno: new Date().toISOString().split('T')[0],
     checklistTexto: '',
-    anexos: [],
   })
 
-  // Modal Detalhes / Edição de Cartão
+  // Modal Detalhes / Edição de Ocorrência
   const [cartaoDetalhe, setCartaoDetalhe] = useState<CartaoKanban | null>(null)
   const [modalDetalheAberto, setModalDetalheAberto] = useState(false)
-  const [salvandoDetalhe, setSalvandoDetalhe] = useState(false)
+  const [eventosCaso, setEventosCaso] = useState<CasoEvento[]>([])
+  const [carregandoEventos, setCarregandoEventos] = useState(false)
   const [novoItemChecklist, setNovoItemChecklist] = useState('')
-  const [novosAnexos, setNovosAnexos] = useState<File[]>([])
   const [novoComentarioTexto, setNovoComentarioTexto] = useState('')
-  const [abaModal, setAbaModal] = useState<'geral' | 'checklist' | 'anexos' | 'comentarios'>(
-    'geral',
-  )
+  const [abaModal, setAbaModal] = useState<'geral' | 'checklist' | 'eventos' | 'anexos'>('geral')
 
   const carregarDados = async () => {
     setLoading(true)
     try {
-      const [cList, cliList] = await Promise.all([listarCartoesKanban(), listarClientes()])
+      const [cList, cliList] = await Promise.all([getCartoesKanban(filtroLoja), listarClientes()])
       setCartoes(cList)
       setClientes(cliList)
     } catch (err) {
@@ -148,7 +151,7 @@ export default function QuadroPage() {
 
   useEffect(() => {
     carregarDados()
-  }, [])
+  }, [filtroLoja])
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -157,7 +160,7 @@ export default function QuadroPage() {
     e.dataTransfer.effectAllowed = 'move'
   }
 
-  const handleDragOver = (e: React.DragEvent, col: ColunaKanban) => {
+  const handleDragOver = (e: React.DragEvent, col: ColunaSac) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
     if (dragOverCol !== col) {
@@ -169,30 +172,41 @@ export default function QuadroPage() {
     setDragOverCol(null)
   }
 
-  const handleDrop = async (e: React.DragEvent, destinoColuna: ColunaKanban) => {
+  const handleDrop = async (e: React.DragEvent, destinoColuna: ColunaSac) => {
     e.preventDefault()
     setDragOverCol(null)
     const cardId = draggedCardId || e.dataTransfer.getData('text/plain')
     if (!cardId) return
 
     const card = cartoes.find((c) => c.id === cardId)
-    if (!card || card.coluna === destinoColuna) return
+    if (!card || card.lista_quadro === destinoColuna) return
+
+    // B4: Mover para RESOLVIDO exige desfecho preenchido e confirmação em modal
+    if (destinoColuna === 'RESOLVIDO') {
+      setCasoParaResolver(card)
+      setModalResolverAberto(true)
+      setDraggedCardId(null)
+      return
+    }
 
     // Atualização otimista
     const anterior = [...cartoes]
-    setCartoes((prev) => prev.map((c) => (c.id === cardId ? { ...c, coluna: destinoColuna } : c)))
+    setCartoes((prev) =>
+      prev.map((c) => (c.id === cardId ? { ...c, lista_quadro: destinoColuna } : c)),
+    )
 
     try {
-      await moverCartaoColuna(cardId, destinoColuna)
+      const atualizado = await moverCartaoKanban(cardId, destinoColuna)
+      setCartoes((prev) => prev.map((c) => (c.id === cardId ? atualizado : c)))
       toast({
-        title: 'Cartão movido',
-        description: `"${card.titulo}" agora está em "${destinoColuna}".`,
+        title: 'Ocorrência movida',
+        description: `Transferida para "${destinoColuna}".`,
       })
     } catch (err) {
       console.error('Erro ao mover cartão:', err)
       setCartoes(anterior)
       toast({
-        title: 'Erro ao mover cartão',
+        title: 'Erro ao mover ocorrência',
         description: 'Não foi possível salvar a alteração.',
         variant: 'destructive',
       })
@@ -201,13 +215,58 @@ export default function QuadroPage() {
     }
   }
 
-  // Criar cartão
+  // Resolução com confirmação de modal
+  const handleConfirmarResolucao = async (desfecho: string) => {
+    if (!casoParaResolver) return
+    const cardId = casoParaResolver.id
+
+    const anterior = [...cartoes]
+    setCartoes((prev) =>
+      prev.map((c) =>
+        c.id === cardId ? { ...c, lista_quadro: 'RESOLVIDO', status: 'resolvida', desfecho } : c,
+      ),
+    )
+
+    try {
+      const atualizado = await moverCartaoKanban(cardId, 'RESOLVIDO', desfecho)
+      setCartoes((prev) => prev.map((c) => (c.id === cardId ? atualizado : c)))
+      if (cartaoDetalhe?.id === cardId) {
+        setCartaoDetalhe(atualizado)
+        carregarEventos(cardId)
+      }
+      toast({
+        title: 'Ocorrência resolvida com sucesso',
+        description: `Desfecho registrado e movida para RESOLVIDO.`,
+      })
+    } catch (err) {
+      console.error(err)
+      setCartoes(anterior)
+      toast({
+        title: 'Falha ao resolver ocorrência',
+        description: err instanceof Error ? err.message : 'Tente novamente.',
+        variant: 'destructive',
+      })
+      throw err
+    } finally {
+      setCasoParaResolver(null)
+    }
+  }
+
+  // Criar ocorrência
   const handleCriarCartao = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formNovo.titulo.trim()) {
+    if (!formNovo.cliente) {
       toast({
-        title: 'Título obrigatório',
-        description: 'Informe o título do cartão.',
+        title: 'Cliente obrigatório',
+        description: 'Selecione o cliente da ocorrência.',
+        variant: 'destructive',
+      })
+      return
+    }
+    if (!formNovo.descricao.trim()) {
+      toast({
+        title: 'Descrição obrigatória',
+        description: 'Informe os detalhes da ocorrência.',
         variant: 'destructive',
       })
       return
@@ -222,45 +281,43 @@ export default function QuadroPage() {
         .filter(Boolean)
         .map((texto, i) => ({ id: String(i + 1), texto, concluido: false }))
 
-      const input: CartaoKanbanInput = {
-        titulo: formNovo.titulo.trim(),
-        cliente: formNovo.cliente || undefined,
+      const criada = await criarReclamacao({
+        codigo: formNovo.codigo.trim() || undefined,
+        cliente: formNovo.cliente,
         cliente_nome: cliSel ? cliSel.nome : undefined,
+        cliente_telefone: cliSel ? cliSel.telefone : undefined,
         loja: formNovo.loja,
-        responsavel: formNovo.responsavel,
-        coluna: formNovo.coluna,
-        prioridade: formNovo.prioridade,
-        descricao: formNovo.descricao,
-        data_limite: formNovo.data_limite,
-        checklist_json: JSON.stringify(checklistItems),
-        comentarios_json: '[]',
-        anexos: formNovo.anexos,
-      }
+        tipo: formNovo.tipo,
+        gravidade: formNovo.gravidade,
+        descricao: formNovo.descricao.trim(),
+        lista_quadro: formNovo.coluna,
+        status: formNovo.coluna === 'RESOLVIDO' ? 'resolvida' : 'aberta',
+        prazo_interno: formNovo.prazo_interno,
+        checklist: checklistItems,
+      })
 
-      const criado = await criarCartaoKanban(input)
-      setCartoes((prev) => [criado, ...prev])
+      setCartoes((prev) => [criada, ...prev])
       setModalNovoAberto(false)
       setFormNovo({
-        titulo: '',
+        codigo: '',
         cliente: '',
         loja: userInfo.loja || LOJAS[0].nome,
-        responsavel: userInfo.name,
-        coluna: 'NOVOS',
-        prioridade: 'Média',
+        tipo: 'outro',
+        gravidade: 'media',
         descricao: '',
-        data_limite: new Date().toISOString().split('T')[0],
+        coluna: 'NOVOS',
+        prazo_interno: new Date().toISOString().split('T')[0],
         checklistTexto: '',
-        anexos: [],
       })
 
       toast({
-        title: 'Cartão criado no Quadro',
-        description: `"${criado.titulo}" adicionado em "${criado.coluna}".`,
+        title: 'Ocorrência criada',
+        description: `Registrada na coluna "${criada.lista_quadro}".`,
       })
     } catch (err) {
-      console.error('Erro ao criar cartão:', err)
+      console.error('Erro ao criar ocorrência:', err)
       toast({
-        title: 'Falha ao criar cartão',
+        title: 'Falha ao criar ocorrência',
         description: 'Verifique os dados preenchidos.',
         variant: 'destructive',
       })
@@ -269,35 +326,47 @@ export default function QuadroPage() {
     }
   }
 
-  // Abrir detalhes do cartão
+  // Carregar eventos de auditoria do caso
+  const carregarEventos = async (casoId: string) => {
+    setCarregandoEventos(true)
+    try {
+      const lista = await listarEventosPorCaso(casoId)
+      setEventosCaso(lista)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setCarregandoEventos(false)
+    }
+  }
+
+  // Abrir detalhes da ocorrência
   const handleAbrirDetalhes = (c: CartaoKanban) => {
     setCartaoDetalhe(c)
-    setNovosAnexos([])
     setNovoItemChecklist('')
     setNovoComentarioTexto('')
     setAbaModal('geral')
     setModalDetalheAberto(true)
+    carregarEventos(c.id)
   }
 
-  // Toggle checklist item
+  // Toggle checklist
   const handleToggleChecklist = async (itemId: string) => {
     if (!cartaoDetalhe) return
-    const itens: ItemChecklist[] = cartaoDetalhe.checklist_json
-      ? JSON.parse(cartaoDetalhe.checklist_json)
+    const itens: ItemChecklist[] = Array.isArray(cartaoDetalhe.checklist)
+      ? [...cartaoDetalhe.checklist]
       : []
 
     const atualizados = itens.map((item) =>
       item.id === itemId ? { ...item, concluido: !item.concluido } : item,
     )
 
-    const jsonStr = JSON.stringify(atualizados)
-    setCartaoDetalhe({ ...cartaoDetalhe, checklist_json: jsonStr })
+    setCartaoDetalhe({ ...cartaoDetalhe, checklist: atualizados })
     setCartoes((prev) =>
-      prev.map((c) => (c.id === cartaoDetalhe.id ? { ...c, checklist_json: jsonStr } : c)),
+      prev.map((c) => (c.id === cartaoDetalhe.id ? { ...c, checklist: atualizados } : c)),
     )
 
     try {
-      await atualizarCartaoKanban(cartaoDetalhe.id, { checklist_json: jsonStr })
+      await atualizarCartaoKanban(cartaoDetalhe.id, { checklist: atualizados })
     } catch (err) {
       console.error(err)
     }
@@ -306,8 +375,8 @@ export default function QuadroPage() {
   // Adicionar item checklist
   const handleAdicionarItemChecklist = async () => {
     if (!cartaoDetalhe || !novoItemChecklist.trim()) return
-    const itens: ItemChecklist[] = cartaoDetalhe.checklist_json
-      ? JSON.parse(cartaoDetalhe.checklist_json)
+    const itens: ItemChecklist[] = Array.isArray(cartaoDetalhe.checklist)
+      ? [...cartaoDetalhe.checklist]
       : []
 
     const novo: ItemChecklist = {
@@ -316,118 +385,115 @@ export default function QuadroPage() {
       concluido: false,
     }
     const atualizados = [...itens, novo]
-    const jsonStr = JSON.stringify(atualizados)
 
-    setCartaoDetalhe({ ...cartaoDetalhe, checklist_json: jsonStr })
+    setCartaoDetalhe({ ...cartaoDetalhe, checklist: atualizados })
     setCartoes((prev) =>
-      prev.map((c) => (c.id === cartaoDetalhe.id ? { ...c, checklist_json: jsonStr } : c)),
+      prev.map((c) => (c.id === cartaoDetalhe.id ? { ...c, checklist: atualizados } : c)),
     )
     setNovoItemChecklist('')
 
     try {
-      await atualizarCartaoKanban(cartaoDetalhe.id, { checklist_json: jsonStr })
+      await atualizarCartaoKanban(cartaoDetalhe.id, { checklist: atualizados })
     } catch (err) {
       console.error(err)
     }
   }
 
-  // Adicionar comentário no cartão
+  // Adicionar comentário/evento
   const handleAdicionarComentario = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     if (!cartaoDetalhe || !novoComentarioTexto.trim()) return
 
-    const comentarios: ComentarioCartao[] = cartaoDetalhe.comentarios_json
-      ? JSON.parse(cartaoDetalhe.comentarios_json)
-      : []
-
-    const novo: ComentarioCartao = {
-      id: String(Date.now()),
-      autor: userInfo.name || 'Atendente',
-      texto: novoComentarioTexto.trim(),
-      data: new Date().toISOString(),
-    }
-
-    const atualizados = [novo, ...comentarios]
-    const jsonStr = JSON.stringify(atualizados)
-
-    setCartaoDetalhe({ ...cartaoDetalhe, comentarios_json: jsonStr })
-    setCartoes((prev) =>
-      prev.map((c) => (c.id === cartaoDetalhe.id ? { ...c, comentarios_json: jsonStr } : c)),
-    )
+    const texto = novoComentarioTexto.trim()
     setNovoComentarioTexto('')
 
     try {
-      await atualizarCartaoKanban(cartaoDetalhe.id, { comentarios_json: jsonStr })
+      await adicionarComentario(cartaoDetalhe.id, userInfo.name || 'Atendente', texto)
+      await carregarEventos(cartaoDetalhe.id)
       toast({
-        title: 'Comentário adicionado',
-        description: 'Registro salvo no cartão.',
+        title: 'Registro adicionado',
+        description: 'Evento gravado no histórico da ocorrência.',
       })
     } catch (err) {
       console.error('Erro ao adicionar comentário:', err)
       toast({
-        title: 'Falha ao salvar comentário',
+        title: 'Falha ao salvar evento',
         variant: 'destructive',
       })
     }
   }
 
-  // Upload de novos anexos no cartão
-  const handleUploadNovosAnexos = async () => {
-    if (!cartaoDetalhe || novosAnexos.length === 0) return
-    setSalvandoDetalhe(true)
-    try {
-      const atualizado = await atualizarCartaoKanban(cartaoDetalhe.id, {
-        anexosNovos: novosAnexos,
-      })
-      setCartaoDetalhe(atualizado)
-      setCartoes((prev) => prev.map((c) => (c.id === atualizado.id ? atualizado : c)))
-      setNovosAnexos([])
-      toast({
-        title: 'Anexos salvos',
-        description: 'Arquivos adicionados com sucesso ao cartão.',
-      })
-    } catch (err) {
-      console.error('Erro ao enviar anexos:', err)
-      toast({
-        title: 'Falha no upload',
-        description: 'Tente novamente.',
-        variant: 'destructive',
-      })
-    } finally {
-      setSalvandoDetalhe(false)
-    }
-  }
+  // Reabrir caso (B4: permitido para gestor/sac)
+  const handleReabrir = async () => {
+    if (!cartaoDetalhe) return
+    const motivo = prompt('Informe o motivo da reabertura desta ocorrência:')
+    if (!motivo || !motivo.trim()) return
 
-  // Alterar coluna direto no modal de detalhes
-  const handleMoverColunaModal = async (novaColuna: ColunaKanban) => {
-    if (!cartaoDetalhe || cartaoDetalhe.coluna === novaColuna) return
     try {
-      const atualizado = await moverCartaoColuna(cartaoDetalhe.id, novaColuna)
+      const atualizado = await reabrirReclamacao(cartaoDetalhe.id, motivo.trim())
       setCartaoDetalhe(atualizado)
       setCartoes((prev) => prev.map((c) => (c.id === atualizado.id ? atualizado : c)))
+      await carregarEventos(atualizado.id)
       toast({
-        title: 'Coluna alterada',
-        description: `Cartão transferido para "${novaColuna}".`,
+        title: 'Ocorrência reaberta',
+        description: 'Status alterado para em tratamento.',
       })
     } catch (err) {
       console.error(err)
       toast({
-        title: 'Erro ao transferir coluna',
+        title: 'Erro ao reabrir ocorrência',
         variant: 'destructive',
       })
     }
   }
 
-  // Excluir cartão
+  // Cancelar caso (B4: preferindo cancelamento a apagar)
+  const handleCancelarCaso = async () => {
+    if (!cartaoDetalhe) return
+    const motivo = prompt('Informe o motivo do cancelamento da ocorrência:')
+    if (!motivo || !motivo.trim()) return
+
+    try {
+      const atualizado = await cancelarReclamacao(cartaoDetalhe.id, motivo.trim())
+      setCartaoDetalhe(atualizado)
+      setCartoes((prev) => prev.map((c) => (c.id === atualizado.id ? atualizado : c)))
+      await carregarEventos(atualizado.id)
+      toast({
+        title: 'Ocorrência cancelada',
+        description: 'Status atualizado para cancelada.',
+      })
+    } catch (err) {
+      console.error(err)
+      toast({
+        title: 'Erro ao cancelar ocorrência',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  // Excluir ocorrência (B4: botão Excluir visível apenas para gestor)
   const handleExcluirCartao = async (id: string) => {
-    if (!confirm('Deseja realmente excluir este cartão do quadro?')) return
+    if (!userInfo.isGestor) {
+      toast({
+        title: 'Ação restrita',
+        description: 'Apenas gestores podem excluir ocorrências.',
+        variant: 'destructive',
+      })
+      return
+    }
+    if (
+      !confirm(
+        'ATENÇÃO: Recomenda-se cancelar a ocorrência em vez de apagá-la. Deseja realmente excluir permanentemente?',
+      )
+    )
+      return
     const sucesso = await excluirCartaoKanban(id)
     if (sucesso) {
       setCartoes((prev) => prev.filter((c) => c.id !== id))
       setModalDetalheAberto(false)
       toast({
-        title: 'Cartão removido',
-        description: 'Cartão excluído com sucesso.',
+        title: 'Ocorrência excluída',
+        description: 'Registro removido permanentemente.',
       })
     }
   }
@@ -445,61 +511,39 @@ export default function QuadroPage() {
         }
       }
 
-      if (filtroPrioridade !== 'todas' && c.prioridade !== filtroPrioridade) {
-        return false
+      if (filtroGravidade !== 'todas') {
+        const grav = (c.gravidade || '').toLowerCase()
+        if (grav !== filtroGravidade.toLowerCase()) return false
       }
 
       if (busca) {
         const b = busca.toLowerCase()
-        const matchTitulo = c.titulo.toLowerCase().includes(b)
+        const matchCodigo = (c.codigo || '').toLowerCase().includes(b)
         const matchCli = (c.cliente_nome || '').toLowerCase().includes(b)
         const matchDesc = (c.descricao || '').toLowerCase().includes(b)
-        const matchResp = c.responsavel.toLowerCase().includes(b)
-        if (!matchTitulo && !matchCli && !matchDesc && !matchResp) return false
+        const matchResp = (c.responsavel || '').toLowerCase().includes(b)
+        if (!matchCodigo && !matchCli && !matchDesc && !matchResp) return false
       }
 
       return true
     })
-  }, [cartoes, userInfo, filtroLoja, filtroPrioridade, busca])
+  }, [cartoes, userInfo, filtroLoja, filtroGravidade, busca])
 
   // Métricas compactas calculadas
   const totalCartoes = cartoesFiltrados.length
-  const totalResolvidos = cartoesFiltrados.filter((c) => c.coluna === 'RESOLVIDO').length
+  const totalResolvidos = cartoesFiltrados.filter((c) => c.lista_quadro === 'RESOLVIDO').length
   const taxaConclusao = totalCartoes > 0 ? Math.round((totalResolvidos / totalCartoes) * 100) : 0
 
-  const totalComAnexos = cartoesFiltrados.filter(
-    (c) => Array.isArray(c.anexos) && c.anexos.length > 0,
-  ).length
-
   const urgentesOuAltos = cartoesFiltrados.filter(
-    (c) => c.coluna !== 'RESOLVIDO' && (c.prioridade === 'Urgente' || c.prioridade === 'Alta'),
+    (c) =>
+      c.lista_quadro !== 'RESOLVIDO' &&
+      ((c.gravidade || '').toLowerCase() === 'urgente' ||
+        (c.gravidade || '').toLowerCase() === 'alta'),
   ).length
-
-  // Helper de parse seguro para comentários
-  const getComentarios = (card: CartaoKanban): ComentarioCartao[] => {
-    if (!card.comentarios_json) return []
-    try {
-      const parsed = JSON.parse(card.comentarios_json)
-      return Array.isArray(parsed) ? parsed : []
-    } catch {
-      return []
-    }
-  }
-
-  // Helper de parse seguro para checklist
-  const getChecklist = (card: CartaoKanban): ItemChecklist[] => {
-    if (!card.checklist_json) return []
-    try {
-      const parsed = JSON.parse(card.checklist_json)
-      return Array.isArray(parsed) ? parsed : []
-    } catch {
-      return []
-    }
-  }
 
   return (
     <div className="space-y-4">
-      {/* Topo Limpo, Sóbrio e Arejado com Indicadores Estáticos Simples */}
+      {/* Topo Sóbrio */}
       <div className="bg-white rounded-2xl p-5 border border-[#A8C3A0]/30 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[#2F6B4F] flex items-center gap-1.5">
@@ -507,17 +551,16 @@ export default function QuadroPage() {
             Quadro Operacional de Atendimento (SAC)
           </span>
           <h1 className="font-semibold text-2xl text-[#1D2B25] tracking-tight mt-0.5">
-            Quadro SAC — 9 Colunas Trello
+            Quadro de Ocorrências — 9 Colunas
           </h1>
           <p className="text-xs text-[#5E6E64] mt-0.5">
-            Estrutura espelhada do Trello real (SAC GABR ALINE) com contagem nas colunas e badges
-            nos cartões.
+            Visualização unificada de ocorrências com fluxo de resolução, desfecho obrigatório e
+            auditoria por eventos.
           </p>
         </div>
 
-        {/* Indicadores estáticos simples */}
+        {/* Indicadores estáticos sóbrios */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {/* Indicador 1: Taxa de Resolução */}
           <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30">
             <span className="px-2 py-0.5 rounded-md bg-[#EAF2E8] border border-[#A8C3A0]/40 text-xs font-bold text-[#2F6B4F] font-mono">
               {taxaConclusao}%
@@ -532,12 +575,11 @@ export default function QuadroPage() {
             </div>
           </div>
 
-          {/* Indicador 2: Prioridade Crítica */}
           <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30">
             <span
               className={`px-2 py-0.5 rounded-md text-xs font-bold font-mono ${
                 urgentesOuAltos > 0
-                  ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                  ? 'bg-rose-100 text-rose-800 border border-rose-200'
                   : 'bg-slate-100 text-slate-700 border border-slate-200'
               }`}
             >
@@ -552,62 +594,49 @@ export default function QuadroPage() {
               </span>
             </div>
           </div>
-
-          {/* Indicador 3: Com Anexos */}
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30">
-            <span className="px-2 py-0.5 rounded-md bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/40 text-xs font-bold font-mono">
-              {totalComAnexos}
-            </span>
-            <div className="flex flex-col leading-tight">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5E6E64]">
-                Com Anexos
-              </span>
-              <span className="text-xs font-medium text-[#5E6E64]">{totalComAnexos} cartões</span>
-            </div>
-          </div>
         </div>
 
-        {/* Botão Novo Cartão */}
+        {/* Botão Nova Ocorrência */}
         <Dialog open={modalNovoAberto} onOpenChange={setModalNovoAberto}>
           <DialogTrigger asChild>
             <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors">
               <Plus className="w-4 h-4 text-[#A8C3A0]" />
-              <span>Novo Cartão</span>
+              <span>Nova Ocorrência</span>
             </button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle className="font-semibold text-xl text-[#1D2B25]">
-                Novo Cartão no Quadro SAC
+                Nova Ocorrência (SAC)
               </DialogTitle>
             </DialogHeader>
 
             <form onSubmit={handleCriarCartao} className="space-y-4 pt-2">
-              <div>
-                <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                  Título do Cartão (ou Nº Pedido) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formNovo.titulo}
-                  onChange={(e) => setFormNovo({ ...formNovo, titulo: e.target.value })}
-                  placeholder="Ex.: GABR-260599 ou Enviar reposição de peça"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
-                />
-              </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Cliente Vinculado
+                    Código do Caso
+                  </label>
+                  <input
+                    type="text"
+                    value={formNovo.codigo}
+                    onChange={(e) => setFormNovo({ ...formNovo, codigo: e.target.value })}
+                    placeholder="Ex.: VIOL-100050 (ou auto)"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                    Cliente *
                   </label>
                   <select
+                    required
                     value={formNovo.cliente}
                     onChange={(e) => setFormNovo({ ...formNovo, cliente: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
                   >
-                    <option value="">Nenhum / Geral</option>
+                    <option value="">Selecione o cliente...</option>
                     {clientes.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.nome} ({c.loja_origem})
@@ -615,15 +644,64 @@ export default function QuadroPage() {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                    Tipo
+                  </label>
+                  <select
+                    value={formNovo.tipo}
+                    onChange={(e) =>
+                      setFormNovo({ ...formNovo, tipo: e.target.value as TipoOcorrencia })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
+                  >
+                    <option value="devolucao">Devolução</option>
+                    <option value="troca">Troca</option>
+                    <option value="quebra_entrega">Quebra entrega</option>
+                    <option value="quebra_posterior">Quebra posterior</option>
+                    <option value="falta_item">Falta item</option>
+                    <option value="atraso">Atraso</option>
+                    <option value="AT_fornecedor">AT fornecedor</option>
+                    <option value="tonalidade_lote">Tonalidade/lote</option>
+                    <option value="erro_especificacao">Erro especificação</option>
+                    <option value="reembolso">Reembolso</option>
+                    <option value="documentacao">Documentação</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Coluna Inicial (9 Colunas SAC)
+                    Gravidade
+                  </label>
+                  <select
+                    value={formNovo.gravidade}
+                    onChange={(e) =>
+                      setFormNovo({
+                        ...formNovo,
+                        gravidade: e.target.value as GravidadeOcorrencia,
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
+                  >
+                    <option value="baixa">Baixa</option>
+                    <option value="media">Média</option>
+                    <option value="alta">Alta</option>
+                    <option value="urgente">Urgente</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
+                    Coluna Inicial
                   </label>
                   <select
                     value={formNovo.coluna}
                     onChange={(e) =>
-                      setFormNovo({ ...formNovo, coluna: e.target.value as ColunaKanban })
+                      setFormNovo({ ...formNovo, coluna: e.target.value as ColunaSac })
                     }
                     className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs font-semibold text-[#2F6B4F]"
                   >
@@ -636,109 +714,31 @@ export default function QuadroPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Prioridade
-                  </label>
-                  <select
-                    value={formNovo.prioridade}
-                    onChange={(e) =>
-                      setFormNovo({
-                        ...formNovo,
-                        prioridade: e.target.value as PrioridadeKanban,
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
-                  >
-                    <option value="Baixa">Baixa</option>
-                    <option value="Média">Média</option>
-                    <option value="Alta">Alta</option>
-                    <option value="Urgente">Urgente</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Loja
-                  </label>
-                  <select
-                    value={formNovo.loja}
-                    disabled={userInfo.isAtendente && Boolean(userInfo.loja)}
-                    onChange={(e) => setFormNovo({ ...formNovo, loja: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs disabled:opacity-75"
-                  >
-                    {LOJAS.map((l) => (
-                      <option key={l.id} value={l.nome}>
-                        {l.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                    Data Limite
-                  </label>
-                  <input
-                    type="date"
-                    value={formNovo.data_limite}
-                    onChange={(e) => setFormNovo({ ...formNovo, data_limite: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                  Descrição / Contexto
+                  Descrição da Ocorrência *
                 </label>
                 <textarea
-                  rows={2}
+                  required
+                  rows={3}
                   value={formNovo.descricao}
                   onChange={(e) => setFormNovo({ ...formNovo, descricao: e.target.value })}
-                  placeholder="Orientações do SAC, detalhes da ocorrência, lote de materiais..."
+                  placeholder="Detalhes da manifestação do cliente, peças envolvidas, contexto..."
                   className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#1D2B25] uppercase tracking-wider mb-1">
-                  Itens de Checklist (1 por linha)
+                  Checklist Inicial (1 item por linha)
                 </label>
                 <textarea
                   rows={2}
                   value={formNovo.checklistTexto}
                   onChange={(e) => setFormNovo({ ...formNovo, checklistTexto: e.target.value })}
-                  placeholder="Confirmar avaria com encarregado&#10;Solicitar nota de remessa&#10;Agendar coleta com logística"
+                  placeholder="Confirmar avaria com encarregado&#10;Solicitar corte ao marmorista"
                   className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/50 text-xs font-mono"
                 />
-              </div>
-
-              {/* Anexos de Arquivos */}
-              <div className="p-3 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/40 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#1D2B25] flex items-center gap-1.5">
-                    <Paperclip className="w-3.5 h-3.5 text-[#2F6B4F]" />
-                    <span>Anexar Arquivos (Comprovantes, Fotos, Plantas)</span>
-                  </span>
-                  <span className="text-[10px] text-[#5E6E64]">Máx. 20MB cada</span>
-                </div>
-                <input
-                  type="file"
-                  multiple
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      setFormNovo({ ...formNovo, anexos: Array.from(e.target.files) })
-                    }
-                  }}
-                  className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#2F6B4F] file:text-white hover:file:bg-[#25563F] cursor-pointer"
-                />
-                {formNovo.anexos.length > 0 && (
-                  <p className="text-[11px] text-[#2F6B4F] font-medium">
-                    {formNovo.anexos.length} arquivo(s) selecionado(s)
-                  </p>
-                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-[#EAF2E8]">
@@ -754,7 +754,7 @@ export default function QuadroPage() {
                   disabled={salvando}
                   className="px-5 py-2 rounded-full bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold shadow-xs disabled:opacity-50"
                 >
-                  {salvando ? 'Criando...' : 'Criar Cartão'}
+                  {salvando ? 'Criando...' : 'Abrir Ocorrência'}
                 </button>
               </div>
             </form>
@@ -762,7 +762,7 @@ export default function QuadroPage() {
         </Dialog>
       </div>
 
-      {/* Barra de Filtros Arejada */}
+      {/* Barra de Filtros */}
       <div className="bg-white rounded-2xl p-4 border border-[#A8C3A0]/30 shadow-xs flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 text-[#5E6E64] absolute left-3.5 top-3" />
@@ -770,7 +770,7 @@ export default function QuadroPage() {
             type="text"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar cartão por título, cliente, descrição ou responsável..."
+            placeholder="Buscar por código (LOJA-123456), cliente, descrição ou responsável..."
             className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/40 text-xs sm:text-sm text-[#1D2B25] focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
           />
         </div>
@@ -784,7 +784,7 @@ export default function QuadroPage() {
                 onChange={(e) => setFiltroLoja(e.target.value)}
                 className="bg-transparent text-xs text-[#1D2B25] focus:outline-none cursor-pointer"
               >
-                <option value="todas">Filtrar por loja (todas)</option>
+                <option value="todas">Todas as Unidades</option>
                 {LOJAS.map((l) => (
                   <option key={l.id} value={l.nome}>
                     {l.nome.replace(' (SP)', '')}
@@ -804,41 +804,31 @@ export default function QuadroPage() {
           <div className="flex items-center gap-1.5 bg-[#F7FAF5] border border-[#A8C3A0]/40 rounded-xl px-3 py-2 text-xs">
             <Filter className="w-3.5 h-3.5 text-[#2F6B4F]" />
             <select
-              value={filtroPrioridade}
-              onChange={(e) => setFiltroPrioridade(e.target.value)}
+              value={filtroGravidade}
+              onChange={(e) => setFiltroGravidade(e.target.value)}
               className="bg-transparent text-xs text-[#1D2B25] focus:outline-none cursor-pointer"
             >
-              <option value="todas">Todas as Prioridades</option>
-              <option value="Baixa">Baixa</option>
-              <option value="Média">Média</option>
-              <option value="Alta">Alta</option>
-              <option value="Urgente">Urgente</option>
+              <option value="todas">Todas as Gravidades</option>
+              <option value="baixa">Baixa</option>
+              <option value="media">Média</option>
+              <option value="alta">Alta</option>
+              <option value="urgente">Urgente</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Grid Horizontal Rolável com as 9 Colunas Padrão SAC do Trello */}
+      {/* Grid Horizontal Rolável com as 9 Colunas Oficiais */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3 bg-white rounded-2xl border border-[#A8C3A0]/30">
           <Loader2 className="w-8 h-8 animate-spin text-[#2F6B4F]" />
-          <span className="text-xs font-medium text-[#5E6E64]">Carregando quadro SAC...</span>
+          <span className="text-xs font-medium text-[#5E6E64]">Carregando ocorrências...</span>
         </div>
       ) : (
         <div className="overflow-x-auto pb-4 pt-1">
           <div className="flex items-start gap-3.5 min-w-max">
             {COLUNAS_SAC_CONFIG.map((coluna) => {
-              // Agrupamento com retrocompatibilidade caso exista coluna legada
-              const cardsNaColuna = cartoesFiltrados.filter((c) => {
-                if (c.coluna === coluna.id) return true
-                if (coluna.id === 'NOVOS' && c.coluna === 'A fazer') return true
-                if (coluna.id === 'EM TRATAMENTO' && c.coluna === 'Fazendo hoje') return true
-                if (coluna.id === 'RETORNO DA LOJA' && c.coluna === 'Aguardando cliente')
-                  return true
-                if (coluna.id === 'RESOLVIDO' && c.coluna === 'Resolvido') return true
-                return false
-              })
-
+              const cardsNaColuna = cartoesFiltrados.filter((c) => c.lista_quadro === coluna.id)
               const isOver = dragOverCol === coluna.id
 
               return (
@@ -853,40 +843,38 @@ export default function QuadroPage() {
                       : 'border-[#A8C3A0]/30 hover:border-[#A8C3A0]/60'
                   }`}
                 >
-                  {/* Cabeçalho da Coluna: NOME + CONTAGEM DISCRETA (Ex: "COLETA/ENTREGA 32") */}
+                  {/* Cabeçalho da Coluna: NOME + CONTAGEM DISCRETA */}
                   <div className="flex items-center justify-between pb-2.5 px-1 border-b border-[#A8C3A0]/20">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="font-semibold text-xs text-[#1D2B25] tracking-wide uppercase truncate">
                         {coluna.label}
                       </span>
-                      {/* Contagem discreta no estilo Trello */}
                       <span className="text-xs font-bold text-[#5E6E64] font-mono ml-0.5">
                         {cardsNaColuna.length}
                       </span>
                     </div>
 
                     <span className="text-[10px] text-[#5E6E64]/70 font-medium">
-                      {coluna.id === 'RESOLVIDO' ? 'Fim' : `${cardsNaColuna.length} card(s)`}
+                      {coluna.id === 'RESOLVIDO' ? 'Fim' : `${cardsNaColuna.length} caso(s)`}
                     </span>
                   </div>
 
-                  {/* Lista de Cartões */}
+                  {/* Lista de Ocorrências na Coluna */}
                   <div className="space-y-2.5 pt-2.5 flex-1 overflow-y-auto max-h-[72vh] pr-0.5">
                     {cardsNaColuna.length === 0 ? (
                       <div className="h-28 border border-dashed border-[#A8C3A0]/30 rounded-xl flex items-center justify-center text-[11px] text-[#5E6E64]/70 text-center p-3">
-                        Arraste um cartão para cá
+                        Arraste uma ocorrência para cá
                       </div>
                     ) : (
                       cardsNaColuna.map((card) => {
-                        const checklist = getChecklist(card)
+                        const checklist = Array.isArray(card.checklist) ? card.checklist : []
                         const totalChecklist = checklist.length
                         const concluidosChecklist = checklist.filter((i) => i.concluido).length
                         const totalAnexos = Array.isArray(card.anexos) ? card.anexos.length : 0
-                        const comentarios = getComentarios(card)
-                        const totalComentarios = comentarios.length
 
-                        const checklistConcluido =
-                          totalChecklist > 0 && concluidosChecklist === totalChecklist
+                        const gravLower = (card.gravidade || '').toLowerCase()
+                        const isUrgente = gravLower === 'urgente'
+                        const isAlta = gravLower === 'alta'
 
                         return (
                           <div
@@ -896,18 +884,18 @@ export default function QuadroPage() {
                             onClick={() => handleAbrirDetalhes(card)}
                             className="group bg-white rounded-xl p-3 border border-slate-200 hover:border-[#2F6B4F] shadow-xs hover:shadow-sm transition-all cursor-grab active:cursor-grabbing space-y-2"
                           >
-                            {/* Linha superior: Prioridade e Loja */}
+                            {/* Linha superior: Código / Gravidade e Loja */}
                             <div className="flex items-center justify-between gap-1.5">
                               <span
                                 className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
-                                  card.prioridade === 'Urgente'
+                                  isUrgente
                                     ? 'bg-rose-100 text-rose-800'
-                                    : card.prioridade === 'Alta'
+                                    : isAlta
                                       ? 'bg-amber-100 text-amber-800'
                                       : 'bg-slate-100 text-slate-700'
                                 }`}
                               >
-                                {card.prioridade || 'Média'}
+                                {card.codigo || card.gravidade || 'Caso'}
                               </span>
 
                               <span className="text-[10px] text-[#5E6E64] font-medium truncate max-w-[120px]">
@@ -915,38 +903,24 @@ export default function QuadroPage() {
                               </span>
                             </div>
 
-                            {/* Título do Cartão */}
-                            <h4 className="font-semibold text-xs sm:text-sm text-[#1D2B25] group-hover:text-[#2F6B4F] transition-colors line-clamp-2 leading-snug">
-                              {card.titulo}
-                            </h4>
-
                             {/* Cliente Vinculado */}
-                            {card.cliente_nome && (
-                              <p className="text-[11px] text-[#2F6B4F] font-medium flex items-center gap-1 truncate">
-                                <User className="w-3 h-3 shrink-0" />
-                                <span className="truncate">{card.cliente_nome}</span>
-                              </p>
-                            )}
+                            <p className="text-[11px] text-[#2F6B4F] font-medium flex items-center gap-1 truncate">
+                              <User className="w-3 h-3 shrink-0" />
+                              <span className="truncate">{card.cliente_nome || 'Sem cliente'}</span>
+                            </p>
 
                             {/* Descrição resumida */}
-                            {card.descricao && (
-                              <p className="text-[11px] text-[#5E6E64] line-clamp-2 leading-relaxed">
-                                {card.descricao}
-                              </p>
-                            )}
+                            <p className="text-[11px] text-[#1D2B25] line-clamp-2 leading-relaxed">
+                              {card.descricao}
+                            </p>
 
-                            {/* Rodapé com Badges no estilo Trello (apenas quando existirem) */}
+                            {/* Rodapé com Badges estáticos */}
                             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-[#5E6E64]">
                               <div className="flex items-center gap-2 flex-wrap">
-                                {/* Badge 1: Checklist (Ícone + contagem "feitos/total") */}
                                 {totalChecklist > 0 && (
                                   <span
                                     title={`Checklist: ${concluidosChecklist} de ${totalChecklist} concluídos`}
-                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${
-                                      checklistConcluido
-                                        ? 'bg-[#EAF2E8] text-[#2F6B4F] font-bold'
-                                        : 'bg-slate-100 text-slate-700'
-                                    }`}
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700 font-mono font-medium"
                                   >
                                     <CheckSquare className="w-3 h-3" />
                                     <span>
@@ -955,37 +929,23 @@ export default function QuadroPage() {
                                   </span>
                                 )}
 
-                                {/* Badge 2: Anexos (Ícone de clipe com contador) */}
                                 {totalAnexos > 0 && (
                                   <span
-                                    title={`${totalAnexos} anexo(s) anexado(s)`}
+                                    title={`${totalAnexos} anexo(s)`}
                                     className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700 font-medium"
                                   >
                                     <Paperclip className="w-3 h-3 text-[#5E6E64]" />
                                     <span>{totalAnexos}</span>
                                   </span>
                                 )}
-
-                                {/* Badge 3: Comentários (Ícone de balão com contador) */}
-                                {totalComentarios > 0 && (
-                                  <span
-                                    title={`${totalComentarios} comentário(s)`}
-                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700 font-medium"
-                                  >
-                                    <MessageSquare className="w-3 h-3 text-[#5E6E64]" />
-                                    <span>{totalComentarios}</span>
-                                  </span>
-                                )}
                               </div>
 
-                              {/* Prazo */}
-                              {card.data_limite && (
-                                <span
-                                  title={`Data limite: ${card.data_limite}`}
-                                  className="inline-flex items-center gap-1 text-[10px] text-[#5E6E64]"
-                                >
+                              {card.prazo_interno && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-[#5E6E64]">
                                   <Calendar className="w-3 h-3 text-[#5E6E64]" />
-                                  <span>{card.data_limite.split('-').slice(1).join('/')}</span>
+                                  <span>
+                                    {card.prazo_interno.split('T')[0].split('-').slice(1).join('/')}
+                                  </span>
                                 </span>
                               )}
                             </div>
@@ -1001,43 +961,36 @@ export default function QuadroPage() {
         </div>
       )}
 
-      {/* Modal Detalhes do Cartão (com abas de Checklist, Comentários e Anexos) */}
+      {/* Modal Detalhes do Caso com abas */}
       <Dialog open={modalDetalheAberto} onOpenChange={setModalDetalheAberto}>
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           {cartaoDetalhe && (
             <div className="space-y-4">
               <DialogHeader>
                 <div className="flex items-center justify-between pr-4">
-                  {/* Seletor de Coluna direto no Modal */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-semibold text-[#5E6E64] uppercase tracking-wider">
-                      Coluna:
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-[#2F6B4F] bg-[#EAF2E8] px-2 py-0.5 rounded">
+                      {cartaoDetalhe.codigo || 'CASO'}
                     </span>
-                    <select
-                      value={cartaoDetalhe.coluna}
-                      onChange={(e) => handleMoverColunaModal(e.target.value as ColunaKanban)}
-                      className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-[#EAF2E8] text-[#2F6B4F] border border-[#A8C3A0]/40 focus:outline-none cursor-pointer"
-                    >
-                      {COLUNAS_SAC_CONFIG.map((col) => (
-                        <option key={col.id} value={col.id}>
-                          {col.label}
-                        </option>
-                      ))}
-                    </select>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                      {cartaoDetalhe.lista_quadro}
+                    </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleExcluirCartao(cartaoDetalhe.id)}
-                    className="text-xs text-slate-500 hover:text-rose-600 flex items-center gap-1 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Excluir</span>
-                  </button>
+                  {userInfo.isGestor && (
+                    <button
+                      type="button"
+                      onClick={() => handleExcluirCartao(cartaoDetalhe.id)}
+                      className="text-xs text-slate-500 hover:text-rose-600 flex items-center gap-1 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Excluir</span>
+                    </button>
+                  )}
                 </div>
 
-                <DialogTitle className="font-semibold text-xl text-[#1D2B25] text-left pt-2">
-                  {cartaoDetalhe.titulo}
+                <DialogTitle className="font-semibold text-lg text-[#1D2B25] text-left pt-2">
+                  {cartaoDetalhe.cliente_nome || 'Ocorrência'} — {cartaoDetalhe.loja}
                 </DialogTitle>
               </DialogHeader>
 
@@ -1061,19 +1014,39 @@ export default function QuadroPage() {
                 </div>
 
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[#5E6E64] block">Loja</span>
-                  <span className="font-semibold text-[#1D2B25]">{cartaoDetalhe.loja}</span>
+                  <span className="text-[10px] uppercase font-bold text-[#5E6E64] block">
+                    Status
+                  </span>
+                  <span className="font-semibold text-[#1D2B25]">{cartaoDetalhe.status}</span>
                 </div>
 
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#5E6E64] block">
-                    Responsável
+                    Gravidade
                   </span>
-                  <span className="font-semibold text-[#1D2B25]">{cartaoDetalhe.responsavel}</span>
+                  <span className="font-semibold text-[#1D2B25]">{cartaoDetalhe.gravidade}</span>
                 </div>
               </div>
 
-              {/* Navegação por Abas no Modal */}
+              {/* Desfecho registrado se resolvido */}
+              {cartaoDetalhe.desfecho && (
+                <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                      Desfecho de Resolução:
+                    </span>
+                    {cartaoDetalhe.resolvida_em && (
+                      <span className="text-[10px] text-emerald-700">
+                        {new Date(cartaoDetalhe.resolvida_em).toLocaleDateString('pt-BR')}
+                      </span>
+                    )}
+                  </div>
+                  <p className="whitespace-pre-line">{cartaoDetalhe.desfecho}</p>
+                </div>
+              )}
+
+              {/* Navegação por Abas */}
               <div className="flex border-b border-slate-200 text-xs">
                 <button
                   type="button"
@@ -1096,19 +1069,22 @@ export default function QuadroPage() {
                   }`}
                 >
                   <CheckSquare className="w-3.5 h-3.5" />
-                  <span>Checklist ({getChecklist(cartaoDetalhe).length})</span>
+                  <span>
+                    Checklist (
+                    {Array.isArray(cartaoDetalhe.checklist) ? cartaoDetalhe.checklist.length : 0})
+                  </span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAbaModal('comentarios')}
+                  onClick={() => setAbaModal('eventos')}
                   className={`px-3 py-2 font-semibold border-b-2 flex items-center gap-1.5 transition-colors ${
-                    abaModal === 'comentarios'
+                    abaModal === 'eventos'
                       ? 'border-[#2F6B4F] text-[#2F6B4F]'
                       : 'border-transparent text-[#5E6E64] hover:text-[#1D2B25]'
                   }`}
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Comentários ({getComentarios(cartaoDetalhe).length})</span>
+                  <span>Eventos ({eventosCaso.length})</span>
                 </button>
                 <button
                   type="button"
@@ -1124,51 +1100,69 @@ export default function QuadroPage() {
                 </button>
               </div>
 
-              {/* Conteúdo Aba 1: Geral / Descrição */}
+              {/* Aba 1: Geral */}
               {abaModal === 'geral' && (
                 <div className="space-y-3">
                   <div>
                     <span className="text-xs font-semibold text-[#1D2B25] uppercase tracking-wider block mb-1">
                       Descrição & Orientações
                     </span>
-                    {cartaoDetalhe.descricao ? (
-                      <p className="text-xs text-[#1D2B25] bg-[#F7FAF5] p-3 rounded-xl border border-[#A8C3A0]/30 leading-relaxed whitespace-pre-line">
-                        {cartaoDetalhe.descricao}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-[#5E6E64] italic bg-[#F7FAF5] p-3 rounded-xl border border-[#A8C3A0]/30">
-                        Nenhuma descrição fornecida.
-                      </p>
-                    )}
+                    <p className="text-xs text-[#1D2B25] bg-[#F7FAF5] p-3 rounded-xl border border-[#A8C3A0]/30 leading-relaxed whitespace-pre-line">
+                      {cartaoDetalhe.descricao}
+                    </p>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-[#5E6E64] pt-2 border-t border-slate-100">
-                    <span>
-                      Data Limite:{' '}
-                      <strong className="text-[#1D2B25]">
-                        {cartaoDetalhe.data_limite || 'Não definida'}
-                      </strong>
-                    </span>
-                    <span>
-                      Prioridade:{' '}
-                      <strong className="text-[#1D2B25]">
-                        {cartaoDetalhe.prioridade || 'Média'}
-                      </strong>
-                    </span>
+                  {/* Ações de Transição */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100 flex-wrap">
+                    {cartaoDetalhe.lista_quadro !== 'RESOLVIDO' ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCasoParaResolver(cartaoDetalhe)
+                          setModalResolverAberto(true)
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Resolver Caso</span>
+                      </button>
+                    ) : (
+                      (userInfo.isGestor || userInfo.isSac) && (
+                        <button
+                          type="button"
+                          onClick={handleReabrir}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>Reabrir Ocorrência</span>
+                        </button>
+                      )
+                    )}
+
+                    {cartaoDetalhe.status !== 'cancelada' && (
+                      <button
+                        type="button"
+                        onClick={handleCancelarCaso}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"
+                      >
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>Cancelar Caso</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* Conteúdo Aba 2: Checklist */}
+              {/* Aba 2: Checklist */}
               {abaModal === 'checklist' && (
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    {getChecklist(cartaoDetalhe).length === 0 ? (
+                    {!cartaoDetalhe.checklist || cartaoDetalhe.checklist.length === 0 ? (
                       <p className="text-xs text-[#5E6E64] italic py-2">
-                        Nenhum item de checklist cadastrado para este cartão.
+                        Nenhum item de checklist cadastrado para este caso.
                       </p>
                     ) : (
-                      getChecklist(cartaoDetalhe).map((item) => (
+                      cartaoDetalhe.checklist.map((item) => (
                         <label
                           key={item.id}
                           className="flex items-center gap-2.5 p-2 rounded-lg bg-[#F7FAF5] border border-[#A8C3A0]/20 text-xs cursor-pointer hover:bg-[#EAF2E8]/40"
@@ -1191,7 +1185,6 @@ export default function QuadroPage() {
                     )}
                   </div>
 
-                  {/* Adicionar item ao checklist */}
                   <div className="flex gap-2 pt-2 border-t border-slate-100">
                     <input
                       type="text"
@@ -1217,16 +1210,15 @@ export default function QuadroPage() {
                 </div>
               )}
 
-              {/* Conteúdo Aba 3: Comentários (com Badge refletido no card) */}
-              {abaModal === 'comentarios' && (
+              {/* Aba 3: Eventos do Caso */}
+              {abaModal === 'eventos' && (
                 <div className="space-y-3">
-                  {/* Formulário Novo Comentário */}
                   <form onSubmit={handleAdicionarComentario} className="space-y-2">
                     <textarea
                       rows={2}
                       value={novoComentarioTexto}
                       onChange={(e) => setNovoComentarioTexto(e.target.value)}
-                      placeholder="Escreva um comentário ou atualização sobre esta ocorrência..."
+                      placeholder="Registrar anotação ou atualização técnica deste caso..."
                       className="w-full px-3 py-2 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/40 text-xs text-[#1D2B25] focus:outline-none focus:ring-2 focus:ring-[#2F6B4F]"
                     />
                     <div className="flex justify-end">
@@ -1236,27 +1228,35 @@ export default function QuadroPage() {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2F6B4F] hover:bg-[#25563F] text-white text-xs font-semibold disabled:opacity-40"
                       >
                         <Send className="w-3 h-3" />
-                        <span>Comentar</span>
+                        <span>Adicionar Evento</span>
                       </button>
                     </div>
                   </form>
 
-                  {/* Lista de Comentários */}
                   <div className="space-y-2 pt-2 border-t border-slate-100 max-h-[35vh] overflow-y-auto pr-1">
-                    {getComentarios(cartaoDetalhe).length === 0 ? (
+                    {carregandoEventos ? (
+                      <div className="py-4 text-center text-xs text-[#5E6E64]">
+                        Carregando eventos...
+                      </div>
+                    ) : eventosCaso.length === 0 ? (
                       <p className="text-xs text-[#5E6E64] italic py-2 text-center">
-                        Nenhum comentário registrado ainda. Adicione uma anotação acima.
+                        Nenhum evento registrado ainda.
                       </p>
                     ) : (
-                      getComentarios(cartaoDetalhe).map((com) => (
+                      eventosCaso.map((ev) => (
                         <div
-                          key={com.id}
+                          key={ev.id}
                           className="p-2.5 rounded-xl bg-[#F7FAF5] border border-[#A8C3A0]/30 space-y-1 text-xs"
                         >
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-semibold text-[#1D2B25]">{com.autor}</span>
+                            <span className="font-semibold text-[#1D2B25]">
+                              {ev.autor_nome || ev.expand?.autor?.name || 'Sistema'}
+                              <span className="ml-1.5 text-[9px] uppercase px-1.5 py-0.2 rounded bg-slate-200 text-slate-700">
+                                {ev.tipo}
+                              </span>
+                            </span>
                             <span className="text-[10px] text-[#5E6E64]">
-                              {new Date(com.data).toLocaleDateString('pt-BR', {
+                              {new Date(ev.created).toLocaleDateString('pt-BR', {
                                 day: '2-digit',
                                 month: '2-digit',
                                 hour: '2-digit',
@@ -1264,9 +1264,11 @@ export default function QuadroPage() {
                               })}
                             </span>
                           </div>
-                          <p className="text-[#1D2B25] leading-relaxed whitespace-pre-line text-[11px]">
-                            {com.texto}
-                          </p>
+                          {ev.texto && (
+                            <p className="text-[#1D2B25] leading-relaxed whitespace-pre-line text-[11px]">
+                              {ev.texto}
+                            </p>
+                          )}
                         </div>
                       ))
                     )}
@@ -1274,14 +1276,13 @@ export default function QuadroPage() {
                 </div>
               )}
 
-              {/* Conteúdo Aba 4: Anexos */}
+              {/* Aba 4: Anexos */}
               {abaModal === 'anexos' && (
                 <div className="space-y-3">
                   {cartaoDetalhe.anexos && cartaoDetalhe.anexos.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {cartaoDetalhe.anexos.map((fileName) => {
                         const url = getUrlAnexo(cartaoDetalhe, fileName)
-
                         return (
                           <div
                             key={fileName}
@@ -1298,7 +1299,6 @@ export default function QuadroPage() {
                               target="_blank"
                               rel="noopener noreferrer"
                               className="p-1.5 rounded-md bg-white border border-[#A8C3A0]/30 hover:bg-[#EAF2E8] text-[#2F6B4F] shrink-0"
-                              title="Visualizar ou Baixar arquivo"
                             >
                               <Download className="w-3.5 h-3.5" />
                             </a>
@@ -1308,46 +1308,24 @@ export default function QuadroPage() {
                     </div>
                   ) : (
                     <p className="text-xs text-[#5E6E64] italic">
-                      Nenhum arquivo anexado a este cartão.
+                      Nenhum arquivo anexado a esta ocorrência.
                     </p>
                   )}
-
-                  {/* Adicionar novos anexos direto na ficha */}
-                  <div className="p-3 rounded-xl bg-[#F7FAF5] border border-dashed border-[#A8C3A0]/60 space-y-2">
-                    <span className="text-[11px] font-semibold text-[#1D2B25] block">
-                      Adicionar mais arquivos ao cartão (fotos, laudos, NF):
-                    </span>
-                    <div className="flex flex-col sm:flex-row items-center gap-2">
-                      <input
-                        type="file"
-                        multiple
-                        onChange={(e) => {
-                          if (e.target.files) {
-                            setNovosAnexos(Array.from(e.target.files))
-                          }
-                        }}
-                        className="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-full file:border-0 file:text-[11px] file:font-semibold file:bg-[#2F6B4F] file:text-white"
-                      />
-                      {novosAnexos.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={handleUploadNovosAnexos}
-                          disabled={salvandoDetalhe}
-                          className="w-full sm:w-auto px-3.5 py-1.5 rounded-full bg-[#2F6B4F] text-white text-xs font-semibold shrink-0"
-                        >
-                          {salvandoDetalhe
-                            ? 'Enviando...'
-                            : `Salvar ${novosAnexos.length} anexo(s)`}
-                        </button>
-                      )}
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal Resolver Caso */}
+      <ModalResolverCaso
+        open={modalResolverAberto}
+        onOpenChange={setModalResolverAberto}
+        codigoCaso={casoParaResolver?.codigo}
+        tituloCaso={casoParaResolver?.cliente_nome || casoParaResolver?.descricao}
+        onConfirmar={handleConfirmarResolucao}
+      />
     </div>
   )
 }
