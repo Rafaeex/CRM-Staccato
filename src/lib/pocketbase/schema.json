@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-23T04:37:35.107Z",
+  "generatedAt": "2026-10-23T05:28:12.256Z",
   "collections": [
     {
       "name": "users",
@@ -793,7 +793,21 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["A fazer", "Fazendo hoje", "Aguardando cliente", "Resolvido"]
+          "selectValues": [
+            "NOVOS",
+            "EM TRATAMENTO",
+            "RETORNO DA LOJA",
+            "ANALISE DIRETORIA",
+            "A PAGAR",
+            "COMPRAS",
+            "AT",
+            "COLETA/ENTREGA",
+            "RESOLVIDO",
+            "A fazer",
+            "Fazendo hoje",
+            "Aguardando cliente",
+            "Resolvido"
+          ]
         },
         {
           "name": "prioridade",
@@ -845,6 +859,18 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "comentarios_json",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "etiquetas_json",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [

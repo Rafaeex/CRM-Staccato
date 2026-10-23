@@ -122,13 +122,42 @@ export interface FollowUpInput {
   proximos_passos?: string
 }
 
-export type ColunaKanban = 'A fazer' | 'Fazendo hoje' | 'Aguardando cliente' | 'Resolvido'
+// 9 colunas padrão do esteira SAC espelhadas do Trello real
+export type ColunaKanban =
+  | 'NOVOS'
+  | 'EM TRATAMENTO'
+  | 'RETORNO DA LOJA'
+  | 'ANALISE DIRETORIA'
+  | 'A PAGAR'
+  | 'COMPRAS'
+  | 'AT'
+  | 'COLETA/ENTREGA'
+  | 'RESOLVIDO'
+  // Suporte a compatibilidade temporária de tipos
+  | 'A fazer'
+  | 'Fazendo hoje'
+  | 'Aguardando cliente'
+  | 'Resolvido'
+
 export type PrioridadeKanban = 'Baixa' | 'Média' | 'Alta' | 'Urgente'
 
 export interface ItemChecklist {
   id: string
   texto: string
   concluido: boolean
+}
+
+export interface ComentarioCartao {
+  id: string
+  autor: string
+  texto: string
+  data: string
+}
+
+export interface EtiquetaCartao {
+  id: string
+  nome: string
+  cor?: string
 }
 
 export interface CartaoKanban extends RecordModel {
@@ -144,6 +173,8 @@ export interface CartaoKanban extends RecordModel {
   data_limite?: string
   ordem?: number
   checklist_json?: string
+  comentarios_json?: string
+  etiquetas_json?: string
   anexos?: string[]
   created: string
   updated: string
@@ -161,6 +192,8 @@ export interface CartaoKanbanInput {
   data_limite?: string
   ordem?: number
   checklist_json?: string
+  comentarios_json?: string
+  etiquetas_json?: string
   anexos?: File[]
 }
 

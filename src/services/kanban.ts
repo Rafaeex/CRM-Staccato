@@ -55,8 +55,9 @@ export async function criarCartaoKanban(dados: CartaoKanbanInput): Promise<Carta
     data_limite: dados.data_limite || '',
     ordem: dados.ordem ?? 0,
     checklist_json: dados.checklist_json || '[]',
+    comentarios_json: dados.comentarios_json || '[]',
+    etiquetas_json: dados.etiquetas_json || '[]',
   }
-
   const record = await pb.collection('kanban_cartoes').create<CartaoKanban>(payload)
   return record
 }
@@ -77,6 +78,9 @@ export async function atualizarCartaoKanban(
     if (dados.data_limite !== undefined) formData.append('data_limite', dados.data_limite)
     if (dados.ordem !== undefined) formData.append('ordem', String(dados.ordem))
     if (dados.checklist_json !== undefined) formData.append('checklist_json', dados.checklist_json)
+    if (dados.comentarios_json !== undefined)
+      formData.append('comentarios_json', dados.comentarios_json)
+    if (dados.etiquetas_json !== undefined) formData.append('etiquetas_json', dados.etiquetas_json)
     if (dados.responsavel !== undefined) formData.append('responsavel', dados.responsavel)
     if (dados.loja !== undefined) formData.append('loja', dados.loja)
     if (dados.cliente !== undefined) formData.append('cliente', dados.cliente)
