@@ -17,10 +17,34 @@ import {
   UserCheck,
   Sparkles,
   FileWarning,
+  Clock,
 } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { LOJAS } from '@/data/boutiqueData'
 import { getUsuarioAtualInfo } from '@/services/permissoes'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+
+const MESES_CURTOS = [
+  'jan',
+  'fev',
+  'mar',
+  'abr',
+  'mai',
+  'jun',
+  'jul',
+  'ago',
+  'set',
+  'out',
+  'nov',
+  'dez',
+]
+
+const formatarAtualizacao = (data: Date) => {
+  const dia = String(data.getDate()).padStart(2, '0')
+  const hora = String(data.getHours()).padStart(2, '0')
+  const minuto = String(data.getMinutes()).padStart(2, '0')
+  return `${dia} ${MESES_CURTOS[data.getMonth()]} ${data.getFullYear()}, ${hora}:${minuto}`
+}
 
 interface LayoutProps {
   children?: React.ReactNode
@@ -29,6 +53,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [lojaSelecionada, setLojaSelecionada] = useState<string>('Todas as Lojas')
+  const [atualizadoEm, setAtualizadoEm] = useState(() => new Date())
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -62,6 +87,11 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     setMobileOpen(false)
   }, [location.pathname])
+
+  // Horário local da visualização atual. Atualiza ao mudar de tela ou de loja.
+  useEffect(() => {
+    setAtualizadoEm(new Date())
+  }, [location.pathname, location.search])
 
   const handleLogout = () => {
     pb.authStore.clear()
@@ -200,6 +230,31 @@ export default function Layout({ children }: LayoutProps) {
 
           {/* Filtro Rápido de Unidade & Perfil do Consultor */}
           <div className="flex items-center gap-3 sm:gap-4">
+            <Tooltip delayDuration={200}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs text-[#A8C3A0] hover:bg-white/15 hover:text-white transition-colors"
+                  aria-label="Última atualização desta tela"
+                >
+                  <Clock className="w-3.5 h-3.5 shrink-0" />
+                  <span className="whitespace-nowrap">
+                    Última atualização:{' '}
+                    <time dateTime={atualizadoEm.toISOString()} className="font-medium text-white">
+                      {formatarAtualizacao(atualizadoEm)}
+                    </time>
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent
+                side="bottom"
+                className="max-w-xs border-[#A8C3A0]/40 bg-[#1D2B25] text-xs leading-snug text-white"
+              >
+                Horário local desta visualização. Atualiza ao mudar de tela ou de loja — nada é
+                gravado no servidor.
+              </TooltipContent>
+            </Tooltip>
+
             <div className="hidden md:flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full text-xs text-white/90 border border-white/10">
               <Building2 className="w-3.5 h-3.5 text-[#A8C3A0]" />
               <select
