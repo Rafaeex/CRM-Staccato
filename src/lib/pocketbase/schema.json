@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-23T08:02:19.040Z",
+  "generatedAt": "2026-10-23T09:10:17.418Z",
   "collections": [
     {
       "name": "users",
@@ -43,11 +43,26 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["gestor", "atendente", "comercial"]
+          "selectValues": [
+            "gestor",
+            "sac",
+            "atendente",
+            "comercial",
+            "logistica",
+            "financeiro",
+            "compras",
+            "diretoria"
+          ]
         },
         {
           "name": "loja",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ativo",
+          "type": "bool",
           "required": false,
           "system": false
         }
@@ -149,11 +164,11 @@
       "name": "lojas",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.id != \"\"",
+        "view": "@request.auth.id != \"\"",
+        "create": "@request.auth.role = \"gestor\"",
+        "update": "@request.auth.role = \"gestor\"",
+        "delete": "@request.auth.role = \"gestor\""
       },
       "fields": [
         {
@@ -228,11 +243,11 @@
       "name": "clientes",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja_origem)",
+        "view": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja_origem)",
+        "create": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = @request.body.loja_origem)",
+        "update": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = loja_origem)",
+        "delete": "@request.auth.role = \"gestor\""
       },
       "fields": [
         {
@@ -316,11 +331,11 @@
       "name": "atendimentos",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
+        "view": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
+        "create": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = @request.body.loja)",
+        "update": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = loja)",
+        "delete": "@request.auth.role = \"gestor\""
       },
       "fields": [
         {
@@ -413,11 +428,11 @@
       "name": "follow_ups",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
+        "view": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
+        "create": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = @request.body.loja)",
+        "update": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = loja)",
+        "delete": "@request.auth.role = \"gestor\""
       },
       "fields": [
         {
@@ -558,11 +573,11 @@
       "name": "reclamacoes",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
+        "view": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
+        "create": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = @request.body.loja)",
+        "update": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = loja)",
+        "delete": "@request.auth.role = \"gestor\""
       },
       "fields": [
         {
@@ -750,11 +765,11 @@
       "name": "kanban_cartoes",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
+        "view": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.loja = loja)",
+        "create": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = @request.body.loja)",
+        "update": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.loja = loja)",
+        "delete": "@request.auth.role = \"gestor\""
       },
       "fields": [
         {
@@ -884,11 +899,11 @@
       "name": "quebras_boem",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.role = \"comercial\" || @request.auth.loja = loja)",
+        "view": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"diretoria\" || @request.auth.role = \"comercial\" || @request.auth.loja = loja)",
+        "create": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"comercial\" || @request.auth.loja = @request.body.loja)",
+        "update": "@request.auth.id != \"\" && (@request.auth.role = \"gestor\" || @request.auth.role = \"sac\" || @request.auth.role = \"comercial\" || @request.auth.loja = loja)",
+        "delete": "@request.auth.role = \"gestor\""
       },
       "fields": [
         {
@@ -1062,11 +1077,11 @@
       "name": "trello_listas",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.id != \"\"",
+        "view": "@request.auth.id != \"\"",
+        "create": "@request.auth.role = \"gestor\"",
+        "update": "@request.auth.role = \"gestor\"",
+        "delete": "@request.auth.role = \"gestor\""
       },
       "fields": [
         {
@@ -1117,11 +1132,11 @@
       "name": "configuracoes_sla",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.id != \"\"",
+        "view": "@request.auth.id != \"\"",
+        "create": "@request.auth.role = \"gestor\"",
+        "update": "@request.auth.role = \"gestor\"",
+        "delete": "@request.auth.role = \"gestor\""
       },
       "fields": [
         {

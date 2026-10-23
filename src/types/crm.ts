@@ -197,7 +197,15 @@ export interface CartaoKanbanInput {
   anexos?: File[]
 }
 
-export type RoleUsuario = 'gestor' | 'atendente' | 'comercial'
+export type RoleUsuario =
+  | 'gestor'
+  | 'sac'
+  | 'atendente'
+  | 'comercial'
+  | 'logistica'
+  | 'financeiro'
+  | 'compras'
+  | 'diretoria'
 
 export interface UsuarioCRM extends RecordModel {
   id: string
@@ -206,6 +214,7 @@ export interface UsuarioCRM extends RecordModel {
   role?: RoleUsuario
   loja?: string
   avatar?: string
+  ativo?: boolean
 }
 
 // NOVO: Tipos para o módulo de Quebras & BOEM (Trello BOT IA)

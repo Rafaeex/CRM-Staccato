@@ -5,11 +5,14 @@ export interface UsuarioAutenticadoInfo {
   id: string
   email: string
   name: string
-  role: RoleUsuario
+  role: RoleUsuario | null
   loja: string
+  ativo: boolean
   isGestor: boolean
   isAtendente: boolean
   isComercial: boolean
+  isSac: boolean
+  isDiretoria: boolean
 }
 
 export function getUsuarioAtualInfo(): UsuarioAutenticadoInfo {
@@ -19,36 +22,33 @@ export function getUsuarioAtualInfo(): UsuarioAutenticadoInfo {
     return {
       id: '',
       email: '',
-      name: 'Visitante',
-      role: 'gestor',
+      name: '',
+      role: null,
       loja: '',
-      isGestor: true,
+      ativo: false,
+      isGestor: false,
       isAtendente: false,
       isComercial: false,
+      isSac: false,
+      isDiretoria: false,
     }
   }
 
-  let role: RoleUsuario = 'gestor'
-  if (user.role === 'atendente') {
-    role = 'atendente'
-  } else if (user.role === 'comercial') {
-    role = 'comercial'
-  } else {
-    role = 'gestor'
-  }
-
+  const role = user.role || 'atendente'
   const loja = user.loja || ''
+  const ativo = user.ativo !== false
 
   return {
     id: user.id,
     email: user.email,
-    name:
-      user.name ||
-      (role === 'atendente' ? 'Atendente' : role === 'comercial' ? 'Comercial' : 'Gestor'),
+    name: user.name || user.email || 'Usuário',
     role,
     loja,
+    ativo,
     isGestor: role === 'gestor',
     isAtendente: role === 'atendente',
     isComercial: role === 'comercial',
+    isSac: role === 'sac',
+    isDiretoria: role === 'diretoria',
   }
 }
