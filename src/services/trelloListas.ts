@@ -1,17 +1,56 @@
 import pb from '@/lib/pocketbase/client'
 import type { TrelloLista } from '@/types/crm'
 
+// 9 colunas padrão da esteira SAC espelhadas do quadro real "SAC GABR (ALINE)" no Trello
+export const COLUNAS_PADRAO_SAC: readonly string[] = [
+  'NOVOS',
+  'EM TRATAMENTO',
+  'RETORNO DA LOJA',
+  'ANALISE DIRETORIA',
+  'A PAGAR',
+  'COMPRAS',
+  'AT',
+  'COLETA/ENTREGA',
+  'RESOLVIDO',
+] as const
+
 export async function listarTrelloListas(tipoQuadro?: string): Promise<TrelloLista[]> {
   try {
     const filter = tipoQuadro ? `tipo_quadro = "${tipoQuadro}" || tipo_quadro = "geral"` : ''
-    return await pb.collection('trello_listas').getFullList<TrelloLista>({
+    const listas = await pb.collection('trello_listas').getFullList<TrelloLista>({
       filter,
       sort: 'ordem,created',
     })
+
+    // Se estiver vazio para sac/geral, inicializa automaticamente com as 9 colunas padrão
+    if (listas.length === 0 && (!tipoQuadro || tipoQuadro === 'sac' || tipoQuadro === 'geral')) {
+      return await inicializarListasPadrao(tipoQuadro || 'sac')
+    }
+
+    return listas
   } catch (err) {
     console.error('Erro ao listar listas Trello:', err)
     return []
   }
+}
+
+export async function inicializarListasPadrao(tipoQuadro = 'sac'): Promise<TrelloLista[]> {
+  const criadas: TrelloLista[] = []
+  for (let i = 0; i < COLUNAS_PADRAO_SAC.length; i++) {
+    const nome = COLUNAS_PADRAO_SAC[i]
+    try {
+      const lista = await pb.collection('trello_listas').create<TrelloLista>({
+        nome,
+        tipo_quadro: tipoQuadro,
+        trello_id: '',
+        ordem: i + 1,
+      })
+      criadas.push(lista)
+    } catch (err) {
+      console.warn(`Erro ao criar coluna padrão ${nome}:`, err)
+    }
+  }
+  return criadas
 }
 
 export async function criarTrelloLista(

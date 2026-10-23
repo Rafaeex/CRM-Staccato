@@ -349,10 +349,13 @@ export function parseTrelloJSON(jsonData: any): ResultadoParseTrello {
         }
       }
 
+      const isBoemProcedente =
+        (resBoem as string) === 'Procedente (Reposição Autorizada)' ||
+        (resBoem as string) === 'Procedente (Reembolso / Crédito)'
+
       const statusSugeridoQuebra: StatusQuebra = isClosed
         ? 'Resolvida'
-        : resBoem === 'Procedente (Reposição Autorizada)' ||
-            resBoem === 'Procedente (Reembolso / Crédito)'
+        : isBoemProcedente
           ? 'Em análise'
           : 'Registro'
 
